@@ -536,34 +536,94 @@ function chartTimeline(drink, W, H) {
   const mx = Math.max(...prices);
   const rng = mx - mn || 0.01;
 
-  // Generate price line points with padding for axes
-  const padding = 40;
-  const chartW = W - (padding * 2);
-  const chartH = H - (padding * 2);
-
-  const pts = drink.timeline.map((t, i) => {
-    const x = (i / (drink.timeline.length - 1)) * chartW + padding;
-    const y = H - padding - ((t.p - mn) / rng) * chartH;
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(' ');
-
   // Determine color based on trend (up = red, down = green)
   const up = drink.p > drink.b;
   const lineColor = up ? '#ff5252' : '#3dd68c';
   const gridColor = 'rgba(255,255,255,0.08)';
+  const areaColor = up ? 'rgba(255,82,82,0.08)' : 'rgba(61,214,140,0.08)';
 
-  // Build SVG with grid and line
+  // Split canvas: 70% price chart, 30% volume bars
+  const pricePct = 0.72;
+  const volumePct = 0.28;
+
+  const padding = 40;
+  const chartW = W - (padding * 2);
+  const priceH = Math.floor(H * pricePct);
+  const volumeH = Math.floor(H * volumePct);
+
+  const priceChartH = priceH - (padding * 2);
+  const volumeChartH = volumeH - padding;
+
+  // Generate price line points
+  const pricePts = drink.timeline.map((t, i) => {
+    const x = (i / (drink.timeline.length - 1)) * chartW + padding;
+    const y = padding + (priceH - padding - ((t.p - mn) / rng) * priceChartH);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  // Generate filled area under price line
+  const areaPoints = drink.timeline.map((t, i) => {
+    const x = (i / (drink.timeline.length - 1)) * chartW + padding;
+    const y = padding + (priceH - padding - ((t.p - mn) / rng) * priceChartH);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const areaPoly = [...areaPoints,
+    `${(W - padding).toFixed(1)},${(priceH).toFixed(1)}`,
+    `${padding.toFixed(1)},${(priceH).toFixed(1)}`
+  ].join(' ');
+
+  // Generate volume bars (colored by buy/sell type)
+  const volumeBars = drink.timeline.map((t, i) => {
+    const x = (i / (drink.timeline.length - 1)) * chartW + padding;
+    const barW = Math.max(3, (chartW / drink.timeline.length) * 0.75);
+    const barH = Math.max(3, volumeChartH * 0.75); // Taller bars for visibility
+    const y = priceH + padding + (volumeChartH - barH);
+    const barColor = t.type === 'buy' ? '#ff5252' : '#3dd68c';
+
+    return `<rect x="${(x - barW/2).toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${barColor}" opacity="0.85" rx="2"/>`;
+  }).join('');
+
+  // Price line fill with area
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block">
-    <!-- Grid lines -->
-    <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${H - padding}" stroke="${gridColor}" stroke-width="1"/>
-    <line x1="${padding}" y1="${H - padding}" x2="${W - padding}" y2="${H - padding}" stroke="${gridColor}" stroke-width="1"/>
+    <!-- Background section divider -->
+    <line x1="${padding}" y1="${priceH}" x2="${W - padding}" y2="${priceH}" stroke="${gridColor}" stroke-width="0.5" opacity="0.3"/>
 
-    <!-- Horizontal grid lines (3 evenly spaced) -->
-    <line x1="${padding}" y1="${padding + (chartH / 2)}" x2="${W - padding}" y2="${padding + (chartH / 2)}" stroke="${gridColor}" stroke-width="0.5" opacity="0.5"/>
-    <line x1="${padding}" y1="${padding + (chartH * 0.25)}" x2="${W - padding}" y2="${padding + (chartH * 0.25)}" stroke="${gridColor}" stroke-width="0.5" opacity="0.3"/>
-    <line x1="${padding}" y1="${padding + (chartH * 0.75)}" x2="${W - padding}" y2="${padding + (chartH * 0.75)}" stroke="${gridColor}" stroke-width="0.5" opacity="0.3"/>
+    <!-- Price chart area -->
+    <defs>
+      <linearGradient id="priceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" style="stop-color:${lineColor};stop-opacity:0.15" />
+        <stop offset="100%" style="stop-color:${lineColor};stop-opacity:0" />
+      </linearGradient>
+    </defs>
+
+    <!-- Axes for price chart -->
+    <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${priceH}" stroke="${gridColor}" stroke-width="1"/>
+    <line x1="${padding}" y1="${priceH}" x2="${W - padding}" y2="${priceH}" stroke="${gridColor}" stroke-width="1"/>
+
+    <!-- Horizontal grid lines for price chart -->
+    <line x1="${padding}" y1="${padding + (priceChartH / 2)}" x2="${W - padding}" y2="${padding + (priceChartH / 2)}" stroke="${gridColor}" stroke-width="0.5" opacity="0.3"/>
+    <line x1="${padding}" y1="${padding + (priceChartH * 0.25)}" x2="${W - padding}" y2="${padding + (priceChartH * 0.25)}" stroke="${gridColor}" stroke-width="0.5" opacity="0.2"/>
+    <line x1="${padding}" y1="${padding + (priceChartH * 0.75)}" x2="${W - padding}" y2="${padding + (priceChartH * 0.75)}" stroke="${gridColor}" stroke-width="0.5" opacity="0.2"/>
+
+    <!-- Filled area under price curve -->
+    <polygon points="${areaPoly}" fill="url(#priceGradient)" />
 
     <!-- Price line -->
-    <polyline points="${pts}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="${pricePts}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Volume section -->
+    <!-- Volume axes -->
+    <line x1="${padding}" y1="${priceH}" x2="${padding}" y2="${H - padding}" stroke="${gridColor}" stroke-width="1"/>
+    <line x1="${padding}" y1="${H - padding}" x2="${W - padding}" y2="${H - padding}" stroke="${gridColor}" stroke-width="1"/>
+
+    <!-- Volume bars -->
+    ${volumeBars}
+
+    <!-- Price scale labels (right side) -->
+    <text x="${W - 8}" y="${padding + 6}" font-size="11" fill="rgba(255,255,255,0.4)" text-anchor="end" font-family="'Inter', monospace">£${mx.toFixed(2)}</text>
+    <text x="${W - 8}" y="${priceH - 4}" font-size="11" fill="rgba(255,255,255,0.4)" text-anchor="end" font-family="'Inter', monospace">£${mn.toFixed(2)}</text>
+
+    <!-- Volume label -->
+    <text x="${padding + 4}" y="${priceH + 12}" font-size="10" fill="rgba(255,255,255,0.3)" font-family="'Inter', monospace">Volume</text>
   </svg>`;
 }
