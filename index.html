@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Night Economy — Control Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link rel="stylesheet" href="styles.css?v=2">
+<style>
+/* Scenario-specific overrides */
+.root.mode-startup #stext::before { content: 'Initializing'; }
+.root.mode-startup #stext { visibility: hidden; }
+.root.mode-startup #stext::before { visibility: visible; }
+
+.root.mode-spotlight .body { grid-template-columns: 1fr 0px 0px; }
+.root.mode-spotlight .board { display: none; }
+.root.mode-spotlight .divv { display: none; }
+.root.mode-spotlight .rpanel { grid-column: 1 / -1; border-left: none; background: linear-gradient(135deg, rgba(201,170,82,0.04) 0%, rgba(10,10,15,0.98) 100%); display: flex; align-items: center; justify-content: center; }
+.root.mode-spotlight .pview { padding: 60px 80px; max-width: 700px; width: 100%; }
+.root.mode-spotlight #pv0, .root.mode-spotlight #pv1 { display: none; }
+.root.mode-spotlight #pv2 { display: block; }
+.root.mode-spotlight .panel-dots { display: none; }
+.root.mode-spotlight .sp-name { font-size: 64px; margin-bottom: 8px; letter-spacing: -1px; }
+.root.mode-spotlight .sp-cat { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; }
+.root.mode-spotlight .sp-price { font-size: 72px; }
+.root.mode-spotlight .sp-chg { font-size: 28px; }
+.root.mode-spotlight .sp-spark { height: 140px; margin: 24px 0; }
+.root.mode-spotlight .sp-spark svg { width: 100% !important; height: 100% !important; }
+.root.mode-spotlight .sp-story { font-size: 16px; line-height: 1.8; margin-bottom: 24px; }
+.root.mode-spotlight .sp-stats { gap: 40px; }
+.root.mode-spotlight .sp-sval { font-size: 20px; }
+
+.root.mode-breaking-news .ui { grid-template-rows: 50px 34px 1fr 120px; }
+.root.mode-breaking-news .newsbar { border-top: 2px solid rgba(255,82,82,0.3); background: rgba(255,82,82,0.05); display: flex; align-items: center; overflow: hidden; padding: 12px 0; height: auto; min-height: 120px; }
+.root.mode-breaking-news .nb-tag { padding: 0 24px; font-size: 11px; font-weight: 900; letter-spacing: 0.3em; color: #ff5252; white-space: nowrap; border-right: 2px solid rgba(255,82,82,0.2); height: 100%; display: flex; align-items: center; text-transform: uppercase; min-width: 140px; flex-shrink: 0; }
+.root.mode-breaking-news .nb-track { overflow: hidden; flex: 1; height: 100%; position: relative; padding: 0 20px; }
+.root.mode-breaking-news .nb-txt { font-size: 16px; color: rgba(232,228,210,0.8); white-space: normal; position: static; transform: none; line-height: 1.6; transition: color 0.6s; }
+.root.mode-breaking-news .nb-src { padding: 0 24px; font-size: 10px; color: rgba(255,255,255,0.2); white-space: nowrap; font-family: 'DM Mono',monospace; border-left: 2px solid rgba(255,82,82,0.2); flex-shrink: 0; }
+.root.mode-breaking-news .body { grid-template-columns: 1fr 1px 300px; }
+.root.mode-breaking-news .board { opacity: 0.6; }
+.root.mode-breaking-news .rpanel { opacity: 0.7; }
+
+.root.mode-final-call .ui { opacity: 0.8; }
+.root.mode-final-call .grid { background-image: linear-gradient(rgba(255,255,255,0.008) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.008) 1px,transparent 1px); }
+.root.mode-final-call .topbar { border-bottom-color: rgba(200,160,0,0.2); }
+.root.mode-final-call .brand { color: #c9aa52; text-shadow: 0 0 12px rgba(200,160,0,0.3); }
+.root.mode-final-call .live-pill { border-color: rgba(200,160,0,0.5); color: #c9aa52; background: rgba(200,160,0,0.06); }
+.root.mode-final-call .live-dot { background: #c9aa52; box-shadow: 0 0 6px rgba(200,160,0,0.6); animation: blink 1.8s infinite; }
+.root.mode-final-call #stext::after { content: ' (Closing)'; }
+.root.mode-final-call .ticker { background: linear-gradient(90deg,rgba(255,255,255,0.015) 0%,rgba(200,160,0,0.01) 100%); border-bottom-color: rgba(200,160,0,0.08); }
+.root.mode-final-call .t-badge { color: #c9aa52; text-shadow: 0 0 6px rgba(200,160,0,0.2); }
+.root.mode-final-call .t-inner { animation: crawl 32s linear infinite; }
+.root.mode-final-call .board-hdr { border-bottom-color: rgba(255,255,255,0.04); }
+.root.mode-final-call .col-hdr { border-bottom-color: rgba(200,160,0,0.08); }
+.root.mode-final-call .drow { opacity: 0.7; }
+.root.mode-final-call .newsbar { background: rgba(200,160,0,0.08); border-top-color: rgba(200,160,0,0.15); }
+.root.mode-final-call .nb-tag { color: #c9aa52; }
+.root.mode-final-call .nb-txt { color: rgba(232,228,210,0.5); }
+.root.mode-final-call .rpanel { border-left-color: rgba(200,160,0,0.1); background: linear-gradient(135deg,rgba(200,160,0,0.008) 0%,rgba(200,160,0,0.01) 100%); }
+.root.mode-final-call .pview { opacity: 0.85; }
+.root.mode-final-call .mn-hl { color: rgba(232,228,210,0.8); }
+.root.mode-final-call .panel-tag { opacity: 0.8; }
+
+/* Overlay menu */
+.mode-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.mode-menu.active {
+  opacity: 1;
+  pointer-events: all;
+}
+.mode-menu-content {
+  background: linear-gradient(135deg, rgba(40,40,50,0.98) 0%, rgba(50,45,60,0.98) 100%);
+  border: 2px solid rgba(200,160,0,0.3);
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  max-width: 500px;
+}
+.mode-menu-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #c9aa52;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.mode-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.mode-btn {
+  background: rgba(61,214,140,0.1);
+  border: 1px solid rgba(61,214,140,0.4);
+  color: #3dd68c;
+  padding: 12px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.mode-btn:hover {
+  background: rgba(61,214,140,0.2);
+  border-color: rgba(61,214,140,0.6);
+  box-shadow: 0 0 12px rgba(61,214,140,0.3);
+}
+.mode-btn.active {
+  background: rgba(61,214,140,0.3);
+  border-color: rgba(61,214,140,0.8);
+  box-shadow: 0 0 16px rgba(61,214,140,0.4);
+}
+.menu-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: rgba(200,160,0,0.2);
+  border: 1px solid rgba(200,160,0,0.5);
+  color: #c9aa52;
+  padding: 8px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  z-index: 10000;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.menu-toggle:hover {
+  background: rgba(200,160,0,0.3);
+  border-color: rgba(200,160,0,0.8);
+}
+</style>
+</head>
+<body>
+<div class="root">
+  <canvas id="threeCanvas"></canvas>
+  <div class="grid" id="grid"></div>
+  <div class="wash" id="wash"></div>
+  <div class="vignette"></div>
+  <div class="scanlines"></div>
+
+  <div class="warn-banner" id="warnBanner">
+    <span class="warn-icon">⚠</span>
+    <span class="warn-text" id="warnText">Unusual market activity detected</span>
+    <span class="warn-sub" id="warnSub">· Monitoring price volatility across all categories</span>
+  </div>
+
+  <div class="ui" id="ui">
+    <div class="topbar">
+      <div class="brand">Night Economy</div>
+      <div class="live-pill" id="pill"><div class="live-dot" id="ldot"></div><span id="stext">Market open</span></div>
+      <div class="top-right">
+        <div class="trade-count">Trades tonight <span id="tradeTotal">0</span></div>
+        <div class="clk" id="clk">--:--:--</div>
+      </div>
+    </div>
+
+    <div class="ticker">
+      <div class="t-badge">Live prices</div>
+      <div class="t-track"><div class="t-inner" id="tinner"></div></div>
+    </div>
+
+    <div class="body">
+      <div class="board">
+        <div class="board-hdr">
+          <span class="slbl">Live market board</span>
+          <span class="updt" id="lupdt">—</span>
+        </div>
+        <div class="col-hdr">
+          <div class="ch">Drink</div>
+          <div class="ch">Price</div>
+          <div class="ch">Trend</div>
+          <div class="ch">Change</div>
+          <div class="ch"></div>
+        </div>
+        <div class="board-scroll"><div class="board-inner" id="boardInner"></div></div>
+      </div>
+
+      <div class="divv"></div>
+
+      <div class="rpanel">
+        <div class="pview active" id="pv0">
+          <div class="panel-tag tag-market">◈ Market news</div>
+          <div class="mn-hl" id="mn-hl">Cocktail demand surges to session high</div>
+          <div class="mn-sub" id="mn-sub">Strong buying across categories. Espresso Martini leading as late arrivals drive volume.</div>
+          <div class="mn-stat"><span class="mn-lbl">Best value now</span><span class="mn-val dn" id="mn-value">—</span></div>
+          <div class="mn-stat"><span class="mn-lbl">Biggest riser</span><span class="mn-val up" id="mn-riser">—</span></div>
+          <div class="mn-stat"><span class="mn-lbl">Biggest faller</span><span class="mn-val dn" id="mn-faller">—</span></div>
+          <div class="mn-stat"><span class="mn-lbl">Market mood</span><span class="mn-val" id="mn-mood">—</span></div>
+          <div class="mn-time" id="mn-time">—</div>
+        </div>
+        <div class="pview" id="pv1">
+          <div class="panel-tag tag-gossip">◆ Floor gossip</div>
+          <div class="gossip-feed" id="gossip-feed"></div>
+        </div>
+        <div class="pview" id="pv2">
+          <div class="panel-tag tag-spotlight">★ Drink spotlight</div>
+          <div class="sp-name" id="sp-name">—</div>
+          <div class="sp-cat" id="sp-cat">—</div>
+          <div class="sp-price-row"><div class="sp-price dn" id="sp-price">£—</div><div class="sp-chg dn" id="sp-chg">—</div></div>
+          <div class="sp-spark" id="sp-spark"></div>
+          <div class="sp-story" id="sp-story">—</div>
+          <div class="sp-stats">
+            <div class="sp-stat"><div class="sp-slbl">High</div><div class="sp-sval" id="sp-high">—</div></div>
+            <div class="sp-stat"><div class="sp-slbl">Low</div><div class="sp-sval" id="sp-low">—</div></div>
+            <div class="sp-stat"><div class="sp-slbl">Orders</div><div class="sp-sval" id="sp-orders">—</div></div>
+          </div>
+        </div>
+        <div class="panel-dots"><div class="pdot active" id="dot0"></div><div class="pdot" id="dot1"></div><div class="pdot" id="dot2"></div></div>
+      </div>
+    </div>
+
+    <div class="newsbar">
+      <div class="nb-tag" id="nb-tag">Breaking</div>
+      <div class="nb-track"><div class="nb-txt" id="nbtxt">Market open — prices moving live across all categories. Orders push prices up. Inactivity pulls them down.</div></div>
+      <div class="nb-src" id="nbsrc">Night Economy Bureau</div>
+    </div>
+  </div>
+
+  <!-- Event layer for crash/surge -->
+  <div class="evlayer" id="evl">
+    <div class="sweep sweep-t" id="swt"></div>
+    <div class="sweep sweep-b" id="swb"></div>
+    <div class="brkt brkt-tl" id="btl"></div><div class="brkt brkt-tr" id="btr"></div>
+    <div class="brkt brkt-bl" id="bbl"></div><div class="brkt brkt-br" id="bbr"></div>
+    <div class="evcard" id="evc">
+      <div class="ev-pre" id="epre">⚠ Market Crash</div>
+      <div class="ev-hl" id="ehl">CRASH</div>
+      <div class="ev-sub" id="esub">Prices collapsing — buy window now open</div>
+      <div class="cd-row" id="cd-row">
+        <div class="cd-lbl">Buy window</div>
+        <div class="cd-track"><div class="cd-fill" id="cd-fill"></div></div>
+        <div class="cd-num" id="cd-num">3:00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode menu -->
+  <button class="menu-toggle" id="menuToggle">☰ Scenarios</button>
+  <div class="mode-menu" id="modeMenu">
+    <div class="mode-menu-content">
+      <div class="mode-menu-title">Select Scenario</div>
+      <div class="mode-buttons">
+        <button class="mode-btn active" data-mode="base">Base Home</button>
+        <button class="mode-btn" data-mode="startup">Start Up</button>
+        <button class="mode-btn" data-mode="breaking-news">Breaking News</button>
+        <button class="mode-btn" data-mode="spotlight">Drink Spotlight</button>
+        <button class="mode-btn" data-mode="final-call">Final Call</button>
+        <button class="mode-btn" data-mode="crash">Crash Event</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes shake{0%{transform:translate(0,0)}10%{transform:translate(-3px,1px)}20%{transform:translate(3px,-2px)}30%{transform:translate(-4px,2px)}40%{transform:translate(4px,-1px)}50%{transform:translate(-2px,3px)}60%{transform:translate(3px,-2px)}70%{transform:translate(-3px,1px)}80%{transform:translate(2px,-1px)}90%{transform:translate(-1px,2px)}100%{transform:translate(0,0)}}
+</style>
+
+<script src="data.js"></script>
+<script src="shared.js"></script>
+<script src="crash-surge.js"></script>
+
+<script>
+let currentMode = 'base';
+let clockInterval, decayInterval, panelInterval, orderSchedule;
+let activeTimers = []; // track all setTimeout handles for cleanup
+
+function resetState() {
+  if (clockInterval) clearInterval(clockInterval);
+  if (decayInterval) clearInterval(decayInterval);
+  if (panelInterval) clearInterval(panelInterval);
+  if (orderSchedule) clearTimeout(orderSchedule);
+  activeTimers.forEach(t => clearTimeout(t));
+  activeTimers = [];
+  crashActive = false;
+  clearInterval(cdInt);
+  threeMode = 'normal';
+
+  // Reset event layer
+  const evc = document.getElementById('evc');
+  const evl = document.getElementById('evl');
+  evc.classList.remove('show');
+  evl.style.display = 'none';
+  evl.classList.remove('show');
+  evl.style.opacity = '';
+
+  // Reset UI state
+  const ui = document.getElementById('ui');
+  ui.classList.remove('dim');
+  ui.style.animation = 'none';
+  const wash = document.getElementById('wash');
+  wash.style.opacity = '0';
+  wash.style.background = '';
+  document.getElementById('warnBanner').classList.remove('show');
+  const pill = document.getElementById('pill');
+  pill.classList.remove('crash');
+
+  // Reset event card elements
+  ['evc', 'epre', 'ehl', 'esub', 'cd-row'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.transition = 'none';
+    el.style.opacity = '0';
+    if (id === 'evc') el.style.transform = 'translateY(20px) scale(0.95)';
+    if (id === 'epre') el.style.transform = 'translateY(-12px)';
+    if (id === 'ehl') el.style.transform = 'translateY(26px)';
+    if (id === 'esub') el.style.transform = 'translateY(12px)';
+  });
+  ['btl', 'btr', 'bbl', 'bbr', 'swt', 'swb'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.transition = 'none';
+    el.style.opacity = '0';
+    if (id.startsWith('sw')) el.style.transform = 'scaleX(0)';
+  });
+
+  // Reset prices to base
+  D = DRINKS.map(d => ({ ...d, h: [...d.h], o: 0 }));
+
+  // Reset news bar
+  document.getElementById('nb-tag').textContent = 'Breaking';
+  document.getElementById('nb-tag').style.color = '';
+  document.getElementById('stext').textContent = 'Market open';
+}
+
+function t(fn, ms) {
+  const id = setTimeout(fn, ms);
+  activeTimers.push(id);
+  return id;
+}
+
+function weightedRandom() {
+  const r = Math.random();
+  let c = 0;
+  for (let i = 0; i < D.length; i++) {
+    c += ORDER_WEIGHTS[i];
+    if (r < c) return D[i].id;
+  }
+  return D[0].id;
+}
+
+function scheduleOrders(interval = [1800, 5800]) {
+  function sched() {
+    orderSchedule = setTimeout(() => {
+      if (!crashActive) fireOrder(weightedRandom());
+      sched();
+    }, interval[0] + Math.random() * (interval[1] - interval[0]));
+  }
+  sched();
+}
+
+function initMode(mode) {
+  currentMode = mode;
+  resetState();
+
+  const root = document.querySelector('.root');
+  root.className = 'root';
+  if (mode !== 'base') {
+    root.classList.add(`mode-${mode}`);
+  }
+
+  buildBoard();
+  renderTicker();
+  updateClock();
+  updateMarketPanel();
+  updateGossipPanel();
+  updateSpotlightPanel();
+
+  clockInterval = setInterval(updateClock, 1000);
+
+  switch(mode) {
+
+    /* ──────── BASE HOME ──────── */
+    case 'base':
+      t(() => startCrawl('Market open — prices moving live across all categories. Orders push prices up. Inactivity pulls them down.'), 400);
+      decayInterval = setInterval(applyDecay, 2500);
+      panelInterval = setInterval(() => switchPanel(currentPanel + 1), 9000);
+      scheduleOrders([1800, 5800]);
+      break;
+
+    /* ──────── START UP ──────── */
+    case 'startup': {
+      // Dim the board during boot
+      const board = document.querySelector('.board');
+      const rpanel = document.querySelector('.rpanel');
+      board.style.opacity = '0.15';
+      rpanel.style.opacity = '0.15';
+      board.style.transition = 'opacity 1.2s';
+      rpanel.style.transition = 'opacity 1.2s';
+
+      document.getElementById('stext').textContent = 'Initializing';
+      document.getElementById('nb-tag').textContent = 'System';
+      document.getElementById('nb-tag').style.color = '#c9aa52';
+
+      const bootMsgs = [
+        { delay: 400,  text: '▸ Initializing market engine...' },
+        { delay: 1400, text: '▸ Loading venue data — 12 instruments...' },
+        { delay: 2400, text: '▸ Connecting to floor reporters...' },
+        { delay: 3400, text: '▸ Starting price feeds across 4 categories...' },
+        { delay: 4400, text: '▸ Calibrating decay algorithm...' },
+        { delay: 5400, text: '▸ Markets live in 3...' },
+        { delay: 6200, text: '▸ Markets live in 2...' },
+        { delay: 7000, text: '▸ Markets live in 1...' },
+      ];
+      bootMsgs.forEach(msg => {
+        t(() => {
+          document.getElementById('nbtxt').textContent = msg.text;
+        }, msg.delay);
+      });
+
+      // Go live at 7.8s
+      t(() => {
+        document.getElementById('stext').textContent = 'Market open';
+        document.getElementById('nb-tag').textContent = 'Live';
+        document.getElementById('nb-tag').style.color = '#3dd68c';
+        board.style.opacity = '1';
+        rpanel.style.opacity = '1';
+        startCrawl('Market open — all 12 instruments now trading live. Orders push prices up. Inactivity pulls them down.');
+        decayInterval = setInterval(applyDecay, 2500);
+        panelInterval = setInterval(() => switchPanel(currentPanel + 1), 9000);
+        scheduleOrders([1200, 4000]);
+      }, 7800);
+      break;
+    }
+
+    /* ──────── BREAKING NEWS ──────── */
+    case 'breaking-news': {
+      document.getElementById('nb-tag').textContent = 'Breaking';
+      document.getElementById('nb-tag').style.color = '#ff5252';
+
+      const headlines = [
+        { text: 'BREAKING — Espresso Martini demand spikes 40% as late crowd floods venue', drink: 'em', surge: true },
+        { text: 'ALERT — Spirits category under severe selling pressure — Whisky and Vodka both falling', drink: null, dump: 'spirits' },
+        { text: 'FLASH — Cocktail prices surging to session highs across the board', drink: null, surge_cat: 'cocktails' },
+        { text: 'BREAKING — Zero-sugar drinks outperforming all categories tonight', drink: 'zs', surge: true },
+        { text: 'ALERT — Beer market entering correction territory — Guinness under pressure', drink: 'pg', dump: true },
+        { text: 'UPDATE — Market-wide volatility increasing — unusual trading patterns detected', drink: null, volatile: true },
+      ];
+      let hlIdx = 0;
+
+      function pushHeadline() {
+        const hl = headlines[hlIdx % headlines.length];
+        document.getElementById('nbtxt').style.transition = 'none';
+        document.getElementById('nbtxt').textContent = hl.text;
+
+        // Each headline triggers market action
+        if (hl.surge && hl.drink) {
+          for (let i = 0; i < 3; i++) t(() => fireOrder(hl.drink), i * 400);
+        }
+        if (hl.dump === 'spirits') {
+          D.filter(d => d.cat === 'spirits').forEach(d => {
+            d.p = Math.max(d.b * 0.5, d.p * 0.92);
+            d.h.push(d.p); if (d.h.length > 12) d.h.shift();
+            updateRowDisplay(d);
+          });
+          renderTicker();
+        }
+        if (hl.surge_cat) {
+          D.filter(d => d.cat === hl.surge_cat).forEach(d => {
+            t(() => fireOrder(d.id), Math.random() * 800);
+          });
+        }
+        if (hl.dump === true && hl.drink) {
+          const d = D.find(x => x.id === hl.drink);
+          if (d) { d.p = Math.max(d.b * 0.5, d.p * 0.88); d.h.push(d.p); if (d.h.length > 12) d.h.shift(); updateRowDisplay(d); renderTicker(); }
+        }
+        if (hl.volatile) {
+          D.forEach(d => {
+            const swing = (Math.random() - 0.5) * 0.5;
+            d.p = Math.max(d.b * 0.5, d.p + swing);
+            d.h.push(d.p); if (d.h.length > 12) d.h.shift();
+            updateRowDisplay(d);
+          });
+          renderTicker();
+        }
+        hlIdx++;
+      }
+
+      pushHeadline();
+      const newsRotate = setInterval(pushHeadline, 6000);
+      activeTimers.push(newsRotate);
+
+      decayInterval = setInterval(applyDecay, 2500);
+      panelInterval = setInterval(() => switchPanel(currentPanel + 1), 7000);
+      scheduleOrders([800, 3000]); // faster orders for drama
+      break;
+    }
+
+    /* ──────── DRINK SPOTLIGHT ──────── */
+    case 'spotlight': {
+      // Switch to spotlight panel immediately
+      switchPanel(2);
+      t(() => startCrawl('Drink Spotlight — deep dive into tonight\'s featured drinks. Rotating every 8 seconds.'), 400);
+
+      // Pick a random drink to spotlight and fire orders for it
+      function spotlightRotate() {
+        const drink = D[Math.floor(Math.random() * D.length)];
+        updateSpotlightPanel();
+        // Fire a couple orders for the spotlighted drink for visual activity
+        t(() => fireOrder(drink.id), 500);
+        t(() => fireOrder(drink.id), 1800);
+      }
+      spotlightRotate();
+      const spotRotate = setInterval(spotlightRotate, 8000);
+      activeTimers.push(spotRotate);
+
+      decayInterval = setInterval(applyDecay, 2500);
+      scheduleOrders([2000, 6000]);
+      break;
+    }
+
+    /* ──────── FINAL CALL ──────── */
+    case 'final-call': {
+      document.getElementById('stext').textContent = 'Last call';
+      document.getElementById('nb-tag').textContent = 'Closing';
+      document.getElementById('nb-tag').style.color = '#c9aa52';
+
+      const finalMsgs = [
+        'Last call approaching — final minutes of trading. Settle your positions.',
+        'Order activity slowing — prices stabilizing across all categories.',
+        'Night economy winding down — thank you for trading tonight.',
+        'Markets closing soon — all drinks returning to base pricing.',
+        'Final call — last chance to order before session closes.',
+      ];
+      let fIdx = 0;
+      function rotateFinal() {
+        startCrawl(finalMsgs[fIdx % finalMsgs.length], 'rgba(200,160,0,0.7)');
+        fIdx++;
+      }
+      rotateFinal();
+      const finalRotate = setInterval(rotateFinal, 10000);
+      activeTimers.push(finalRotate);
+
+      // Slower decay — prices drifting back to base
+      decayInterval = setInterval(() => {
+        D.forEach(d => {
+          // Drift toward base price instead of just decaying down
+          const diff = d.b - d.p;
+          d.p += diff * 0.02;
+          d.h.push(d.p); if (d.h.length > 12) d.h.shift();
+          updateRowDisplay(d);
+        });
+        renderTicker();
+      }, 3500);
+
+      panelInterval = setInterval(() => switchPanel(currentPanel + 1), 12000);
+
+      // Sparse orders that slow down over time
+      let finalOrderSpeed = 3000;
+      function finalOrders() {
+        orderSchedule = setTimeout(() => {
+          fireOrder(weightedRandom());
+          finalOrderSpeed = Math.min(finalOrderSpeed + 500, 15000); // orders slow down
+          finalOrders();
+        }, finalOrderSpeed + Math.random() * 4000);
+      }
+      finalOrders();
+
+      // Progressively dim the UI
+      t(() => { document.querySelector('.board').style.transition = 'opacity 8s'; document.querySelector('.board').style.opacity = '0.6'; }, 20000);
+      t(() => { document.querySelector('.board').style.opacity = '0.4'; }, 35000);
+      break;
+    }
+
+    /* ──────── CRASH EVENT ──────── */
+    case 'crash': {
+      t(() => startCrawl('Market open — prices moving live. Monitoring for unusual activity...'), 400);
+      decayInterval = setInterval(applyDecay, 2500);
+      panelInterval = setInterval(() => switchPanel(currentPanel + 1), 9000);
+      scheduleOrders([1200, 4000]);
+
+      // Build up some orders first, then trigger crash after 5s
+      t(() => {
+        // Fire a burst of orders to pump prices before crash
+        for (let i = 0; i < 6; i++) {
+          t(() => fireOrder(weightedRandom()), i * 500);
+        }
+      }, 2000);
+
+      t(() => startCrash(), 5000);
+      break;
+    }
+  }
+
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupThree();
+  initMode('base');
+
+  // Menu toggle
+  const menuToggle = document.getElementById('menuToggle');
+  const modeMenu = document.getElementById('modeMenu');
+  const modeBtns = document.querySelectorAll('.mode-btn');
+
+  menuToggle.addEventListener('click', () => {
+    modeMenu.classList.toggle('active');
+  });
+
+  modeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      modeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      initMode(btn.dataset.mode);
+      modeMenu.classList.remove('active');
+    });
+  });
+
+  // Animation loop
+  function animate() {
+    requestAnimationFrame(animate);
+    threeUpdate();
+  }
+  animate();
+
+  // Resize handler
+  window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+  });
+});
+</script>
+</body>
+</html>
