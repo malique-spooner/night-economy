@@ -8,11 +8,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <link rel="stylesheet" href="styles.css?v=2">
 <style>
-/* Scenario-specific overrides */
-.root.mode-startup #stext::before { content: 'Initializing'; }
-.root.mode-startup #stext { visibility: hidden; }
-.root.mode-startup #stext::before { visibility: visible; }
-
 .root.mode-spotlight .body { grid-template-columns: 1fr 0px 0px; }
 .root.mode-spotlight .board { display: none; }
 .root.mode-spotlight .divv { display: none; }
@@ -30,37 +25,6 @@
 .root.mode-spotlight .sp-story { font-size: 16px; line-height: 1.8; margin-bottom: 24px; }
 .root.mode-spotlight .sp-stats { gap: 40px; }
 .root.mode-spotlight .sp-sval { font-size: 20px; }
-
-.root.mode-breaking-news .ui { grid-template-rows: 50px 34px 1fr 120px; }
-.root.mode-breaking-news .newsbar { border-top: 2px solid rgba(255,82,82,0.3); background: rgba(255,82,82,0.05); display: flex; align-items: center; overflow: hidden; padding: 12px 0; height: auto; min-height: 120px; }
-.root.mode-breaking-news .nb-tag { padding: 0 24px; font-size: 11px; font-weight: 900; letter-spacing: 0.3em; color: #ff5252; white-space: nowrap; border-right: 2px solid rgba(255,82,82,0.2); height: 100%; display: flex; align-items: center; text-transform: uppercase; min-width: 140px; flex-shrink: 0; }
-.root.mode-breaking-news .nb-track { overflow: hidden; flex: 1; height: 100%; position: relative; padding: 0 20px; }
-.root.mode-breaking-news .nb-txt { font-size: 16px; color: rgba(232,228,210,0.8); white-space: normal; position: static; transform: none; line-height: 1.6; transition: color 0.6s; }
-.root.mode-breaking-news .nb-src { padding: 0 24px; font-size: 10px; color: rgba(255,255,255,0.2); white-space: nowrap; font-family: 'DM Mono',monospace; border-left: 2px solid rgba(255,82,82,0.2); flex-shrink: 0; }
-.root.mode-breaking-news .body { grid-template-columns: 1fr 1px 300px; }
-.root.mode-breaking-news .board { opacity: 0.6; }
-.root.mode-breaking-news .rpanel { opacity: 0.7; }
-
-.root.mode-final-call .ui { opacity: 0.8; }
-.root.mode-final-call .grid { background-image: linear-gradient(rgba(255,255,255,0.008) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.008) 1px,transparent 1px); }
-.root.mode-final-call .topbar { border-bottom-color: rgba(200,160,0,0.2); }
-.root.mode-final-call .brand { color: #c9aa52; text-shadow: 0 0 12px rgba(200,160,0,0.3); }
-.root.mode-final-call .live-pill { border-color: rgba(200,160,0,0.5); color: #c9aa52; background: rgba(200,160,0,0.06); }
-.root.mode-final-call .live-dot { background: #c9aa52; box-shadow: 0 0 6px rgba(200,160,0,0.6); animation: blink 1.8s infinite; }
-.root.mode-final-call #stext::after { content: ' (Closing)'; }
-.root.mode-final-call .ticker { background: linear-gradient(90deg,rgba(255,255,255,0.015) 0%,rgba(200,160,0,0.01) 100%); border-bottom-color: rgba(200,160,0,0.08); }
-.root.mode-final-call .t-badge { color: #c9aa52; text-shadow: 0 0 6px rgba(200,160,0,0.2); }
-.root.mode-final-call .t-inner { animation: crawl 32s linear infinite; }
-.root.mode-final-call .board-hdr { border-bottom-color: rgba(255,255,255,0.04); }
-.root.mode-final-call .col-hdr { border-bottom-color: rgba(200,160,0,0.08); }
-.root.mode-final-call .drow { opacity: 0.7; }
-.root.mode-final-call .newsbar { background: rgba(200,160,0,0.08); border-top-color: rgba(200,160,0,0.15); }
-.root.mode-final-call .nb-tag { color: #c9aa52; }
-.root.mode-final-call .nb-txt { color: rgba(232,228,210,0.5); }
-.root.mode-final-call .rpanel { border-left-color: rgba(200,160,0,0.1); background: linear-gradient(135deg,rgba(200,160,0,0.008) 0%,rgba(200,160,0,0.01) 100%); }
-.root.mode-final-call .pview { opacity: 0.85; }
-.root.mode-final-call .mn-hl { color: rgba(232,228,210,0.8); }
-.root.mode-final-call .panel-tag { opacity: 0.8; }
 
 /* Overlay menu */
 .mode-menu {
@@ -261,10 +225,7 @@
       <div class="mode-menu-title">Select Scenario</div>
       <div class="mode-buttons">
         <button class="mode-btn active" data-mode="base">Base Home</button>
-        <button class="mode-btn" data-mode="startup">Start Up</button>
-        <button class="mode-btn" data-mode="breaking-news">Breaking News</button>
         <button class="mode-btn" data-mode="spotlight">Drink Spotlight</button>
-        <button class="mode-btn" data-mode="final-call">Final Call</button>
         <button class="mode-btn" data-mode="crash">Crash Event</button>
       </div>
     </div>
@@ -397,113 +358,6 @@ function initMode(mode) {
       scheduleOrders([1800, 5800]);
       break;
 
-    /* ──────── START UP ──────── */
-    case 'startup': {
-      // Dim the board during boot
-      const board = document.querySelector('.board');
-      const rpanel = document.querySelector('.rpanel');
-      board.style.opacity = '0.15';
-      rpanel.style.opacity = '0.15';
-      board.style.transition = 'opacity 1.2s';
-      rpanel.style.transition = 'opacity 1.2s';
-
-      document.getElementById('stext').textContent = 'Initializing';
-      document.getElementById('nb-tag').textContent = 'System';
-      document.getElementById('nb-tag').style.color = '#c9aa52';
-
-      const bootMsgs = [
-        { delay: 400,  text: '▸ Initializing market engine...' },
-        { delay: 1400, text: '▸ Loading venue data — 12 instruments...' },
-        { delay: 2400, text: '▸ Connecting to floor reporters...' },
-        { delay: 3400, text: '▸ Starting price feeds across 4 categories...' },
-        { delay: 4400, text: '▸ Calibrating decay algorithm...' },
-        { delay: 5400, text: '▸ Markets live in 3...' },
-        { delay: 6200, text: '▸ Markets live in 2...' },
-        { delay: 7000, text: '▸ Markets live in 1...' },
-      ];
-      bootMsgs.forEach(msg => {
-        t(() => {
-          document.getElementById('nbtxt').textContent = msg.text;
-        }, msg.delay);
-      });
-
-      // Go live at 7.8s
-      t(() => {
-        document.getElementById('stext').textContent = 'Market open';
-        document.getElementById('nb-tag').textContent = 'Live';
-        document.getElementById('nb-tag').style.color = '#3dd68c';
-        board.style.opacity = '1';
-        rpanel.style.opacity = '1';
-        startCrawl('Market open — all 12 instruments now trading live. Orders push prices up. Inactivity pulls them down.');
-        decayInterval = setInterval(applyDecay, 2500);
-        panelInterval = setInterval(() => switchPanel(currentPanel + 1), 9000);
-        scheduleOrders([1200, 4000]);
-      }, 7800);
-      break;
-    }
-
-    /* ──────── BREAKING NEWS ──────── */
-    case 'breaking-news': {
-      document.getElementById('nb-tag').textContent = 'Breaking';
-      document.getElementById('nb-tag').style.color = '#ff5252';
-
-      const headlines = [
-        { text: 'BREAKING — Espresso Martini demand spikes 40% as late crowd floods venue', drink: 'em', surge: true },
-        { text: 'ALERT — Spirits category under severe selling pressure — Whisky and Vodka both falling', drink: null, dump: 'spirits' },
-        { text: 'FLASH — Cocktail prices surging to session highs across the board', drink: null, surge_cat: 'cocktails' },
-        { text: 'BREAKING — Zero-sugar drinks outperforming all categories tonight', drink: 'zs', surge: true },
-        { text: 'ALERT — Beer market entering correction territory — Guinness under pressure', drink: 'pg', dump: true },
-        { text: 'UPDATE — Market-wide volatility increasing — unusual trading patterns detected', drink: null, volatile: true },
-      ];
-      let hlIdx = 0;
-
-      function pushHeadline() {
-        const hl = headlines[hlIdx % headlines.length];
-        document.getElementById('nbtxt').style.transition = 'none';
-        document.getElementById('nbtxt').textContent = hl.text;
-
-        // Each headline triggers market action
-        if (hl.surge && hl.drink) {
-          for (let i = 0; i < 3; i++) t(() => fireOrder(hl.drink), i * 400);
-        }
-        if (hl.dump === 'spirits') {
-          D.filter(d => d.cat === 'spirits').forEach(d => {
-            d.p = Math.max(d.b * 0.5, d.p * 0.92);
-            d.h.push(d.p); if (d.h.length > 12) d.h.shift();
-            updateRowDisplay(d);
-          });
-          renderTicker();
-        }
-        if (hl.surge_cat) {
-          D.filter(d => d.cat === hl.surge_cat).forEach(d => {
-            t(() => fireOrder(d.id), Math.random() * 800);
-          });
-        }
-        if (hl.dump === true && hl.drink) {
-          const d = D.find(x => x.id === hl.drink);
-          if (d) { d.p = Math.max(d.b * 0.5, d.p * 0.88); d.h.push(d.p); if (d.h.length > 12) d.h.shift(); updateRowDisplay(d); renderTicker(); }
-        }
-        if (hl.volatile) {
-          D.forEach(d => {
-            const swing = (Math.random() - 0.5) * 0.5;
-            d.p = Math.max(d.b * 0.5, d.p + swing);
-            d.h.push(d.p); if (d.h.length > 12) d.h.shift();
-            updateRowDisplay(d);
-          });
-          renderTicker();
-        }
-        hlIdx++;
-      }
-
-      pushHeadline();
-      const newsRotate = setInterval(pushHeadline, 6000);
-      activeTimers.push(newsRotate);
-
-      decayInterval = setInterval(applyDecay, 2500);
-      panelInterval = setInterval(() => switchPanel(currentPanel + 1), 7000);
-      scheduleOrders([800, 3000]); // faster orders for drama
-      break;
-    }
 
     /* ──────── DRINK SPOTLIGHT ──────── */
     case 'spotlight': {
@@ -525,59 +379,6 @@ function initMode(mode) {
 
       decayInterval = setInterval(applyDecay, 2500);
       scheduleOrders([2000, 6000]);
-      break;
-    }
-
-    /* ──────── FINAL CALL ──────── */
-    case 'final-call': {
-      document.getElementById('stext').textContent = 'Last call';
-      document.getElementById('nb-tag').textContent = 'Closing';
-      document.getElementById('nb-tag').style.color = '#c9aa52';
-
-      const finalMsgs = [
-        'Last call approaching — final minutes of trading. Settle your positions.',
-        'Order activity slowing — prices stabilizing across all categories.',
-        'Night economy winding down — thank you for trading tonight.',
-        'Markets closing soon — all drinks returning to base pricing.',
-        'Final call — last chance to order before session closes.',
-      ];
-      let fIdx = 0;
-      function rotateFinal() {
-        startCrawl(finalMsgs[fIdx % finalMsgs.length], 'rgba(200,160,0,0.7)');
-        fIdx++;
-      }
-      rotateFinal();
-      const finalRotate = setInterval(rotateFinal, 10000);
-      activeTimers.push(finalRotate);
-
-      // Slower decay — prices drifting back to base
-      decayInterval = setInterval(() => {
-        D.forEach(d => {
-          // Drift toward base price instead of just decaying down
-          const diff = d.b - d.p;
-          d.p += diff * 0.02;
-          d.h.push(d.p); if (d.h.length > 12) d.h.shift();
-          updateRowDisplay(d);
-        });
-        renderTicker();
-      }, 3500);
-
-      panelInterval = setInterval(() => switchPanel(currentPanel + 1), 12000);
-
-      // Sparse orders that slow down over time
-      let finalOrderSpeed = 3000;
-      function finalOrders() {
-        orderSchedule = setTimeout(() => {
-          fireOrder(weightedRandom());
-          finalOrderSpeed = Math.min(finalOrderSpeed + 500, 15000); // orders slow down
-          finalOrders();
-        }, finalOrderSpeed + Math.random() * 4000);
-      }
-      finalOrders();
-
-      // Progressively dim the UI
-      t(() => { document.querySelector('.board').style.transition = 'opacity 8s'; document.querySelector('.board').style.opacity = '0.6'; }, 20000);
-      t(() => { document.querySelector('.board').style.opacity = '0.4'; }, 35000);
       break;
     }
 
