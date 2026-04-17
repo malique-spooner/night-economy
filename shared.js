@@ -47,6 +47,16 @@ function fireOrder(dId) {
   drink.h.push(drink.p);
   if (drink.h.length > 12) drink.h.shift();
 
+  // Track order in timeline for spotlight chart/activity feed
+  if (!drink.timeline) drink.timeline = [];
+  drink.timeline.push({
+    t: Date.now(),
+    o: drink.o,
+    p: drink.p,
+    type: trend === 'up' ? 'buy' : 'sell'
+  });
+  if (drink.timeline.length > 50) drink.timeline.shift();
+
   insertTradeRow(dId, trend === 'up', prev, trend === 'up' ? 'BUY' : 'SELL');
 
   const pEl = document.getElementById(`p${dId}`);
@@ -73,6 +83,16 @@ function fireOrder(dId) {
   updateRowDisplay(drink);
 
   updateNewsBar(drink);
+
+  // Update spotlight activity feed and chart if this drink is currently spotlighted
+  const spName = document.getElementById('sp-name');
+  if (spName && spName.textContent === drink.n && currentMode === 'spotlight') {
+    updateActivityFeed(drink);
+    const chartEl = document.getElementById('sp-chart');
+    if (chartEl) {
+      chartEl.innerHTML = chartTimeline(drink, 560, 240);
+    }
+  }
 }
 
 function updateRowDisplay(d) {
@@ -263,13 +283,55 @@ function updateSpotlightPanel() {
   chgEl.textContent = `${chg > 0 ? '+' : ''}${(chg / drink.b * 100).toFixed(1)}%`;
   chgEl.className = `sp-chg ${drink.p > drink.b ? 'up' : 'dn'}`;
 
-  document.getElementById('sp-story').textContent = `A popular choice tonight. Orders are steady. Price momentum ${drink.p > drink.b ? 'upward' : 'downward'}.`;
   document.getElementById('sp-high').textContent = `£${hi.toFixed(2)}`;
   document.getElementById('sp-low').textContent = `£${lo.toFixed(2)}`;
   document.getElementById('sp-orders').textContent = drink.o;
 
-  const sparkEl = document.getElementById('sp-spark');
-  if (sparkEl && drink.h.length > 0) sparkEl.innerHTML = svgSpark(drink.h, drink.p > drink.b, 104, 24);
+  // Render chart (timeline or fallback sparkline)
+  const chartEl = document.getElementById('sp-chart');
+  if (chartEl) {
+    chartEl.innerHTML = chartTimeline(drink, 560, 240);
+  }
+
+  // Render activity feed and market context
+  updateActivityFeed(drink);
+}
+
+function updateActivityFeed(drink) {
+  const feed = document.getElementById('sp-activity');
+  if (!feed) return;
+
+  // Get last 5 orders from timeline
+  if (!drink.timeline || drink.timeline.length === 0) {
+    feed.innerHTML = '<div style="font-size:11px;color:rgba(255,255,255,0.3)">No trading activity yet</div>';
+    return;
+  }
+
+  const recent = drink.timeline.slice(-5).reverse();
+
+  feed.innerHTML = recent.map((evt) => {
+    const time = new Date(evt.t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const change = ((evt.p - drink.b) / drink.b * 100).toFixed(1);
+    const arrow = evt.type === 'buy' ? '⬆' : '⬇';
+    const typeClass = evt.type === 'buy' ? 'buy' : 'sell';
+
+    return `<div class="activity-item ${typeClass}">
+      <span class="act-time">${time}</span>
+      <span class="act-type">${evt.type.toUpperCase()}</span>
+      <span class="act-price">£${evt.p.toFixed(2)}</span>
+      <span class="act-change ${change >= 0 ? 'up' : 'dn'}">${change >= 0 ? '+' : ''}${change}%</span>
+      <span class="act-arrow">${arrow}</span>
+    </div>`;
+  }).join('');
+
+  // Add category insight and price commentary
+  const insight = getCategoryInsight(drink.cat);
+  const commentary = getPriceCommentary(drink);
+
+  feed.innerHTML += `<div class="activity-insight">
+    <div class="insight-category">${insight}</div>
+    <div class="insight-commentary">${commentary}</div>
+  </div>`;
 }
 
 function startCrawl(text, color) {
@@ -420,4 +482,88 @@ function resetThree() {
     const mesh = scene.children.find(c => c.geometry instanceof THREE.IcosahedronGeometry);
     if (mesh) mesh.rotation.set(0, 0, 0);
   }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   SPOTLIGHT ANALYTICS HELPERS
+   ════════════════════════════════════════════════════════════════════ */
+
+function getOHLC(drink) {
+  if (!drink.timeline || drink.timeline.length === 0) {
+    return { open: drink.p, high: drink.p, low: drink.p, close: drink.p };
+  }
+  const prices = drink.timeline.map(t => t.p);
+  return {
+    open: drink.timeline[0].p,
+    high: Math.max(...prices),
+    low: Math.min(...prices),
+    close: drink.p
+  };
+}
+
+function getCategoryInsight(cat) {
+  const items = D.filter(d => d.cat === cat);
+  if (items.length === 0) return 'No data';
+  const up = items.filter(d => d.p > d.b).length;
+  const total = items.length;
+  const pct = Math.round((up / total) * 100);
+
+  if (up > total * 0.65) return `${cat} surging · ${pct}% gainers`;
+  if (up < total * 0.35) return `${cat} declining · ${pct}% gainers`;
+  return `${cat} mixed · ${pct}% gainers`;
+}
+
+function getPriceCommentary(drink) {
+  if (!drink.timeline || drink.timeline.length < 3) return 'Price discovery phase';
+
+  const recent = drink.timeline.slice(-3);
+  const buys = recent.filter(t => t.type === 'buy').length;
+  const sells = recent.filter(t => t.type === 'sell').length;
+
+  if (buys >= 2 && buys > sells) return 'Strong demand · Buyers in control';
+  if (sells >= 2 && sells > buys) return 'Profit-taking · Selling pressure';
+  return 'Balanced · Price consolidating';
+}
+
+function chartTimeline(drink, W, H) {
+  // Fallback to sparkline if no timeline data
+  if (!drink.timeline || drink.timeline.length < 2) {
+    return svgSpark(drink.h, drink.p > drink.b, W, H);
+  }
+
+  const prices = drink.timeline.map(t => t.p);
+  const mn = Math.min(...prices);
+  const mx = Math.max(...prices);
+  const rng = mx - mn || 0.01;
+
+  // Generate price line points with padding for axes
+  const padding = 40;
+  const chartW = W - (padding * 2);
+  const chartH = H - (padding * 2);
+
+  const pts = drink.timeline.map((t, i) => {
+    const x = (i / (drink.timeline.length - 1)) * chartW + padding;
+    const y = H - padding - ((t.p - mn) / rng) * chartH;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  // Determine color based on trend (up = red, down = green)
+  const up = drink.p > drink.b;
+  const lineColor = up ? '#ff5252' : '#3dd68c';
+  const gridColor = 'rgba(255,255,255,0.08)';
+
+  // Build SVG with grid and line
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block">
+    <!-- Grid lines -->
+    <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${H - padding}" stroke="${gridColor}" stroke-width="1"/>
+    <line x1="${padding}" y1="${H - padding}" x2="${W - padding}" y2="${H - padding}" stroke="${gridColor}" stroke-width="1"/>
+
+    <!-- Horizontal grid lines (3 evenly spaced) -->
+    <line x1="${padding}" y1="${padding + (chartH / 2)}" x2="${W - padding}" y2="${padding + (chartH / 2)}" stroke="${gridColor}" stroke-width="0.5" opacity="0.5"/>
+    <line x1="${padding}" y1="${padding + (chartH * 0.25)}" x2="${W - padding}" y2="${padding + (chartH * 0.25)}" stroke="${gridColor}" stroke-width="0.5" opacity="0.3"/>
+    <line x1="${padding}" y1="${padding + (chartH * 0.75)}" x2="${W - padding}" y2="${padding + (chartH * 0.75)}" stroke="${gridColor}" stroke-width="0.5" opacity="0.3"/>
+
+    <!-- Price line -->
+    <polyline points="${pts}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
 }

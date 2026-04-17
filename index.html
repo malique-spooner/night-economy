@@ -16,15 +16,17 @@
 .root.mode-spotlight #pv0, .root.mode-spotlight #pv1 { display: none; }
 .root.mode-spotlight #pv2 { display: block; }
 .root.mode-spotlight .panel-dots { display: none; }
+.root.mode-spotlight .sp-header { margin-bottom: 24px; }
 .root.mode-spotlight .sp-name { font-size: 64px; margin-bottom: 8px; letter-spacing: -1px; }
 .root.mode-spotlight .sp-cat { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; }
 .root.mode-spotlight .sp-price { font-size: 72px; }
 .root.mode-spotlight .sp-chg { font-size: 28px; }
-.root.mode-spotlight .sp-spark { height: 140px; margin: 24px 0; }
-.root.mode-spotlight .sp-spark svg { width: 100% !important; height: 100% !important; }
-.root.mode-spotlight .sp-story { font-size: 16px; line-height: 1.8; margin-bottom: 24px; }
+.root.mode-spotlight .sp-chart-container { height: 240px; margin: 24px 0; }
+.root.mode-spotlight .sp-chart-container svg { width: 100% !important; height: 100% !important; }
 .root.mode-spotlight .sp-stats { gap: 40px; }
 .root.mode-spotlight .sp-sval { font-size: 20px; }
+.root.mode-spotlight .sp-activity-section { margin-top: 20px; padding-top: 20px; }
+.root.mode-spotlight .sp-activity { max-height: 180px; }
 
 /* Overlay menu */
 .mode-menu {
@@ -177,16 +179,23 @@
           <div class="gossip-feed" id="gossip-feed"></div>
         </div>
         <div class="pview" id="pv2">
-          <div class="panel-tag tag-spotlight">★ Drink spotlight</div>
-          <div class="sp-name" id="sp-name">—</div>
-          <div class="sp-cat" id="sp-cat">—</div>
-          <div class="sp-price-row"><div class="sp-price dn" id="sp-price">£—</div><div class="sp-chg dn" id="sp-chg">—</div></div>
-          <div class="sp-spark" id="sp-spark"></div>
-          <div class="sp-story" id="sp-story">—</div>
-          <div class="sp-stats">
-            <div class="sp-stat"><div class="sp-slbl">High</div><div class="sp-sval" id="sp-high">—</div></div>
-            <div class="sp-stat"><div class="sp-slbl">Low</div><div class="sp-sval" id="sp-low">—</div></div>
-            <div class="sp-stat"><div class="sp-slbl">Orders</div><div class="sp-sval" id="sp-orders">—</div></div>
+          <div class="sp-header">
+            <div class="panel-tag tag-spotlight">★ Drink spotlight</div>
+            <div class="sp-name" id="sp-name">—</div>
+            <div class="sp-cat" id="sp-cat">—</div>
+            <div class="sp-price-row"><div class="sp-price dn" id="sp-price">£—</div><div class="sp-chg dn" id="sp-chg">—</div></div>
+          </div>
+          <div class="sp-chart-container" id="sp-chart"></div>
+          <div class="sp-details">
+            <div class="sp-stats">
+              <div class="sp-stat"><div class="sp-slbl">High</div><div class="sp-sval" id="sp-high">—</div></div>
+              <div class="sp-stat"><div class="sp-slbl">Low</div><div class="sp-sval" id="sp-low">—</div></div>
+              <div class="sp-stat"><div class="sp-slbl">Orders</div><div class="sp-sval" id="sp-orders">—</div></div>
+            </div>
+            <div class="sp-activity-section">
+              <div class="sp-activity-title">◆ Market Activity</div>
+              <div class="sp-activity" id="sp-activity"></div>
+            </div>
           </div>
         </div>
         <div class="panel-dots"><div class="pdot active" id="dot0"></div><div class="pdot" id="dot1"></div><div class="pdot" id="dot2"></div></div>
