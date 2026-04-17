@@ -271,6 +271,7 @@ function updateSpotlightPanel() {
   const lo = Math.min(...drink.h);
   const trend = drink.p > drink.b ? 'dn' : 'up';
   const chg = drink.p - drink.b;
+  const ohlc = getOHLC(drink);
 
   document.getElementById('sp-name').textContent = drink.n;
   document.getElementById('sp-cat').textContent = drink.cat;
@@ -283,9 +284,22 @@ function updateSpotlightPanel() {
   chgEl.textContent = `${chg > 0 ? '+' : ''}${(chg / drink.b * 100).toFixed(1)}%`;
   chgEl.className = `sp-chg ${drink.p > drink.b ? 'up' : 'dn'}`;
 
-  document.getElementById('sp-high').textContent = `£${hi.toFixed(2)}`;
-  document.getElementById('sp-low').textContent = `£${lo.toFixed(2)}`;
+  // OHLC Stats
+  document.getElementById('sp-open').textContent = `£${ohlc.open.toFixed(2)}`;
+  document.getElementById('sp-high').textContent = `£${ohlc.high.toFixed(2)}`;
+  document.getElementById('sp-low').textContent = `£${ohlc.low.toFixed(2)}`;
+  document.getElementById('sp-close').textContent = `£${ohlc.close.toFixed(2)}`;
   document.getElementById('sp-orders').textContent = drink.o;
+
+  // Market Sentiment Badge
+  const sentBadge = document.getElementById('sp-sentiment');
+  if (sentBadge) {
+    const commentary = getPriceCommentary(drink);
+    const isBullish = commentary.includes('Strong') || commentary.includes('demand') || commentary.includes('Buyers');
+    const sentiment = isBullish ? 'BULLISH' : 'BEARISH';
+    sentBadge.textContent = sentiment;
+    sentBadge.className = `sp-sentiment-badge ${isBullish ? 'bullish' : 'bearish'}`;
+  }
 
   // Render chart (timeline or fallback sparkline)
   const chartEl = document.getElementById('sp-chart');

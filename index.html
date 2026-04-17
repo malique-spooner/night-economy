@@ -187,13 +187,20 @@
           </div>
           <div class="sp-chart-container" id="sp-chart"></div>
           <div class="sp-details">
-            <div class="sp-stats">
-              <div class="sp-stat"><div class="sp-slbl">High</div><div class="sp-sval" id="sp-high">—</div></div>
-              <div class="sp-stat"><div class="sp-slbl">Low</div><div class="sp-sval" id="sp-low">—</div></div>
-              <div class="sp-stat"><div class="sp-slbl">Orders</div><div class="sp-sval" id="sp-orders">—</div></div>
+            <!-- OHLC Stats Row -->
+            <div class="sp-ohlc-row">
+              <div class="sp-ohlc"><div class="sp-ohlc-label">Open</div><div class="sp-ohlc-val" id="sp-open">—</div></div>
+              <div class="sp-ohlc"><div class="sp-ohlc-label">High</div><div class="sp-ohlc-val" id="sp-high">—</div></div>
+              <div class="sp-ohlc"><div class="sp-ohlc-label">Low</div><div class="sp-ohlc-val" id="sp-low">—</div></div>
+              <div class="sp-ohlc"><div class="sp-ohlc-label">Close</div><div class="sp-ohlc-val" id="sp-close">—</div></div>
+              <div class="sp-ohlc"><div class="sp-ohlc-label">Orders</div><div class="sp-ohlc-val" id="sp-orders">—</div></div>
             </div>
+            <!-- Activity & Sentiment Section -->
             <div class="sp-activity-section">
-              <div class="sp-activity-title">◆ Market Activity</div>
+              <div class="sp-activity-header">
+                <div class="sp-activity-title">◆ Market Activity</div>
+                <div class="sp-sentiment-badge" id="sp-sentiment">—</div>
+              </div>
               <div class="sp-activity" id="sp-activity"></div>
             </div>
           </div>
