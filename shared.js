@@ -821,22 +821,42 @@ function renderCategoryHeat(drink) {
   if (!heatEl) return;
 
   const cat = drink.cat;
-  const catDrinks = D.filter(d => d.cat === cat);
-  const gainers = catDrinks.filter(d => d.p > d.b).length;
-  const total = catDrinks.length;
-  const pct = (gainers / total) * 100;
+  const catDrinks = D.filter(d => d.cat === cat)
+    .sort((a, b) => ((Math.abs(b.p - b.b) / b.b)) - ((Math.abs(a.p - a.b) / a.b)));
 
-  const heatBars = catDrinks.map(d => {
+  const maxChg = Math.max(...catDrinks.map(d => Math.abs((d.p - d.b) / d.b * 100))) || 1;
+
+  const heatGrid = catDrinks.map(d => {
     const chg = ((d.p - d.b) / d.b * 100);
     const isCurrent = d.id === drink.id;
-    const color = chg > 0 ? 'rgba(255,82,82,0.5)' : 'rgba(61,214,140,0.4)';
+    const isUp = chg > 0;
+    const size = Math.max(1.2, (Math.abs(chg) / maxChg) * 3.5);
 
-    return `<div class="sp-heat-bar" style="background:${color};flex:${Math.max(0.5, Math.abs(chg))}">
-      ${isCurrent ? `<div class="sp-heat-label">★</div>` : ''}
+    const color = isUp
+      ? `rgba(255,82,82,${0.3 + (Math.abs(chg) / 20) * 0.7})`
+      : `rgba(61,214,140,${0.3 + (Math.abs(chg) / 20) * 0.7})`;
+
+    const border = isCurrent ? '2px solid rgba(201,170,82,0.8)' : '1px solid rgba(255,255,255,0.08)';
+
+    return `<div class="sp-heat-tile" style="
+      flex:${size};
+      background:${color};
+      border:${border};
+      display:flex;align-items:center;justify-content:center;
+      border-radius:4px;
+      min-width:20px;min-height:20px;
+      font-size:${size > 2 ? '9px' : '7px'};
+      color:rgba(255,255,255,0.6);
+      font-weight:600;
+      text-align:center;
+      padding:4px;
+      ${isCurrent ? 'box-shadow:0 0 8px rgba(201,170,82,0.5);' : ''}
+    ">
+      <span>${d.n.split(' ')[0]}</span>
     </div>`;
   }).join('');
 
-  heatEl.innerHTML = heatBars;
+  heatEl.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:6px;width:100%">${heatGrid}</div>`;
 }
 
 function updateTapeFeed(drink) {
