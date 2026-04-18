@@ -395,6 +395,15 @@ function initMode(mode) {
 
     /* ──────── BASE HOME ──────── */
     case 'base':
+      // Force panel 0 active immediately — currentPanel may still be 2 from spotlight
+      [0,1,2].forEach(i => {
+        document.getElementById(`pv${i}`)?.classList.remove('active');
+        document.getElementById(`dot${i}`)?.classList.remove('active');
+      });
+      currentPanel = 0;
+      document.getElementById('pv0').classList.add('active');
+      document.getElementById('dot0').classList.add('active');
+      updateMarketPanel();
       t(() => startCrawl('Market open — prices moving live across all categories. Orders push prices up. Inactivity pulls them down.'), 400);
       decayInterval = setInterval(applyDecay, 2500);
       panelInterval = setInterval(() => switchPanel(currentPanel + 1), 9000);

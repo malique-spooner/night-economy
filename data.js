@@ -11,7 +11,7 @@ const DRINKS = [
   { id: 'pg', n: 'Pint of Guinness', cat: 'beer', b: 5.50, p: 5.50, h: [5.48, 5.50, 5.52, 5.50, 5.51, 5.50, 5.50], o: 0 },
   { id: 'pl', n: 'Peroni Lager', cat: 'beer', b: 5.00, p: 5.00, h: [4.98, 5.00, 5.02, 5.00, 5.01, 5.00, 5.00], o: 0 },
   { id: 'sb', n: 'San Miguel', cat: 'beer', b: 5.00, p: 5.00, h: [4.98, 5.00, 5.02, 5.00, 5.01, 5.00, 5.00], o: 0 },
-  { id: 'wp', n: 'Whisky (Pint)', cat: 'spirits', b: 6.50, p: 6.50, h: [6.48, 6.50, 6.52, 6.50, 6.51, 6.50, 6.50], o: 0 },
+  { id: 'wp', n: 'Whisky Double', cat: 'spirits', b: 6.50, p: 6.50, h: [6.48, 6.50, 6.52, 6.50, 6.51, 6.50, 6.50], o: 0 },
   { id: 'vd', n: 'Vodka Double', cat: 'spirits', b: 5.50, p: 5.50, h: [5.48, 5.50, 5.52, 5.50, 5.51, 5.50, 5.50], o: 0 },
   { id: 'rm', n: 'Rum & Coke', cat: 'spirits', b: 5.50, p: 5.50, h: [5.48, 5.50, 5.52, 5.50, 5.51, 5.50, 5.50], o: 0 },
   { id: 'zs', n: 'Zero Sugar Cider', cat: 'zero', b: 4.50, p: 4.50, h: [4.48, 4.50, 4.52, 4.50, 4.51, 4.50, 4.50], o: 0 }
