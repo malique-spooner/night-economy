@@ -17,7 +17,7 @@ function applyDecay() {
    ════════════════════════════════════════════════════════════════════ */
 
 function buildBoard() {
-  const cats = ['cocktails', 'beer', 'spirits', 'zero'];
+  const cats = ['bloody-mary', 'margarita', 'spritz', 'negroni', 'old-fashioned', 'espresso', 'signature', 'mocktail'];
   const inner = document.getElementById('boardInner');
   if (!inner) return;
 
@@ -112,13 +112,7 @@ function updateMarketPanel() {
 }
 
 function updateGossipPanel() {
-  const gossips = [
-    'Late crowd just arrived — cocktail demand surging',
-    'Whisky orders picking up — spirits category heating',
-    'Beer sales holding steady — lager popular tonight',
-    'Zero sugar options gaining traction — health conscious cohort',
-    'Market volatility increasing — unusual trading patterns'
-  ];
+  const gossips = GOSSIP_ITEMS.sort(() => Math.random() - 0.5).slice(0, 5);
 
   const feed = document.getElementById('gossip-feed');
   if (!feed) return;

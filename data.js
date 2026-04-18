@@ -1,52 +1,136 @@
 /* ════════════════════════════════════════════════════════════════════
-   MARKET DATA
+   MARKET DATA — The Pickle House
    ════════════════════════════════════════════════════════════════════ */
 
+function h(base) {
+  return Array.from({length: 7}, () => +(base + (Math.random() - 0.5) * 0.1).toFixed(2));
+}
+
 const DRINKS = [
-  { id: 'em', n: 'Espresso Martini', cat: 'cocktails', b: 8.50, p: 8.50, h: [8.45, 8.48, 8.52, 8.50, 8.55, 8.52, 8.50], o: 0 },
-  { id: 'mt', n: 'Mojito', cat: 'cocktails', b: 7.50, p: 7.50, h: [7.48, 7.50, 7.52, 7.50, 7.48, 7.50, 7.50], o: 0 },
-  { id: 'nk', n: 'Negroni', cat: 'cocktails', b: 8.00, p: 8.00, h: [7.98, 8.00, 8.02, 8.00, 8.01, 8.00, 8.00], o: 0 },
-  { id: 'ot', n: 'Old Fashioned', cat: 'cocktails', b: 8.50, p: 8.50, h: [8.48, 8.50, 8.52, 8.50, 8.51, 8.50, 8.50], o: 0 },
-  { id: 'da', n: 'Daiquiri', cat: 'cocktails', b: 7.00, p: 7.00, h: [6.98, 7.00, 7.02, 7.00, 7.01, 7.00, 7.00], o: 0 },
-  { id: 'pg', n: 'Pint of Guinness', cat: 'beer', b: 5.50, p: 5.50, h: [5.48, 5.50, 5.52, 5.50, 5.51, 5.50, 5.50], o: 0 },
-  { id: 'pl', n: 'Peroni Lager', cat: 'beer', b: 5.00, p: 5.00, h: [4.98, 5.00, 5.02, 5.00, 5.01, 5.00, 5.00], o: 0 },
-  { id: 'sb', n: 'San Miguel', cat: 'beer', b: 5.00, p: 5.00, h: [4.98, 5.00, 5.02, 5.00, 5.01, 5.00, 5.00], o: 0 },
-  { id: 'wp', n: 'Whisky Double', cat: 'spirits', b: 6.50, p: 6.50, h: [6.48, 6.50, 6.52, 6.50, 6.51, 6.50, 6.50], o: 0 },
-  { id: 'vd', n: 'Vodka Double', cat: 'spirits', b: 5.50, p: 5.50, h: [5.48, 5.50, 5.52, 5.50, 5.51, 5.50, 5.50], o: 0 },
-  { id: 'rm', n: 'Rum & Coke', cat: 'spirits', b: 5.50, p: 5.50, h: [5.48, 5.50, 5.52, 5.50, 5.51, 5.50, 5.50], o: 0 },
-  { id: 'zs', n: 'Zero Sugar Cider', cat: 'zero', b: 4.50, p: 4.50, h: [4.48, 4.50, 4.52, 4.50, 4.51, 4.50, 4.50], o: 0 }
+  // ── BLOODY MARYS ──────────────────────────────────────────────────
+  { id: 'cbm',  n: "Classic Bloody Mary",      cat: 'bloody-mary',   b: 12.00, p: 12.00, h: h(12.00), o: 0 },
+  { id: 'pca',  n: "Pickled Cactus",           cat: 'bloody-mary',   b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+  { id: 'psa',  n: "Pickled Samurai",          cat: 'bloody-mary',   b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+
+  // ── MARGARITAS ────────────────────────────────────────────────────
+  { id: 'cmar', n: "Classic Margarita",        cat: 'margarita',     b: 12.00, p: 12.00, h: h(12.00), o: 0 },
+  { id: 'smar', n: "Spiced Margarita",         cat: 'margarita',     b: 12.50, p: 12.50, h: h(12.50), o: 0 },
+  { id: 'tmar', n: "Tommy's Margarita",        cat: 'margarita',     b: 12.00, p: 12.00, h: h(12.00), o: 0 },
+  { id: 'mmar', n: "Mezcal Margarita",         cat: 'margarita',     b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+
+  // ── SPRITZ ────────────────────────────────────────────────────────
+  { id: 'asp',  n: "Aperol Spritz",            cat: 'spritz',        b: 11.00, p: 11.00, h: h(11.00), o: 0 },
+  { id: 'csp',  n: "Campari Spritz",           cat: 'spritz',        b: 11.00, p: 11.00, h: h(11.00), o: 0 },
+  { id: 'hugo', n: "Hugo",                     cat: 'spritz',        b: 12.00, p: 12.00, h: h(12.00), o: 0 },
+  { id: 'fsp',  n: "Festive Spritz",           cat: 'spritz',        b: 12.00, p: 12.00, h: h(12.00), o: 0 },
+
+  // ── NEGRONI ───────────────────────────────────────────────────────
+  { id: 'cneg', n: "Classic Negroni",          cat: 'negroni',       b: 12.00, p: 12.00, h: h(12.00), o: 0 },
+  { id: 'sneg', n: "Sweeter Negroni",          cat: 'negroni',       b: 12.50, p: 12.50, h: h(12.50), o: 0 },
+  { id: 'skneg',n: "Smokey Negroni",           cat: 'negroni',       b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+  { id: 'clneg',n: "Clear Negroni",            cat: 'negroni',       b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+
+  // ── OLD FASHIONED ─────────────────────────────────────────────────
+  { id: 'cof',  n: "Classic Old Fashioned",    cat: 'old-fashioned', b: 12.00, p: 12.00, h: h(12.00), o: 0 },
+  { id: 'sof',  n: "Smokey Old Fashioned",     cat: 'old-fashioned', b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+  { id: 'oor',  n: "Oink on the Rocks",        cat: 'old-fashioned', b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+
+  // ── ESPRESSO ──────────────────────────────────────────────────────
+  { id: 'cem',  n: "Classic Espresso Martini", cat: 'espresso',      b: 12.00, p: 12.00, h: h(12.00), o: 0 },
+  { id: 'flc',  n: "Four Leaf Clover",         cat: 'espresso',      b: 12.50, p: 12.50, h: h(12.50), o: 0 },
+  { id: 'tfo',  n: "The Fresh One",            cat: 'espresso',      b: 12.00, p: 12.00, h: h(12.00), o: 0 },
+
+  // ── SIGNATURE ─────────────────────────────────────────────────────
+  { id: 'tt',   n: "Tide & Tempest",           cat: 'signature',     b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+  { id: 't75',  n: "The 75th Peel",            cat: 'signature',     b: 14.00, p: 14.00, h: h(14.00), o: 0 },
+  { id: 'mny',  n: "3461 Miles From NY",       cat: 'signature',     b: 14.00, p: 14.00, h: h(14.00), o: 0 },
+  { id: 'cfr',  n: "Caesar Fell Off The Rack", cat: 'signature',     b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+  { id: 'cmm',  n: "Collin Met Martin",        cat: 'signature',     b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+  { id: 'pa',   n: "Pink Affair",              cat: 'signature',     b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+  { id: 'mz',   n: "Manzana",                  cat: 'signature',     b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+  { id: 'cr',   n: "Cielo Rosa",               cat: 'signature',     b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+  { id: 'chc',  n: "Chancellor's Choice",      cat: 'signature',     b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+  { id: 'witw', n: "Whisky In The Wild",       cat: 'signature',     b: 13.00, p: 13.00, h: h(13.00), o: 0 },
+  { id: 'ktf',  n: "Keep The Fruit",           cat: 'signature',     b: 14.00, p: 14.00, h: h(14.00), o: 0 },
+  { id: 'lwj',  n: "Last Word Judgement",      cat: 'signature',     b: 14.00, p: 14.00, h: h(14.00), o: 0 },
+
+  // ── MOCKTAILS ─────────────────────────────────────────────────────
+  { id: 'wb',   n: "Woodland Bloom",           cat: 'mocktail',      b: 8.00,  p: 8.00,  h: h(8.00),  o: 0 },
+  { id: 'hbg',  n: "Holborn's Garden",         cat: 'mocktail',      b: 8.00,  p: 8.00,  h: h(8.00),  o: 0 },
+  { id: 'ngr',  n: "No-Groni",                 cat: 'mocktail',      b: 8.00,  p: 8.00,  h: h(8.00),  o: 0 },
+  { id: 'ans',  n: "Aper-No Spritz",           cat: 'mocktail',      b: 8.00,  p: 8.00,  h: h(8.00),  o: 0 },
+  { id: 'wbp',  n: "Bloody Pickle (0%)",       cat: 'mocktail',      b: 8.00,  p: 8.00,  h: h(8.00),  o: 0 },
 ];
 
-const ORDER_WEIGHTS = [0.18, 0.15, 0.14, 0.10, 0.09, 0.08, 0.06, 0.07, 0.05, 0.04, 0.02, 0.02];
+const ORDER_WEIGHTS = [
+  // bloody-mary (3)
+  0.06, 0.05, 0.05,
+  // margarita (4)
+  0.07, 0.06, 0.05, 0.05,
+  // spritz (4)
+  0.07, 0.05, 0.04, 0.04,
+  // negroni (4)
+  0.06, 0.05, 0.05, 0.04,
+  // old-fashioned (3)
+  0.05, 0.04, 0.04,
+  // espresso (3)
+  0.08, 0.05, 0.04,
+  // signature (12)
+  0.06, 0.05, 0.06, 0.05, 0.04, 0.04, 0.04, 0.05, 0.04, 0.04, 0.03, 0.04,
+  // mocktail (5)
+  0.02, 0.02, 0.02, 0.02, 0.02,
+];
 
 const GOSSIP_ITEMS = [
-  'Late crowd just arrived — cocktail demand surging',
-  'Whisky orders picking up — spirits category heating',
-  'Beer sales holding steady — lager popular tonight',
-  'Zero sugar options gaining traction — health conscious cohort',
-  'Market volatility increasing — unusual trading patterns',
-  'Espresso Martini flying off shelves — late night favorite',
-  'Pricing pressure on beer — competitive night',
-  'Spirits category consolidating — selective demand'
-];
-
-const NEWS_MESSAGES = [
-  n => `${n} just ordered — price rising · £${DRINKS.find(d => d.id === n)?.p.toFixed(2)} now`,
-  n => `Order activity: ${DRINKS.find(d => d.id === n)?.n} catching bids`,
-  () => `Unordered drinks decaying — the longer you wait, the cheaper they get`
+  'Margarita orders surging — tequila category on fire tonight',
+  'Negroni range seeing strong demand — the bitter crowd is in',
+  'Espresso Martinis flying — late-night coffee crowd taking over',
+  'Signature cocktails outperforming — guests exploring the menu',
+  'Bloody Mary orders unusual for this hour — brunch vibes',
+  'Mocktails quietly gaining — sober curious cohort growing',
+  'Spritz category slowing — crowd moving to stirred drinks',
+  'Old Fashioned range heating up — whisky drinkers taking seats',
+  'Smokey variants outpacing classics — smoke is the trend tonight',
+  'Champagne cocktails ordered — celebration group just arrived',
 ];
 
 const CULTURAL_BLURBS = {
-  em: 'Soho 1983 · vodka + espresso + Kahlúa · the after-hours pour',
-  mt: 'Havana origin · rum + mint + lime · summer crowd favourite',
-  nk: 'Italian aperitif · gin + Campari + vermouth · bitter elegance',
-  ot: 'Kentucky 1880s · bourbon + sugar + bitters · the original cocktail',
-  da: 'Cuban classic · Hemingway\'s drink · three ingredients, infinite variations',
-  pg: 'Dublin 1759 · dry stout · the nitrogen pour that makes the rings',
-  pl: 'Vigevano 1846 · Italian pale lager · summer terrace staple',
-  sb: 'Manila 1890 · pale pilsner · crisp, sessionable, late-night safe',
-  wp: 'Scotch heritage · slow-sip spirit · premium category anchor',
-  vd: 'Clean, neutral · mixer-friendly · highest-volume spirits pour',
-  rm: 'Cuba Libre lineage · 1900s Havana · the late-night workhorse',
-  zs: 'Modern low-sugar trend · health-conscious cohort · gaining share fast'
+  cbm:  'Zubrowka + BM Mix + tomato · the Pickle House original · celery and two olives',
+  pca:  'Mezcal + cactus mix · avocado garnish · the south-of-the-border Mary',
+  psa:  'Toki Suntory + pickled ginger + carrot · East meets the bloody glass',
+  cmar: 'Espolon + Cointreau + sour · half salt rim · the Mexican benchmark',
+  smar: 'Tabasco heat in every sip · chilli slice + spicy rim · for those who want fire',
+  tmar: "Tommy's agave riff · no Cointreau · just tequila, sour, and agave",
+  mmar: 'Mezcal smoke over sour + Cointreau · lime twist · the complex sibling',
+  asp:  'Aperol + Prosecco + soda · orange on orange · the aperitivo hour',
+  csp:  'Campari + Prosecco + soda · the more bitter sibling · orange twist',
+  hugo: 'St Germain + gin + elderflower + Prosecco · the Alpine classic',
+  fsp:  'Manchester Marmalade + festive syrup + Prosecco · the seasonal special',
+  cneg: 'Tanqueray + Campari + Lillet Rose · the trinity · stir 20–25 seconds',
+  sneg: "Warner's Rhubarb + Campari + rhubarb syrup · the sweeter side of bitter",
+  skneg:'Laphroig + Amaro + Campari + lemon bitters · smoke meets bitter',
+  clneg:'Italicus + Tanqueray + Lillet Dry · crystal clear · lemon bitters',
+  cof:  'Jameson + brown sugar + Angostura · the original cocktail · stir 20–25s',
+  sof:  'Laphroig smoke over brown sugar + bitters · the peaty Old Fashioned',
+  oor:  'Woodford + maple syrup + Angostura · the Pickle House signature pour',
+  cem:  'Zubrowka Vanilla + Tia Maria + Licor 43 + espresso · three coffee beans',
+  flc:  'Jameson + Baileys + Guinness Syrup + espresso · the Dublin après',
+  tfo:  'Zubrowka Vanilla + Tia Maria + peppermint + espresso · the cool one',
+  tt:   'Pussers + Anne Bonny rum duo + OJ + rich sugar + soda · the seafarer',
+  t75:  'Tanqueray + OJ + sugar + orange bitters + Champagne · the 75th rework',
+  mny:  'Bullet Rye + sour + Pinot Noir foam · 3461 miles of American ambition',
+  cfr:  'Appleton + Courvoisier + brown sugar + chocolate bitters · Caesar\'s legacy',
+  cmm:  "Martin Miller's + herbed syrup + sour + soda · the garden Collins",
+  pa:   'Zubrowka + cherry syrup + cranberry + Champagne · blush and bubbles',
+  mz:   'Tanqueray + apple liqueur + apple juice + sour · vegan foam + lime powder',
+  cr:   'Dragon Fruit Espolon + elderflower + sour + kafir leaf + chilli · floral heat',
+  chc:  'Jameson + Amaro Averna + caramel + orange bitters · the Chancellor\'s pour',
+  witw: 'Monkey Shoulder + dry vermouth + Angostura + Maraschino · into the wild',
+  ktf:  'Adnams + Tanqueray 10 + Lillet Dry + lemon bitters · discard the lemon',
+  lwj:  'Tanqueray + Chartreuse + sour + Maraschino · the final round',
+  wb:   'Cranberry + apple + orange + passionfruit + sour · the full-flavour zero',
+  hbg:  "Apple + elderflower + sour + mint + cucumber · Holborn's garden zero",
+  ngr:  'Anon Nogroni + Tanqueray 0% · the sophisticated alcohol-free bitter',
+  ans:  'Anon Bitter Sweet + zero Prosecco + soda · all the ritual, none of the spirit',
+  wbp:  'BM Mix + sour + tomato juice · the designated driver\'s Bloody Mary',
 };
