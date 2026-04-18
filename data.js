@@ -35,3 +35,18 @@ const NEWS_MESSAGES = [
   n => `Order activity: ${DRINKS.find(d => d.id === n)?.n} catching bids`,
   () => `Unordered drinks decaying — the longer you wait, the cheaper they get`
 ];
+
+const CULTURAL_BLURBS = {
+  em: 'Soho 1983 · vodka + espresso + Kahlúa · the after-hours pour',
+  mt: 'Havana origin · rum + mint + lime · summer crowd favourite',
+  nk: 'Italian aperitif · gin + Campari + vermouth · bitter elegance',
+  ot: 'Kentucky 1880s · bourbon + sugar + bitters · the original cocktail',
+  da: 'Cuban classic · Hemingway\'s drink · three ingredients, infinite variations',
+  pg: 'Dublin 1759 · dry stout · the nitrogen pour that makes the rings',
+  pl: 'Vigevano 1846 · Italian pale lager · summer terrace staple',
+  sb: 'Manila 1890 · pale pilsner · crisp, sessionable, late-night safe',
+  wp: 'Scotch heritage · slow-sip spirit · premium category anchor',
+  vd: 'Clean, neutral · mixer-friendly · highest-volume spirits pour',
+  rm: 'Cuba Libre lineage · 1900s Havana · the late-night workhorse',
+  zs: 'Modern low-sugar trend · health-conscious cohort · gaining share fast'
+};

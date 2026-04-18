@@ -6,27 +6,16 @@
 <title>Night Economy — Control Panel</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=2">
+<link rel="stylesheet" href="styles.css?v=3">
 <style>
 .root.mode-spotlight .body { grid-template-columns: 1fr 0px 0px; }
 .root.mode-spotlight .board { display: none; }
 .root.mode-spotlight .divv { display: none; }
-.root.mode-spotlight .rpanel { grid-column: 1 / -1; border-left: none; background: linear-gradient(135deg, rgba(201,170,82,0.04) 0%, rgba(10,10,15,0.98) 100%); display: flex; align-items: center; justify-content: center; }
-.root.mode-spotlight .pview { padding: 60px 80px; max-width: 700px; width: 100%; }
+.root.mode-spotlight .rpanel { grid-column: 1 / -1; border-left: none; background: rgba(6,6,14,0.99); display: flex; align-items: stretch; justify-content: stretch; padding: 0; }
+.root.mode-spotlight .pview { width: 100%; height: 100%; padding: 0; margin: 0; }
 .root.mode-spotlight #pv0, .root.mode-spotlight #pv1 { display: none; }
-.root.mode-spotlight #pv2 { display: block; }
+.root.mode-spotlight #pv2 { display: flex; }
 .root.mode-spotlight .panel-dots { display: none; }
-.root.mode-spotlight .sp-header { margin-bottom: 24px; }
-.root.mode-spotlight .sp-name { font-size: 64px; margin-bottom: 8px; letter-spacing: -1px; }
-.root.mode-spotlight .sp-cat { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; }
-.root.mode-spotlight .sp-price { font-size: 72px; }
-.root.mode-spotlight .sp-chg { font-size: 28px; }
-.root.mode-spotlight .sp-chart-container { height: 240px; margin: 24px 0; }
-.root.mode-spotlight .sp-chart-container svg { width: 100% !important; height: 100% !important; }
-.root.mode-spotlight .sp-stats { gap: 40px; }
-.root.mode-spotlight .sp-sval { font-size: 20px; }
-.root.mode-spotlight .sp-activity-section { margin-top: 20px; padding-top: 20px; }
-.root.mode-spotlight .sp-activity { max-height: 180px; }
 
 /* Overlay menu */
 .mode-menu {
@@ -179,29 +168,65 @@
           <div class="gossip-feed" id="gossip-feed"></div>
         </div>
         <div class="pview" id="pv2">
-          <div class="sp-header">
-            <div class="panel-tag tag-spotlight">★ Drink spotlight</div>
-            <div class="sp-name" id="sp-name">—</div>
-            <div class="sp-cat" id="sp-cat">—</div>
-            <div class="sp-price-row"><div class="sp-price dn" id="sp-price">£—</div><div class="sp-chg dn" id="sp-chg">—</div></div>
-          </div>
-          <div class="sp-chart-container" id="sp-chart"></div>
-          <div class="sp-details">
-            <!-- OHLC Stats Row -->
-            <div class="sp-ohlc-row">
-              <div class="sp-ohlc"><div class="sp-ohlc-label">Open</div><div class="sp-ohlc-val" id="sp-open">—</div></div>
-              <div class="sp-ohlc"><div class="sp-ohlc-label">High</div><div class="sp-ohlc-val" id="sp-high">—</div></div>
-              <div class="sp-ohlc"><div class="sp-ohlc-label">Low</div><div class="sp-ohlc-val" id="sp-low">—</div></div>
-              <div class="sp-ohlc"><div class="sp-ohlc-label">Close</div><div class="sp-ohlc-val" id="sp-close">—</div></div>
-              <div class="sp-ohlc"><div class="sp-ohlc-label">Orders</div><div class="sp-ohlc-val" id="sp-orders">—</div></div>
+          <div class="sp-grid">
+            <div class="sp-topbar">
+              <span class="sp-tag">★ Drink Spotlight</span>
+              <span class="sp-cat-pill" id="sp-cat">cocktails</span>
+              <span class="sp-live"><span class="sp-livedot"></span>Live · <span id="sp-clock">--:--:--</span></span>
             </div>
-            <!-- Activity & Sentiment Section -->
-            <div class="sp-activity-section">
-              <div class="sp-activity-header">
-                <div class="sp-activity-title">◆ Market Activity</div>
-                <div class="sp-sentiment-badge" id="sp-sentiment">—</div>
+
+            <div class="sp-main-container">
+              <div class="sp-hero">
+                <div class="sp-hero-main">
+                  <div class="sp-name" id="sp-name">—</div>
+                  <div class="sp-banner" id="sp-banner">—</div>
+                </div>
+                <div class="sp-hero-price">
+                  <div class="sp-price" id="sp-price">£—</div>
+                  <div class="sp-chg" id="sp-chg">—</div>
+                </div>
               </div>
-              <div class="sp-activity" id="sp-activity"></div>
+
+              <div class="sp-analysis">
+                <div class="sp-tile sp-chart-tile">
+                  <div class="sp-tile-hdr">
+                    <span class="sp-tile-lbl">Price · Volume</span>
+                    <span class="sp-tile-meta" id="sp-range">—</span>
+                  </div>
+                  <div class="sp-chart" id="sp-chart"></div>
+                </div>
+
+                <div class="sp-side">
+                  <div class="sp-tile sp-peers-tile">
+                    <div class="sp-tile-hdr"><span class="sp-tile-lbl">Peers</span></div>
+                    <div class="sp-peers" id="sp-peers"></div>
+                  </div>
+                  <div class="sp-tile sp-heat-tile">
+                    <div class="sp-tile-hdr"><span class="sp-tile-lbl">Category Heat</span><span class="sp-tile-meta" id="sp-heat-meta">—</span></div>
+                    <div class="sp-heat" id="sp-heat"></div>
+                  </div>
+                  <div class="sp-tile sp-stats-tile">
+                    <div class="sp-tile-hdr"><span class="sp-tile-lbl">Stats</span><span class="sp-sentiment-badge" id="sp-sentiment">—</span></div>
+                    <div class="sp-stats-grid" id="sp-stats">
+                      <div class="sp-stat"><div class="sp-slbl">Open</div><div class="sp-sval" id="sp-open">—</div></div>
+                      <div class="sp-stat"><div class="sp-slbl">High</div><div class="sp-sval" id="sp-high">—</div></div>
+                      <div class="sp-stat"><div class="sp-slbl">Low</div><div class="sp-sval" id="sp-low">—</div></div>
+                      <div class="sp-stat"><div class="sp-slbl">Close</div><div class="sp-sval" id="sp-close">—</div></div>
+                      <div class="sp-stat"><div class="sp-slbl">Orders</div><div class="sp-sval" id="sp-orders">—</div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sp-tile sp-story-tile">
+                <div class="sp-tile-hdr"><span class="sp-tile-lbl">Story</span></div>
+                <div class="sp-story" id="sp-story-content"></div>
+              </div>
+            </div>
+
+            <div class="sp-tape-tile">
+              <div class="sp-tape-tag">Tape</div>
+              <div class="sp-tape-track"><div class="sp-tape-inner" id="sp-tape"></div></div>
             </div>
           </div>
         </div>
@@ -252,9 +277,9 @@
 @keyframes shake{0%{transform:translate(0,0)}10%{transform:translate(-3px,1px)}20%{transform:translate(3px,-2px)}30%{transform:translate(-4px,2px)}40%{transform:translate(4px,-1px)}50%{transform:translate(-2px,3px)}60%{transform:translate(3px,-2px)}70%{transform:translate(-3px,1px)}80%{transform:translate(2px,-1px)}90%{transform:translate(-1px,2px)}100%{transform:translate(0,0)}}
 </style>
 
-<script src="data.js"></script>
-<script src="shared.js"></script>
-<script src="crash-surge.js"></script>
+<script src="data.js?v=2"></script>
+<script src="shared.js?v=2"></script>
+<script src="crash-surge.js?v=2"></script>
 
 <script>
 let currentMode = 'base';
