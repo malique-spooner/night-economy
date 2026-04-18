@@ -127,6 +127,8 @@ html,body{width:100%;height:100%;background:#06060e;overflow:hidden;font-family:
 .pdot.active{background:#3dd68c;width:18px;border-radius:2px;box-shadow:0 0 8px rgba(61,214,140,0.4)}
 .pview{position:absolute;inset:0;opacity:0;transform:translateY(14px);transition:opacity 0.5s cubic-bezier(0.16,1,0.3,1),transform 0.5s cubic-bezier(0.16,1,0.3,1);pointer-events:none;padding:22px 20px 38px;overflow-y:auto;overflow-x:hidden}
 .pview.active{opacity:1;transform:translateY(0);pointer-events:auto}
+#pv2{display:none}
+.root.mode-spotlight #pv2{display:block}
 .panel-tag{display:inline-flex;align-items:center;gap:6px;font-size:8px;font-weight:800;letter-spacing:0.24em;text-transform:uppercase;margin-bottom:18px;padding:5px 12px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
 .tag-market{background:rgba(255,82,82,0.12);color:#ff5252;border:1.5px solid rgba(255,82,82,0.3)}
 .tag-gossip{background:rgba(139,92,246,0.12);color:#a78bfa;border:1.5px solid rgba(139,92,246,0.3)}
