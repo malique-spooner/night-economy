@@ -11,11 +11,10 @@
 .root.mode-spotlight .body { grid-template-columns: 1fr 0px 0px; }
 .root.mode-spotlight .board { display: none; }
 .root.mode-spotlight .divv { display: none; }
-.root.mode-spotlight .rpanel { grid-column: 1 / -1; border-left: none; background: rgba(6,6,14,0.99); display: flex; align-items: stretch; justify-content: stretch; padding: 0; }
-.root.mode-spotlight .pview { width: 100%; height: 100%; padding: 0; margin: 0; }
-.root.mode-spotlight #pv0, .root.mode-spotlight #pv1 { display: none; }
-.root.mode-spotlight #pv2 { display: flex; }
+.root.mode-spotlight .rpanel { grid-column: 1 / -1; border-left: none; background: rgba(6,6,14,0.99); display: flex; align-items: stretch; justify-content: stretch; padding: 0; position: relative; }
+.root.mode-spotlight .pview { display: none !important; }
 .root.mode-spotlight .panel-dots { display: none; }
+.root.mode-spotlight #sp-fullscreen { display: flex; width: 100%; height: 100%; overflow: hidden; }
 
 /* Overlay menu */
 .mode-menu {
@@ -137,7 +136,8 @@
     <div class="body">
       <div class="board">
         <div class="board-hdr">
-          <span class="slbl">Live market board</span>
+          <span class="slbl">Live Market Board</span>
+          <span class="board-view-lbl" id="boardViewLabel">COCKTAILS</span>
           <span class="updt" id="lupdt">—</span>
         </div>
         <div class="col-hdr">
@@ -168,13 +168,26 @@
           <div class="gossip-feed" id="gossip-feed"></div>
         </div>
         <div class="pview" id="pv2">
+          <div class="panel-tag tag-spotlight">★ Now Trending</div>
+          <div class="mini-sp-name" id="mini-sp-name">—</div>
+          <div class="mini-sp-sub" id="mini-sp-sub">—</div>
+          <div class="mini-sp-price-row">
+            <span class="mini-sp-price" id="mini-sp-price">£—</span>
+            <span class="mini-sp-chg" id="mini-sp-chg">—</span>
+          </div>
+          <div id="mini-sp-chart"></div>
+          <div class="mini-sp-blurb" id="mini-sp-blurb">—</div>
+          <div class="mn-stat"><span class="mn-lbl">Orders tonight</span><span class="mn-val" id="mini-sp-orders">—</span></div>
+          <div class="mn-stat"><span class="mn-lbl">Base price</span><span class="mn-val" id="mini-sp-base">—</span></div>
+          <div class="mn-stat"><span class="mn-lbl">Category</span><span class="mn-val" id="mini-sp-cat-lbl">—</span></div>
+        </div>
+        <div id="sp-fullscreen">
           <div class="sp-grid">
             <div class="sp-topbar">
               <span class="sp-tag">★ Drink Spotlight</span>
               <span class="sp-cat-pill" id="sp-cat">cocktails</span>
               <span class="sp-live"><span class="sp-livedot"></span>Live · <span id="sp-clock">--:--:--</span></span>
             </div>
-
             <div class="sp-main-container">
               <div class="sp-hero">
                 <div class="sp-hero-main">
@@ -186,7 +199,6 @@
                   <div class="sp-chg" id="sp-chg">—</div>
                 </div>
               </div>
-
               <div class="sp-analysis">
                 <div class="sp-tile sp-chart-tile">
                   <div class="sp-tile-hdr">
@@ -195,7 +207,6 @@
                   </div>
                   <div class="sp-chart" id="sp-chart"></div>
                 </div>
-
                 <div class="sp-side">
                   <div class="sp-tile sp-peers-tile">
                     <div class="sp-tile-hdr"><span class="sp-tile-lbl">Peers</span></div>
@@ -217,13 +228,11 @@
                   </div>
                 </div>
               </div>
-
               <div class="sp-tile sp-story-tile">
                 <div class="sp-tile-hdr"><span class="sp-tile-lbl">Story</span></div>
                 <div class="sp-story" id="sp-story-content"></div>
               </div>
             </div>
-
             <div class="sp-tape-tile">
               <div class="sp-tape-tag">Tape</div>
               <div class="sp-tape-track"><div class="sp-tape-inner" id="sp-tape"></div></div>
@@ -285,13 +294,14 @@
 
 <script>
 let currentMode = 'base';
-let clockInterval, decayInterval, panelInterval, orderSchedule;
+let clockInterval, decayInterval, panelInterval, boardInterval, orderSchedule;
 let activeTimers = []; // track all setTimeout handles for cleanup
 
 function resetState() {
   if (clockInterval) clearInterval(clockInterval);
   if (decayInterval) clearInterval(decayInterval);
   if (panelInterval) clearInterval(panelInterval);
+  if (boardInterval) clearInterval(boardInterval);
   if (orderSchedule) clearTimeout(orderSchedule);
   activeTimers.forEach(t => clearTimeout(t));
   activeTimers = [];
@@ -407,6 +417,7 @@ function initMode(mode) {
       t(() => startCrawl('Market open — prices moving live across all categories. Orders push prices up. Inactivity pulls them down.'), 400);
       decayInterval = setInterval(applyDecay, 2500);
       panelInterval = setInterval(() => switchPanel(currentPanel + 1), 9000);
+      boardInterval = setInterval(rotateBoardView, 10000);
       scheduleOrders([1800, 5800]);
       break;
 

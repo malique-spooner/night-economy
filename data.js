@@ -134,3 +134,10 @@ const CULTURAL_BLURBS = {
   ans:  'Anon Bitter Sweet + zero Prosecco + soda · all the ritual, none of the spirit',
   wbp:  'BM Mix + sour + tomato juice · the designated driver\'s Bloody Mary',
 };
+
+const BOARD_VIEWS = [
+  { label: 'COCKTAILS',        ids: ['cbm','pca','cmar','mmar','cneg','skneg','cof','oor'] },
+  { label: 'SIGNATURES',       ids: ['tt','t75','mny','cfr','pa','cr','chc','lwj'] },
+  { label: 'ESPRESSO · SPRITZ',ids: ['cem','flc','tfo','asp','csp','hugo','cmm','ktf'] },
+  { label: 'ZERO · MORE',      ids: ['wb','hbg','ngr','ans','wbp','smar','tmar','psa'] },
+];

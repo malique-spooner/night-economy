@@ -16,48 +16,63 @@ function applyDecay() {
    BOARD RENDERING
    ════════════════════════════════════════════════════════════════════ */
 
-function buildBoard() {
-  const cats = ['bloody-mary', 'margarita', 'spritz', 'negroni', 'old-fashioned', 'espresso', 'signature', 'mocktail'];
+let currentBoardView = 0;
+
+function buildBoard(viewIdx) {
+  if (viewIdx !== undefined) currentBoardView = viewIdx;
+  const view = BOARD_VIEWS[currentBoardView];
   const inner = document.getElementById('boardInner');
   if (!inner) return;
 
-  inner.innerHTML = '';
-  cats.forEach(cat => {
-    const items = D.filter(d => d.cat === cat);
-    const avg = items.reduce((s, d) => s + d.p, 0) / items.length;
-    const chg = ((avg - items[0].b) / items[0].b * 100).toFixed(1);
+  const labelEl = document.getElementById('boardViewLabel');
+  if (labelEl) labelEl.textContent = view.label;
 
-    const sec = document.createElement('div');
-    sec.className = 'cat-section';
+  inner.style.transition = 'opacity 0.35s';
+  inner.style.opacity = '0';
 
-    const hdr = document.createElement('div');
-    hdr.className = 'cat-header';
-    hdr.innerHTML = `
-      <span class="cat-name ${cat}">◆ ${cat}</span>
-      <span class="cat-meta">${chg > 0 ? '+' : ''}${chg}%</span>
-    `;
-    sec.appendChild(hdr);
+  setTimeout(() => {
+    inner.innerHTML = '';
+    const drinks = D.filter(d => view.ids.includes(d.id));
+    const cats = [...new Set(drinks.map(d => d.cat))];
 
-    items.forEach(d => {
-      const row = document.createElement('div');
-      row.className = `drow ${d.o > 0 ? 'fresh' : 'decaying'}`;
-      row.id = `r${d.id}`;
+    cats.forEach(cat => {
+      const items = drinks.filter(d => d.cat === cat);
+      if (!items.length) return;
 
-      const pct = ((d.p - d.b) / d.b * 100).toFixed(1);
-      const up = d.p >= d.b;
+      const sec = document.createElement('div');
+      sec.className = 'cat-section';
 
-      row.innerHTML = `
-        <div><div class="dname">${d.n}</div><div class="dcat-sub">${d.cat}</div></div>
-        <div class="dprice ${up?'up':'dn'}" id="p${d.id}">£${d.p.toFixed(2)}</div>
-        <div class="spark-cell" id="sp${d.id}">${svgSpark(d.h,up,104,24)}</div>
-        <div class="dpct ${up?'up':'dn'}" id="pct${d.id}">${up?'+':''}${pct}%</div>
-        <div class="decay-wrap"><div class="decay-bar"><div class="decay-fill" style="width:${Math.min(100, d.o * 8.33)}%"></div></div><div class="darr ${up?'up':'dn'}" id="arr${d.id}">${up?'▲':'▼'}</div></div>
-      `;
-      sec.appendChild(row);
+      const gainers = items.filter(d => d.p > d.b).length;
+      const catChg = (items.reduce((s, d) => s + ((d.p - d.b) / d.b * 100), 0) / items.length).toFixed(1);
+      const hdr = document.createElement('div');
+      hdr.className = 'cat-header';
+      hdr.innerHTML = `<span class="cat-name ${cat}">◆ ${cat.replace('-', ' ')}</span><span class="cat-meta">${catChg > 0 ? '+' : ''}${catChg}%</span>`;
+      sec.appendChild(hdr);
+
+      items.forEach(d => {
+        const row = document.createElement('div');
+        row.className = `drow ${d.o > 0 ? 'fresh' : 'decaying'}`;
+        row.id = `r${d.id}`;
+        const pct = ((d.p - d.b) / d.b * 100).toFixed(1);
+        const up = d.p >= d.b;
+        row.innerHTML = `
+          <div><div class="dname">${d.n}</div><div class="dcat-sub">${d.cat.replace('-',' ')}</div></div>
+          <div class="dprice ${up?'up':'dn'}" id="p${d.id}">£${d.p.toFixed(2)}</div>
+          <div class="spark-cell" id="sp${d.id}">${svgSpark(d.h,up,104,24)}</div>
+          <div class="dpct ${up?'up':'dn'}" id="pct${d.id}">${up?'+':''}${pct}%</div>
+          <div class="decay-wrap"><div class="decay-bar"><div class="decay-fill" style="width:${Math.min(100, d.o * 8.33)}%"></div></div><div class="darr ${up?'up':'dn'}" id="arr${d.id}">${up?'▲':'▼'}</div></div>
+        `;
+        sec.appendChild(row);
+      });
+      inner.appendChild(sec);
     });
 
-    inner.appendChild(sec);
-  });
+    inner.style.opacity = '1';
+  }, 350);
+}
+
+function rotateBoardView() {
+  buildBoard((currentBoardView + 1) % BOARD_VIEWS.length);
 }
 
 function insertTradeRow(dId, isUp, prev, type) {
@@ -166,4 +181,33 @@ function getCategoryRank(drink) {
       isWorseThanCurrent: idx > items.indexOf(currentDrink)
     }))
   };
+}
+
+function updateMiniSpotlight() {
+  const nameEl = document.getElementById('mini-sp-name');
+  if (!nameEl) return;
+
+  const active = [...D].sort((a, b) => b.o - a.o);
+  const drink = active[0].o > 0 ? active[0] : D[Math.floor(Math.random() * D.length)];
+  const chg = ((drink.p - drink.b) / drink.b * 100);
+  const isUp = chg >= 0;
+
+  nameEl.textContent = drink.n;
+  document.getElementById('mini-sp-sub').textContent = drink.cat.replace('-', ' ');
+
+  const priceEl = document.getElementById('mini-sp-price');
+  priceEl.textContent = '£' + drink.p.toFixed(2);
+  priceEl.className = 'mini-sp-price ' + (isUp ? 'up' : 'dn');
+
+  const chgEl = document.getElementById('mini-sp-chg');
+  chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%';
+  chgEl.className = 'mini-sp-chg ' + (isUp ? 'up' : 'dn');
+
+  const chartEl = document.getElementById('mini-sp-chart');
+  if (chartEl) chartEl.innerHTML = svgSpark(drink.h, isUp, 220, 50);
+
+  document.getElementById('mini-sp-blurb').textContent = CULTURAL_BLURBS[drink.id] || '';
+  document.getElementById('mini-sp-orders').textContent = drink.o || '—';
+  document.getElementById('mini-sp-base').textContent = '£' + drink.b.toFixed(2);
+  document.getElementById('mini-sp-cat-lbl').textContent = drink.cat.replace('-', ' ');
 }

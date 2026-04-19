@@ -182,7 +182,7 @@ function switchPanel(idx) {
   document.getElementById(`dot${currentPanel}`).classList.remove('active');
 
   currentPanel = idx % 3;
-  const updaters = [updateMarketPanel, updateGossipPanel, updateSpotlightPanel];
+  const updaters = [updateMarketPanel, updateGossipPanel, updateMiniSpotlight];
   updaters[currentPanel]();
 
   document.getElementById(`pv${currentPanel}`).classList.add('active');
