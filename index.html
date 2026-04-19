@@ -489,6 +489,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Panel dots click handlers
+  document.querySelectorAll('.pdot').forEach((dot, idx) => {
+    dot.addEventListener('click', () => switchPanel(idx));
+  });
+
   // Animation loop
   function animate() {
     requestAnimationFrame(animate);
