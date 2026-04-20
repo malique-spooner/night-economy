@@ -85,14 +85,6 @@ function fireOrder(dId) {
   updateNewsBar(drink);
 
   // Update spotlight activity feed and chart if this drink is currently spotlighted
-  const spName = document.getElementById('sp-name');
-  if (spName && spName.textContent === drink.n && currentMode === 'spotlight') {
-    updateActivityFeed(drink);
-    const chartEl = document.getElementById('sp-chart');
-    if (chartEl) {
-      chartEl.innerHTML = chartTimeline(drink, 560, 240);
-    }
-  }
 }
 
 function updateRowDisplay(d) {
@@ -154,13 +146,12 @@ function startCrawl(text, color) {
   if (!crashActive) crawlTo = setTimeout(() => startCrawl(text), dur * 1000);
 }
 
+let lastCrawlReset = 0;
 function updateNewsBar(d) {
-  const msgs = [
-    `${d.n} just ordered — price rising · £${d.p.toFixed(2)} now`,
-    `Order activity: ${d.n} catching bids at £${d.p.toFixed(2)}`,
-    `Unordered drinks decaying — the longer you wait, the cheaper they get`
-  ];
-  startCrawl(msgs[Math.floor(Math.random() * msgs.length)]);
+  const now = Date.now();
+  if (now - lastCrawlReset < 10000) return;
+  lastCrawlReset = now;
+  startCrawl(`Purchase · ${d.n} — £${d.p.toFixed(2)}`);
 
   const n = new Date();
   const nbsrc = document.getElementById('nbsrc');
@@ -181,8 +172,8 @@ function switchPanel(idx) {
   document.getElementById(`pv${currentPanel}`).classList.remove('active');
   document.getElementById(`dot${currentPanel}`).classList.remove('active');
 
-  currentPanel = idx % 3;
-  const updaters = [updateMarketPanel, updateGossipPanel, updateMiniSpotlight];
+  currentPanel = idx % 2;
+  const updaters = [updateMarketPanel, updateMiniSpotlight];
   updaters[currentPanel]();
 
   document.getElementById(`pv${currentPanel}`).classList.add('active');
@@ -237,6 +228,7 @@ function setupThree() {
   // Store for animation
   scene.userData.particles = particles;
   scene.userData.geometry = geometry;
+  scene.userData.mat = mat;
 
   // Soft lighting
   const ambientLight = new THREE.AmbientLight(0x3dd68c, 0.2);
@@ -271,6 +263,15 @@ function threeUpdate() {
     });
 
     geometry.attributes.position.needsUpdate = true;
+  }
+
+  // Lerp particle color toward target based on mode
+  const mat = scene.userData.mat;
+  if (mat) {
+    const target = threeMode === 'crash' || threeMode === 'crash-peak'
+      ? new THREE.Color(0xff5252)
+      : new THREE.Color(0x3dd68c);
+    mat.color.lerp(target, 0.04);
   }
 
   renderer.render(scene, camera);

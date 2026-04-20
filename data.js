@@ -81,19 +81,6 @@ const ORDER_WEIGHTS = [
   0.02, 0.02, 0.02, 0.02, 0.02,
 ];
 
-const GOSSIP_ITEMS = [
-  'Margarita orders surging — tequila category on fire tonight',
-  'Negroni range seeing strong demand — the bitter crowd is in',
-  'Espresso Martinis flying — late-night coffee crowd taking over',
-  'Signature cocktails outperforming — guests exploring the menu',
-  'Bloody Mary orders unusual for this hour — brunch vibes',
-  'Mocktails quietly gaining — sober curious cohort growing',
-  'Spritz category slowing — crowd moving to stirred drinks',
-  'Old Fashioned range heating up — whisky drinkers taking seats',
-  'Smokey variants outpacing classics — smoke is the trend tonight',
-  'Champagne cocktails ordered — celebration group just arrived',
-];
-
 const CULTURAL_BLURBS = {
   cbm:  'Zubrowka + BM Mix + tomato · the Pickle House original · celery and two olives',
   pca:  'Mezcal + cactus mix · avocado garnish · the south-of-the-border Mary',
