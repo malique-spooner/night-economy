@@ -4,7 +4,7 @@
 
 function applyDecay() {
   D.forEach(d => {
-    d.p = Math.max(d.b * 0.5, d.p * 0.995);
+    d.p = clampPrice(d, d.p * 0.995);
     d.h.push(d.p);
     if (d.h.length > 12) d.h.shift();
     updateRowDisplay(d);
@@ -60,12 +60,13 @@ function buildBoard(viewIdx) {
 
       items.forEach(d => {
         const row = document.createElement('div');
-        row.className = `drow ${d.o > 0 ? 'fresh' : 'decaying'}`;
+        row.className = `drow ${d.o > 0 ? 'fresh' : 'decaying'} ${d.soldOut ? 'sold-out' : ''}`;
         row.id = `r${d.id}`;
         const pct = ((d.p - d.b) / d.b * 100).toFixed(1);
         const up = d.p >= d.b;
+        const soldBadge = d.soldOut ? '<span class="val-badge">SOLD OUT</span>' : '';
         row.innerHTML = `
-          <div><div class="dname">${d.n}</div><div class="dcat-sub">${d.cat.replace('-',' ')}</div></div>
+          <div><div class="dname">${d.n}${soldBadge}</div><div class="dcat-sub">${d.cat.replace('-',' ')}</div></div>
           <div class="dprice ${up?'up':'dn'}" id="p${d.id}">£${d.p.toFixed(2)}</div>
           <div class="spark-cell" id="sp${d.id}">${svgSpark(d.h,up,104,24)}</div>
           <div class="dpct ${up?'up':'dn'}" id="pct${d.id}">${up?'+':''}${pct}%</div>
@@ -138,7 +139,7 @@ function updateMarketPanel() {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   CATEGORY ANALYTICS HELPERS (used by spotlight too)
+   CATEGORY ANALYTICS HELPERS
    ════════════════════════════════════════════════════════════════════ */
 
 function getCategoryInsight(cat) {

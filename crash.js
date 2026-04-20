@@ -16,7 +16,7 @@ function startCrash() {
   let warnJitter = setInterval(() => {
     D.forEach(d => {
       const drift = -(Math.random() * 0.15 + 0.05);
-      d.p = Math.max(d.b * 0.5, d.p + drift);
+      d.p = clampPrice(d, d.p + drift);
       d.h.push(d.p);
       if (d.h.length > 12) d.h.shift();
       updateRowDisplay(d);
@@ -71,7 +71,7 @@ function startCrash() {
     // Collapse all prices
     D.forEach(d => {
       const prev = d.p;
-      d.p = d.b * (0.48 + Math.random() * 0.12);
+      d.p = clampPrice(d, d.b * (0.48 + Math.random() * 0.12));
       d.h.push(d.p);
       if (d.h.length > 12) d.h.shift();
       const pEl = document.getElementById(`p${d.id}`);
@@ -210,7 +210,7 @@ function endCrash() {
 
     // Reset prices back toward base
     D.forEach(d => {
-      d.p = d.b * (0.9 + Math.random() * 0.1);
+      d.p = clampPrice(d, d.b * (0.9 + Math.random() * 0.1));
       d.h.push(d.p);
       if (d.h.length > 12) d.h.shift();
     });
@@ -218,5 +218,6 @@ function endCrash() {
     startCrawl('Market recovering — prices returning to normal · Buy window closed');
     buildBoard();
     renderTicker();
+    if (typeof refreshAuxViews === 'function') refreshAuxViews();
   }, 1000);
 }

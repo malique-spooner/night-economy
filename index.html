@@ -198,6 +198,7 @@
 
 <script src="data.js?v=2"></script>
 <script src="shared.js?v=5"></script>
+<script src="pages.js?v=1"></script>
 <script src="home.js?v=2"></script>
 <script src="crash.js?v=2"></script>
 
@@ -259,7 +260,7 @@ function resetState() {
   });
 
   // Reset prices to base
-  D = DRINKS.map(d => ({ ...d, h: [...d.h], o: 0 }));
+  rebuildMarketState();
 
   // Reset news bar
   document.getElementById('nb-tag').textContent = 'Breaking';
@@ -275,19 +276,22 @@ function t(fn, ms) {
 
 function weightedRandom() {
   // 75% of the time pick from the drinks currently visible on the board
+  const available = getAvailableDrinks();
   const view = BOARD_VIEWS[currentBoardView];
   if (view && Math.random() < 0.75) {
-    const visible = D.filter(d => view.ids.includes(d.id));
+    const visible = available.filter(d => view.ids.includes(d.id));
     if (visible.length) return visible[Math.floor(Math.random() * visible.length)].id;
   }
   // fallback: weighted random across all drinks
   const r = Math.random();
   let c = 0;
   for (let i = 0; i < D.length; i++) {
+    if (D[i].soldOut) continue;
+    if (MARKET_SETTINGS.categories[D[i].cat] && MARKET_SETTINGS.categories[D[i].cat].soldOut) continue;
     c += ORDER_WEIGHTS[i];
     if (r < c) return D[i].id;
   }
-  return D[0].id;
+  return available[0] ? available[0].id : D[0].id;
 }
 
 function scheduleOrders(interval = [1800, 5800]) {
@@ -321,7 +325,7 @@ function initMode(mode) {
 
     /* ──────── BASE HOME ──────── */
     case 'base':
-      // Force panel 0 active immediately — currentPanel may still be 2 from spotlight
+      // Force panel 0 active immediately — the app always starts on the market desk
       [0,1].forEach(i => {
         document.getElementById(`pv${i}`)?.classList.remove('active');
         document.getElementById(`dot${i}`)?.classList.remove('active');

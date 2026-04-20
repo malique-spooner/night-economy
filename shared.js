@@ -3,7 +3,98 @@
    ════════════════════════════════════════════════════════════════════ */
 
 // Market data - imported from data.js
-let D = DRINKS.map(d => ({ ...d, h: [...d.h], o: 0 }));
+const DEFAULT_CATEGORIES = [...new Set(DRINKS.map(d => d.cat))];
+const MARKET_SETTINGS_KEY = 'night-economy-market-settings';
+
+function buildDefaultMarketSettings() {
+  const drinks = {};
+  DRINKS.forEach(d => {
+    drinks[d.id] = {
+      name: d.n,
+      cat: d.cat,
+      floor: +(d.b * 0.65).toFixed(2),
+      ceiling: +(d.b * 1.65).toFixed(2),
+      soldOut: false,
+    };
+  });
+
+  const categories = {};
+  DEFAULT_CATEGORIES.forEach(cat => {
+    categories[cat] = {
+      label: cat.replace('-', ' '),
+      soldOut: false,
+    };
+  });
+
+  return { drinks, categories };
+}
+
+function loadMarketSettings() {
+  try {
+    const raw = localStorage.getItem(MARKET_SETTINGS_KEY);
+    if (!raw) return buildDefaultMarketSettings();
+    const parsed = JSON.parse(raw);
+    const defaults = buildDefaultMarketSettings();
+    return {
+      drinks: { ...defaults.drinks, ...(parsed.drinks || {}) },
+      categories: { ...defaults.categories, ...(parsed.categories || {}) },
+    };
+  } catch (err) {
+    return buildDefaultMarketSettings();
+  }
+}
+
+let MARKET_SETTINGS = loadMarketSettings();
+let SALES_LOG = [];
+
+function saveMarketSettings() {
+  try {
+    localStorage.setItem(MARKET_SETTINGS_KEY, JSON.stringify(MARKET_SETTINGS));
+  } catch (err) {
+    // Ignore storage failures in private browsing or locked-down contexts.
+  }
+}
+
+function rebuildMarketState() {
+  D = DRINKS.map(d => {
+    const s = MARKET_SETTINGS.drinks[d.id] || {};
+    const catS = MARKET_SETTINGS.categories[d.cat] || {};
+    return {
+      ...d,
+      n: s.name || d.n,
+      cat: s.cat || d.cat,
+      b: d.b,
+      p: d.p,
+      h: [...d.h],
+      o: 0,
+      floor: typeof s.floor === 'number' ? s.floor : +(d.b * 0.65).toFixed(2),
+      ceiling: typeof s.ceiling === 'number' ? s.ceiling : +(d.b * 1.65).toFixed(2),
+      soldOut: !!s.soldOut || !!catS.soldOut,
+    };
+  });
+  return D;
+}
+
+rebuildMarketState();
+
+function syncDrinkFromSettings(drinkId) {
+  const drink = D.find(d => d.id === drinkId);
+  if (!drink) return;
+  const s = MARKET_SETTINGS.drinks[drinkId] || {};
+  const nextCat = s.cat || drink.cat;
+  const catS = MARKET_SETTINGS.categories[nextCat] || {};
+  if (s.name) drink.n = s.name;
+  drink.cat = nextCat;
+  if (typeof s.floor === 'number') drink.floor = s.floor;
+  if (typeof s.ceiling === 'number') drink.ceiling = s.ceiling;
+  drink.soldOut = !!s.soldOut || !!catS.soldOut;
+}
+
+function clampPrice(drink, value) {
+  const floor = typeof drink.floor === 'number' ? drink.floor : drink.b * 0.65;
+  const ceiling = typeof drink.ceiling === 'number' ? drink.ceiling : drink.b * 1.65;
+  return Math.max(floor, Math.min(ceiling, value));
+}
 
 // State tracking
 let crashActive = false;
@@ -37,17 +128,19 @@ function fmt(s) {
 
 function fireOrder(dId) {
   const drink = D.find(d => d.id === dId);
-  if (!drink) return;
+  if (!drink || drink.soldOut) return;
+  const catSetting = MARKET_SETTINGS.categories[drink.cat];
+  if (catSetting && catSetting.soldOut) return;
 
   drink.o++;
   const trend = Math.random() > 0.4 ? 'up' : 'dn';
   const mult = trend === 'up' ? 1.08 : 0.96;
   const prev = drink.p;
-  drink.p = Math.max(drink.b * 0.5, drink.p * mult);
+  drink.p = clampPrice(drink, drink.p * mult);
   drink.h.push(drink.p);
   if (drink.h.length > 12) drink.h.shift();
 
-  // Track order in timeline for spotlight chart/activity feed
+  // Track order in a short per-drink timeline for the live panels
   if (!drink.timeline) drink.timeline = [];
   drink.timeline.push({
     t: Date.now(),
@@ -56,6 +149,17 @@ function fireOrder(dId) {
     type: trend === 'up' ? 'buy' : 'sell'
   });
   if (drink.timeline.length > 50) drink.timeline.shift();
+
+  SALES_LOG.push({
+    t: Date.now(),
+    id: drink.id,
+    n: drink.n,
+    cat: drink.cat,
+    type: trend === 'up' ? 'buy' : 'sell',
+    prev,
+    price: drink.p,
+  });
+  if (SALES_LOG.length > 500) SALES_LOG.shift();
 
   insertTradeRow(dId, trend === 'up', prev, trend === 'up' ? 'BUY' : 'SELL');
 
@@ -84,7 +188,8 @@ function fireOrder(dId) {
 
   updateNewsBar(drink);
 
-  // Update spotlight activity feed and chart if this drink is currently spotlighted
+  // Refresh the live side panels after an order changes market state
+  if (typeof refreshAuxViews === 'function') refreshAuxViews();
 }
 
 function updateRowDisplay(d) {
@@ -102,6 +207,11 @@ function updateRowDisplay(d) {
 
   const spEl = document.getElementById(`sp${d.id}`);
   if (spEl) { spEl.innerHTML = svgSpark(d.h, up, 104, 24); }
+
+  const rowEl = document.getElementById(`r${d.id}`);
+  if (rowEl) {
+    rowEl.classList.toggle('sold-out', !!d.soldOut);
+  }
 }
 
 function svgSpark(h, up, W, H) {
@@ -156,6 +266,28 @@ function updateNewsBar(d) {
   const n = new Date();
   const nbsrc = document.getElementById('nbsrc');
   if (nbsrc) nbsrc.textContent = `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')} · Market Desk`;
+}
+
+function getAvailableDrinks() {
+  return D.filter(d => !d.soldOut && !(MARKET_SETTINGS.categories[d.cat] && MARKET_SETTINGS.categories[d.cat].soldOut));
+}
+
+function setDrinkMarketConfig(drinkId, patch) {
+  if (!MARKET_SETTINGS.drinks[drinkId]) return;
+  MARKET_SETTINGS.drinks[drinkId] = { ...MARKET_SETTINGS.drinks[drinkId], ...patch };
+  saveMarketSettings();
+  syncDrinkFromSettings(drinkId);
+  if (typeof refreshAuxViews === 'function') refreshAuxViews();
+}
+
+function setCategoryMarketConfig(cat, patch) {
+  if (!MARKET_SETTINGS.categories[cat]) {
+    MARKET_SETTINGS.categories[cat] = { label: cat.replace('-', ' '), soldOut: false };
+  }
+  MARKET_SETTINGS.categories[cat] = { ...MARKET_SETTINGS.categories[cat], ...patch };
+  saveMarketSettings();
+  D.forEach(d => syncDrinkFromSettings(d.id));
+  if (typeof refreshAuxViews === 'function') refreshAuxViews();
 }
 
 function updateClock() {
