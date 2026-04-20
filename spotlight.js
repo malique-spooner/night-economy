@@ -19,22 +19,6 @@ function updateSpotlightPanel() {
   chgEl.textContent = `${chg > 0 ? '+' : ''}${(chg / drink.b * 100).toFixed(1)}%`;
   chgEl.className = `sp-chg ${drink.p > drink.b ? 'up' : 'dn'}`;
 
-  // OHLC Stats
-  document.getElementById('sp-open').textContent = `£${ohlc.open.toFixed(2)}`;
-  document.getElementById('sp-high').textContent = `£${ohlc.high.toFixed(2)}`;
-  document.getElementById('sp-low').textContent = `£${ohlc.low.toFixed(2)}`;
-  document.getElementById('sp-close').textContent = `£${ohlc.close.toFixed(2)}`;
-  document.getElementById('sp-orders').textContent = drink.o;
-
-  // Market Sentiment Badge
-  const sentBadge = document.getElementById('sp-sentiment');
-  if (sentBadge) {
-    const commentary = getPriceCommentary(drink);
-    const isBullish = drink.p > drink.b;
-    const sentiment = isBullish ? 'BULLISH' : 'BEARISH';
-    sentBadge.textContent = sentiment;
-    sentBadge.className = `sp-sentiment-badge ${isBullish ? 'bullish' : 'bearish'}`;
-  }
 
   // Render candlestick chart
   const chartEl = document.getElementById('sp-chart');
@@ -45,11 +29,8 @@ function updateSpotlightPanel() {
   // Render peer sparklines
   renderPeerSparklines(drink);
 
-  // Render category heat bar
-  renderCategoryHeat(drink);
-
-  // Render story strip with rotating headlines
-  updateStoryRotation(drink);
+  // Render news article feed
+  renderNewsArticles(drink);
 
   // Render live tape
   updateTapeFeed(drink);
@@ -57,6 +38,9 @@ function updateSpotlightPanel() {
   // Update clock
   const n = new Date();
   document.getElementById('sp-clock').textContent = `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;
+
+  // Dramatic reveal
+  revealSpotlightDrink();
 }
 
 function updateActivityFeed(drink) {
@@ -497,32 +481,123 @@ function getSpotlightStory(drink) {
   return stories;
 }
 
-let storyRotationIndex = 0;
-let storyRotationInterval = null;
+function generateArticles(drink) {
+  const chg = ((drink.p - drink.b) / drink.b * 100);
+  const isUp = chg >= 0;
+  const cat = drink.cat.replace('-', ' ');
+  const catItems = D.filter(d => d.cat === drink.cat);
+  const catGainers = catItems.filter(d => d.p > d.b).length;
+  const catSentiment = catGainers > catItems.length * 0.6 ? 'surging' : catGainers < catItems.length * 0.4 ? 'retreating' : 'mixed';
+  const articles = [];
 
-function updateStoryRotation(drink) {
-  const storyEl = document.getElementById('sp-story-content');
-  if (!storyEl) return;
+  articles.push({
+    tag: 'Price Action',
+    hl: isUp
+      ? `${drink.n} climbs ${chg.toFixed(1)}% as buyers take control of the floor`
+      : `${drink.n} retreats ${Math.abs(chg).toFixed(1)}% amid growing selling pressure`,
+    body: isUp
+      ? `Demand accelerating as late-night orders push the price above its opening level. ${cat} category seeing broad interest tonight.`
+      : `Rotation underway as guests move toward better-value options. ${cat} facing headwinds across the board.`,
+    time: 'Just now'
+  });
 
-  const stories = getSpotlightStory(drink);
+  articles.push({
+    tag: cat,
+    hl: `${cat} category ${catSentiment} — ${catGainers} of ${catItems.length} drinks trading above base`,
+    time: '1m ago'
+  });
 
-  // Clear existing rotation
-  if (storyRotationInterval) clearInterval(storyRotationInterval);
-  storyRotationIndex = 0;
-
-  function showStory(idx) {
-    const story = stories[idx % stories.length];
-    storyEl.textContent = story;
-    storyEl.style.opacity = '0';
-    void storyEl.offsetWidth; // Force reflow
-    storyEl.style.opacity = '1';
+  if (drink.timeline && drink.timeline.length >= 3) {
+    const recent = drink.timeline.slice(-4);
+    const buys = recent.filter(t => t.type === 'buy').length;
+    articles.push({
+      tag: 'Order Flow',
+      hl: buys >= 3
+        ? `Strong buy-side momentum on ${drink.n} — ${buys} of last 4 orders were buys`
+        : buys <= 1
+          ? `Sellers in control on ${drink.n} — distribution phase may be underway`
+          : `Mixed tape on ${drink.n} — ${buys} buys vs ${4 - buys} sells in recent activity`,
+      time: '2m ago'
+    });
   }
 
-  showStory(0);
+  const blurb = CULTURAL_BLURBS[drink.id];
+  if (blurb) {
+    articles.push({
+      tag: 'On the Menu',
+      hl: blurb,
+      time: 'Tonight'
+    });
+  }
 
-  // Rotate every 4 seconds
-  storyRotationInterval = setInterval(() => {
-    storyRotationIndex++;
-    showStory(storyRotationIndex);
-  }, 4000);
+  return articles;
+}
+
+function renderNewsArticles(drink) {
+  const feedEl = document.getElementById('sp-story-content');
+  if (!feedEl) return;
+
+  const articles = generateArticles(drink);
+  feedEl.innerHTML = articles.map((a, i) => `
+    <div class="sp-article${i === 0 ? ' sp-article-lead' : ''}">
+      <div class="sp-article-top">
+        <span class="sp-article-tag">${a.tag}</span>
+        <span class="sp-article-time">${a.time}</span>
+      </div>
+      <div class="sp-article-hl">${a.hl}</div>
+      ${i === 0 && a.body ? `<div class="sp-article-body">${a.body}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   SPOTLIGHT DRAMATIC REVEAL
+   ════════════════════════════════════════════════════════════════════ */
+
+function addSpotlightScanline() {
+  const hero = document.querySelector('.sp-hero');
+  if (!hero) return;
+  const scan = document.createElement('div');
+  scan.className = 'sp-scanline';
+  hero.appendChild(scan);
+  setTimeout(() => scan.remove(), 1100);
+}
+
+function revealSpotlightDrink() {
+  // Gold wash flash
+  const wash = document.getElementById('wash');
+  if (wash) {
+    wash.style.transition = 'none';
+    wash.style.background = 'rgba(201,170,82,0.13)';
+    wash.style.opacity = '0.7';
+    void wash.offsetWidth;
+    setTimeout(() => {
+      wash.style.transition = 'opacity 1s ease';
+      wash.style.opacity = '0';
+    }, 120);
+  }
+
+  // Animate hero text elements
+  const reveals = [
+    { id: 'sp-name',   cls: 'sp-reveal-name' },
+    { id: 'sp-price',  cls: 'sp-reveal-price' },
+    { id: 'sp-banner', cls: 'sp-reveal-banner' },
+  ];
+  reveals.forEach(({ id, cls }) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  });
+
+  // Price glow pulse
+  const priceEl = document.getElementById('sp-price');
+  if (priceEl) {
+    priceEl.classList.remove('sp-price-flash');
+    void priceEl.offsetWidth;
+    priceEl.classList.add('sp-price-flash');
+  }
+
+  addSpotlightScanline();
 }

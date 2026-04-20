@@ -27,6 +27,15 @@ function buildBoard(viewIdx) {
   const labelEl = document.getElementById('boardViewLabel');
   if (labelEl) labelEl.textContent = view.label;
 
+  // Update board dots
+  document.querySelectorAll('.bdot').forEach((dot, idx) => {
+    if (idx === currentBoardView) {
+      dot.classList.add('active');
+    } else {
+      dot.classList.remove('active');
+    }
+  });
+
   inner.style.transition = 'opacity 0.35s';
   inner.style.opacity = '0';
 
@@ -115,8 +124,10 @@ function updateMarketPanel() {
   const faller = [...D].sort((a, b) => (a.p - a.b) - (b.p - b.b))[0];
   const mood = D.filter(d => d.p > d.b).length > 6 ? 'Bullish' : 'Bearish';
 
-  document.getElementById('mn-hl').textContent = `${riser.n} leading surge`;
-  document.getElementById('mn-sub').textContent = `Strong demand across categories. ${riser.n} up ${((riser.p - riser.b) / riser.b * 100).toFixed(1)}%. ${faller.n} down.`;
+  const riserPct = ((riser.p - riser.b) / riser.b * 100).toFixed(1);
+  const fallerPct = ((faller.p - faller.b) / faller.b * 100).toFixed(1);
+  document.getElementById('mn-hl').textContent = `${riser.n} leads session as ${mood.toLowerCase()} sentiment grips the floor`;
+  document.getElementById('mn-sub').textContent = `Floor activity accelerated tonight. ${riser.n} outpacing the market at ${riserPct > 0 ? '+' : ''}${riserPct}% as buyers move in. ${faller.n} faces selling pressure, down ${fallerPct}%.`;
   document.getElementById('mn-value').textContent = `£${best.p.toFixed(2)}`;
   document.getElementById('mn-riser').textContent = riser.n;
   document.getElementById('mn-faller').textContent = faller.n;
@@ -124,23 +135,6 @@ function updateMarketPanel() {
 
   const now = new Date();
   document.getElementById('mn-time').textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-}
-
-function updateGossipPanel() {
-  const gossips = GOSSIP_ITEMS.sort(() => Math.random() - 0.5).slice(0, 5);
-
-  const feed = document.getElementById('gossip-feed');
-  if (!feed) return;
-  feed.innerHTML = gossips.map(g => {
-    const hot = Math.random() > 0.6;
-    return `
-      <div class="g-item">
-        <div class="g-handle">◆ Floor desk ${hot ? '<span class="g-hot">hot</span>' : ''}</div>
-        <div class="g-text">${g}</div>
-        <div class="g-meta">moments ago</div>
-      </div>
-    `;
-  }).join('');
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -204,10 +198,17 @@ function updateMiniSpotlight() {
   chgEl.className = 'mini-sp-chg ' + (isUp ? 'up' : 'dn');
 
   const chartEl = document.getElementById('mini-sp-chart');
-  if (chartEl) chartEl.innerHTML = svgSpark(drink.h, isUp, 220, 50);
+  if (chartEl) chartEl.innerHTML = svgSpark(drink.h, isUp, 260, 72);
 
-  document.getElementById('mini-sp-blurb').textContent = CULTURAL_BLURBS[drink.id] || '';
-  document.getElementById('mini-sp-orders').textContent = drink.o || '—';
-  document.getElementById('mini-sp-base').textContent = '£' + drink.b.toFixed(2);
-  document.getElementById('mini-sp-cat-lbl').textContent = drink.cat.replace('-', ' ');
+  const barPct = Math.min(100, Math.max(0, ((drink.p / drink.b) - 0.5) * 100));
+  const fillEl = document.getElementById('mini-sp-vs-fill');
+  if (fillEl) {
+    fillEl.style.width = barPct + '%';
+    fillEl.className = 'mini-sp-vs-fill ' + (isUp ? 'up' : 'dn');
+  }
+  const vsValEl = document.getElementById('mini-sp-vs-val');
+  if (vsValEl) {
+    vsValEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%';
+    vsValEl.className = 'mini-sp-vs-val ' + (isUp ? 'up' : 'dn');
+  }
 }
