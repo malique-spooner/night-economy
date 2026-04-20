@@ -5,6 +5,8 @@
 // Market data - imported from data.js
 const DEFAULT_CATEGORIES = [...new Set(DRINKS.map(d => d.cat))];
 const MARKET_SETTINGS_KEY = 'night-economy-market-settings';
+const SALES_LOG_KEY = 'night-economy-sales-log';
+const MARKET_HISTORY_KEY = 'night-economy-market-history';
 
 function buildDefaultMarketSettings() {
   const drinks = {};
@@ -12,6 +14,7 @@ function buildDefaultMarketSettings() {
     drinks[d.id] = {
       name: d.n,
       cat: d.cat,
+      salePrice: d.b,
       floor: +(d.b * 0.65).toFixed(2),
       ceiling: +(d.b * 1.65).toFixed(2),
       soldOut: false,
@@ -45,7 +48,34 @@ function loadMarketSettings() {
 }
 
 let MARKET_SETTINGS = loadMarketSettings();
-let SALES_LOG = [];
+let SALES_LOG = loadSalesLog();
+let MARKET_HISTORY = loadMarketHistory();
+let SESSION_STARTED_AT = Date.now();
+
+function cloneMarketSettings(settings = MARKET_SETTINGS) {
+  return {
+    drinks: JSON.parse(JSON.stringify(settings.drinks || {})),
+    categories: JSON.parse(JSON.stringify(settings.categories || {})),
+  };
+}
+
+function loadSalesLog() {
+  try {
+    const raw = localStorage.getItem(SALES_LOG_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function loadMarketHistory() {
+  try {
+    const raw = localStorage.getItem(MARKET_HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (err) {
+    return [];
+  }
+}
 
 function saveMarketSettings() {
   try {
@@ -55,20 +85,38 @@ function saveMarketSettings() {
   }
 }
 
+function saveSalesLog() {
+  try {
+    localStorage.setItem(SALES_LOG_KEY, JSON.stringify(SALES_LOG));
+  } catch (err) {
+    // Ignore storage failures in private browsing or locked-down contexts.
+  }
+}
+
+function saveMarketHistory() {
+  try {
+    localStorage.setItem(MARKET_HISTORY_KEY, JSON.stringify(MARKET_HISTORY.slice(-40)));
+  } catch (err) {
+    // Ignore storage failures in private browsing or locked-down contexts.
+  }
+}
+
 function rebuildMarketState() {
   D = DRINKS.map(d => {
     const s = MARKET_SETTINGS.drinks[d.id] || {};
     const catS = MARKET_SETTINGS.categories[d.cat] || {};
+    const salePrice = typeof s.salePrice === 'number' ? s.salePrice : d.b;
     return {
       ...d,
       n: s.name || d.n,
       cat: s.cat || d.cat,
-      b: d.b,
-      p: d.p,
-      h: [...d.h],
+      basePrice: d.b,
+      b: salePrice,
+      p: salePrice,
+      h: Array.from({ length: d.h.length }, () => salePrice),
       o: 0,
-      floor: typeof s.floor === 'number' ? s.floor : +(d.b * 0.65).toFixed(2),
-      ceiling: typeof s.ceiling === 'number' ? s.ceiling : +(d.b * 1.65).toFixed(2),
+      floor: typeof s.floor === 'number' ? s.floor : +(salePrice * 0.65).toFixed(2),
+      ceiling: typeof s.ceiling === 'number' ? s.ceiling : +(salePrice * 1.65).toFixed(2),
       soldOut: !!s.soldOut || !!catS.soldOut,
     };
   });
@@ -85,6 +133,11 @@ function syncDrinkFromSettings(drinkId) {
   const catS = MARKET_SETTINGS.categories[nextCat] || {};
   if (s.name) drink.n = s.name;
   drink.cat = nextCat;
+  if (typeof s.salePrice === 'number') {
+    drink.b = s.salePrice;
+    drink.p = clampPrice(drink, s.salePrice);
+    drink.h = Array.from({ length: Math.max(drink.h.length, 7) }, () => drink.p);
+  }
   if (typeof s.floor === 'number') drink.floor = s.floor;
   if (typeof s.ceiling === 'number') drink.ceiling = s.ceiling;
   drink.soldOut = !!s.soldOut || !!catS.soldOut;
@@ -160,6 +213,7 @@ function fireOrder(dId) {
     price: drink.p,
   });
   if (SALES_LOG.length > 500) SALES_LOG.shift();
+  saveSalesLog();
 
   insertTradeRow(dId, trend === 'up', prev, trend === 'up' ? 'BUY' : 'SELL');
 
@@ -272,22 +326,82 @@ function getAvailableDrinks() {
   return D.filter(d => !d.soldOut && !(MARKET_SETTINGS.categories[d.cat] && MARKET_SETTINGS.categories[d.cat].soldOut));
 }
 
-function setDrinkMarketConfig(drinkId, patch) {
-  if (!MARKET_SETTINGS.drinks[drinkId]) return;
-  MARKET_SETTINGS.drinks[drinkId] = { ...MARKET_SETTINGS.drinks[drinkId], ...patch };
+function pushMarketHistory(entry) {
+  MARKET_HISTORY.push(entry);
+  MARKET_HISTORY = MARKET_HISTORY.slice(-40);
+  saveMarketHistory();
+}
+
+function applyMarketTransaction(label, mutator) {
+  const previous = cloneMarketSettings();
+  mutator();
   saveMarketSettings();
-  syncDrinkFromSettings(drinkId);
+  D.forEach(d => syncDrinkFromSettings(d.id));
+  pushMarketHistory({
+    t: Date.now(),
+    kind: 'transaction',
+    label,
+    prev: previous,
+  });
   if (typeof refreshAuxViews === 'function') refreshAuxViews();
 }
 
-function setCategoryMarketConfig(cat, patch) {
+function setDrinkMarketConfig(drinkId, patch, options = {}) {
+  if (!MARKET_SETTINGS.drinks[drinkId]) return;
+  const previous = options.recordHistory ? cloneMarketSettings() : null;
+  MARKET_SETTINGS.drinks[drinkId] = { ...MARKET_SETTINGS.drinks[drinkId], ...patch };
+  saveMarketSettings();
+  syncDrinkFromSettings(drinkId);
+  if (Object.prototype.hasOwnProperty.call(patch, 'salePrice')) {
+    const drink = D.find(d => d.id === drinkId);
+    if (drink) {
+      const nextPrice = clampPrice(drink, patch.salePrice);
+      drink.b = nextPrice;
+      drink.p = nextPrice;
+      drink.h = Array.from({ length: Math.max(drink.h.length, 7) }, () => nextPrice);
+    }
+  }
+  if (options.recordHistory && previous) {
+    pushMarketHistory({
+      t: Date.now(),
+      kind: 'drink',
+      id: drinkId,
+      prev: previous,
+      label: patch.name || patch.salePrice || patch.floor || patch.ceiling ? 'Updated drink settings' : 'Updated drink',
+    });
+  }
+  if (typeof refreshAuxViews === 'function') refreshAuxViews();
+}
+
+function setCategoryMarketConfig(cat, patch, options = {}) {
   if (!MARKET_SETTINGS.categories[cat]) {
     MARKET_SETTINGS.categories[cat] = { label: cat.replace('-', ' '), soldOut: false };
   }
+  const previous = options.recordHistory ? cloneMarketSettings() : null;
   MARKET_SETTINGS.categories[cat] = { ...MARKET_SETTINGS.categories[cat], ...patch };
   saveMarketSettings();
   D.forEach(d => syncDrinkFromSettings(d.id));
+  if (options.recordHistory && previous) {
+    pushMarketHistory({
+      t: Date.now(),
+      kind: 'category',
+      id: cat,
+      prev: previous,
+      label: patch.soldOut ? 'Category sold-out state changed' : 'Updated category',
+    });
+  }
   if (typeof refreshAuxViews === 'function') refreshAuxViews();
+}
+
+function undoLastMarketChange() {
+  const entry = MARKET_HISTORY.pop();
+  if (!entry) return false;
+  MARKET_SETTINGS = entry.prev;
+  saveMarketSettings();
+  D.forEach(d => syncDrinkFromSettings(d.id));
+  saveMarketHistory();
+  if (typeof refreshAuxViews === 'function') refreshAuxViews();
+  return true;
 }
 
 function updateClock() {
