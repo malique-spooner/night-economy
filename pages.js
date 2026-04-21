@@ -104,8 +104,18 @@ function injectPageShell() {
       <div class="mobile-hero">
         <div class="mobile-hero-copy">
           <div class="alt-kicker">Night Economy</div>
-          <h1 class="alt-title">Tonight's Menu</h1>
-          <p class="alt-sub">A fresh digital menu designed to make the drinks feel irresistible, easy to scan, and up to date.</p>
+          <h1 class="alt-title">Live Menu</h1>
+          <p class="alt-sub">Current drinks, current prices, same Night Economy tone.</p>
+        </div>
+        <div class="mobile-scene" aria-hidden="true">
+          <div class="mobile-orb"></div>
+          <div class="mobile-cube">
+            <span class="face face-top"></span>
+            <span class="face face-left"></span>
+            <span class="face face-right"></span>
+            <span class="face face-front"></span>
+          </div>
+          <div class="mobile-rings"></div>
         </div>
         <div class="alt-stats" id="mobileSummary"></div>
       </div>
@@ -114,15 +124,15 @@ function injectPageShell() {
           <input id="mobileSearch" class="manager-search" type="search" placeholder="Search drinks">
         </div>
         <div class="mobile-badges">
-          <div class="mobile-badge">Fresh menu</div>
+          <div class="mobile-badge">Fresh</div>
           <div class="mobile-badge">House picks</div>
-          <div class="mobile-badge">Signature serves</div>
+          <div class="mobile-badge">Signature</div>
         </div>
       </div>
       <div class="mobile-featured-head">
         <div>
-          <div class="card-hdr">Featured Now</div>
-          <p class="mobile-featured-sub">The drinks we want people to notice first.</p>
+          <div class="card-hdr">Featured</div>
+          <p class="mobile-featured-sub">Three quick picks to help people choose faster.</p>
         </div>
       </div>
       <div class="featured-grid" id="mobileFeatured"></div>
@@ -430,6 +440,15 @@ function getVisibleEmployeeDrinks() {
   });
 }
 
+function getMobileTagline(drink) {
+  if (!drink) return '';
+  if (drink.cat === 'signature') return 'House signature';
+  if (drink.cat === 'mocktail') return 'Zero alcohol';
+  if (drink.o > 2) return 'Popular now';
+  if (drink.p <= drink.b) return 'Good value';
+  return 'Fresh serve';
+}
+
 function renderManagerHistory() {
   const history = document.getElementById('managerHistory');
   if (!history) return;
@@ -463,16 +482,10 @@ function renderMobileView() {
   const activeDrinks = D.filter(d => !d.soldOut);
   const soldOutCount = D.length - activeDrinks.length;
   const topDrink = [...D].sort((a, b) => b.o - a.o)[0];
-  const bestValue = [...D].sort((a, b) => {
-    const aScore = (a.o * 2) + Math.max(0, (a.b - a.p) * -1);
-    const bScore = (b.o * 2) + Math.max(0, (b.b - b.p) * -1);
-    return bScore - aScore;
-  })[0];
   summary.innerHTML = '';
-  renderStatPill(summary, 'Live items', activeDrinks.length);
+  renderStatPill(summary, 'Live', activeDrinks.length);
   renderStatPill(summary, 'Sold out', soldOutCount);
-  renderStatPill(summary, 'Most ordered', topDrink ? topDrink.n : '—');
-  renderStatPill(summary, 'Featured', bestValue ? bestValue.n : '—');
+  renderStatPill(summary, 'Top seller', topDrink ? topDrink.n : '—');
 
   const cats = ['all', ...new Set(D.map(d => d.cat))];
   search.value = PAGE_STATE.mobile.search;
@@ -491,32 +504,39 @@ function renderMobileView() {
       const matchesSearch = !PAGE_STATE.mobile.search.trim() || `${d.n} ${d.cat}`.toLowerCase().includes(PAGE_STATE.mobile.search.trim().toLowerCase());
       return matchesCat && matchesSearch;
     });
-    const featuredPool = [...visible].sort((a, b) => {
-      const aFeatured = (a.o * 4) + (a.cat === 'signature' ? 10 : 0) + (a.p > a.b ? 2 : 0);
-      const bFeatured = (b.o * 4) + (b.cat === 'signature' ? 10 : 0) + (b.p > b.b ? 2 : 0);
-      return bFeatured - aFeatured;
-    }).slice(0, 4);
+    const byPrice = [...visible].filter(d => !d.soldOut).sort((a, b) => a.p - b.p);
+    const byMove = [...visible].sort((a, b) => Math.abs((b.p - b.b) / b.b) - Math.abs((a.p - a.b) / a.b));
+    const byVolume = [...visible].sort((a, b) => b.o - a.o);
+    const featuredPool = [];
+    const pushUnique = (drink, label, tone = '') => {
+      if (!drink || featuredPool.some(item => item.id === drink.id)) return;
+      featuredPool.push({ ...drink, featureLabel: label, featureTone: tone });
+    };
+    pushUnique(byPrice[0], 'Lowest price now', 'price');
+    pushUnique(byMove[0], 'Biggest mover', 'move');
+    pushUnique(byVolume[0], 'Best seller', 'seller');
     featured.innerHTML = featuredPool.length ? featuredPool.map((d, index) => {
       const artClass = [
         'featured-card',
         `featured-${d.cat}`,
         d.soldOut ? 'sold-out' : '',
         index === 0 ? 'hero' : '',
+        d.featureTone,
       ].filter(Boolean).join(' ');
       return `
         <article class="${artClass}" data-featured-id="${escapeHtml(d.id)}">
           <div class="featured-top">
             <div class="featured-copy">
-              <span class="featured-kicker">${index === 0 ? "Tonight's headliner" : d.cat.replace('-', ' ')}</span>
+              <span class="featured-kicker">${escapeHtml(d.featureLabel)}</span>
               <h3>${escapeHtml(d.n)}</h3>
-              <p>${escapeHtml(CULTURAL_BLURBS[d.id] || 'A distinctive serve built to stand out on the menu.')}</p>
             </div>
             <div class="featured-price">${formatMoney(d.p)}</div>
           </div>
           <div class="featured-meta">
-            <span>${d.cat.replace('-', ' ')}</span>
-            ${d.cat === 'signature' ? '<span class="featured-badge">House signature</span>' : ''}
+            <span>${escapeHtml(d.cat.replace('-', ' '))}</span>
+            ${d.cat === 'signature' ? '<span class="featured-badge">Signature</span>' : ''}
             ${d.o > 2 ? '<span class="featured-badge warm">Popular</span>' : ''}
+            <span class="featured-badge muted">${escapeHtml(getMobileTagline(d))}</span>
             <span class="status ${d.soldOut ? 'off' : 'on'}">${d.soldOut ? 'Sold out' : 'Available'}</span>
           </div>
         </article>
@@ -540,18 +560,16 @@ function renderMobileView() {
                   <div class="menu-card-top">
                     <div>
                       <h3>${escapeHtml(d.n)}</h3>
-                      <p>${escapeHtml(CULTURAL_BLURBS[d.id] || d.cat.replace('-', ' '))}</p>
+                      <p>${escapeHtml(CULTURAL_BLURBS[d.id] || 'A current menu staple.')}</p>
                     </div>
                     <div class="menu-price">${formatMoney(d.p)}</div>
                   </div>
                   <div class="menu-chip-row">
                     <span class="menu-chip">${escapeHtml(d.cat.replace('-', ' '))}</span>
-                    ${d.cat === 'signature' ? '<span class="menu-chip emphasis">House signature</span>' : ''}
-                    ${d.o > 2 ? '<span class="menu-chip warm">Popular</span>' : ''}
+                    <span class="menu-chip muted">${escapeHtml(getMobileTagline(d))}</span>
                   </div>
                   <div class="menu-body">
                     <span class="status ${d.soldOut ? 'off' : 'on'}">${d.soldOut ? 'Sold out' : 'Available'}</span>
-                    <span>${d.cat === 'signature' ? 'Signature pour' : 'Menu favourite'}</span>
                   </div>
                 </article>
               `;
