@@ -6,7 +6,7 @@
 <title>Night Economy — Control Panel</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="styles.css?v=12">
 <style>
 .menu-toggle {
   position: fixed;
@@ -34,13 +34,14 @@
 </style>
 </head>
 <body>
-<div class="root">
+<div class="app-bg">
   <canvas id="threeCanvas"></canvas>
   <div class="grid" id="grid"></div>
   <div class="wash" id="wash"></div>
   <div class="vignette"></div>
   <div class="scanlines"></div>
-
+</div>
+<div class="root">
   <div class="warn-banner" id="warnBanner">
     <span class="warn-icon">⚠</span>
     <span class="warn-text" id="warnText">Unusual market activity detected</span>
@@ -198,7 +199,7 @@
 
 <script src="data.js?v=2"></script>
 <script src="shared.js?v=6"></script>
-<script src="pages.js?v=4"></script>
+<script src="pages.js?v=5"></script>
 <script src="home.js?v=2"></script>
 <script src="crash.js?v=2"></script>
 

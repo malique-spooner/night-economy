@@ -101,23 +101,8 @@ function injectPageShell() {
     <div id="pageToast" class="page-toast" aria-live="polite"></div>
 
     <section id="mobileView" class="alt-view mobile-view">
-      <div class="mobile-hero">
-        <div class="mobile-hero-copy">
-          <div class="alt-kicker">Night Economy</div>
-          <h1 class="alt-title">Live Menu</h1>
-          <p class="alt-sub">Current drinks, current prices, same Night Economy tone.</p>
-        </div>
-        <div class="mobile-scene" aria-hidden="true">
-          <div class="mobile-orb"></div>
-          <div class="mobile-cube">
-            <span class="face face-top"></span>
-            <span class="face face-left"></span>
-            <span class="face face-right"></span>
-            <span class="face face-front"></span>
-          </div>
-          <div class="mobile-rings"></div>
-        </div>
-        <div class="alt-stats" id="mobileSummary"></div>
+      <div class="mobile-header">
+        <span class="mobile-brand">Night Economy</span>
       </div>
       <div class="mobile-search-row">
         <div class="manager-search-wrap">
@@ -472,20 +457,15 @@ function renderManagerHistory() {
 }
 
 function renderMobileView() {
-  const summary = document.getElementById('mobileSummary');
   const search = document.getElementById('mobileSearch');
   const filters = document.getElementById('mobileFilters');
   const featured = document.getElementById('mobileFeatured');
   const catalog = document.getElementById('mobileCatalog');
-  if (!summary || !search || !filters || !featured || !catalog) return;
+  if (!search || !filters || !featured || !catalog) return;
 
   const activeDrinks = D.filter(d => !d.soldOut);
   const soldOutCount = D.length - activeDrinks.length;
   const topDrink = [...D].sort((a, b) => b.o - a.o)[0];
-  summary.innerHTML = '';
-  renderStatPill(summary, 'Live', activeDrinks.length);
-  renderStatPill(summary, 'Sold out', soldOutCount);
-  renderStatPill(summary, 'Top seller', topDrink ? topDrink.n : '—');
 
   const cats = ['all', ...new Set(D.map(d => d.cat))];
   search.value = PAGE_STATE.mobile.search;
