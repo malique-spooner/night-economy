@@ -10,6 +10,10 @@ const APP_VIEW_NAMES = {
 };
 
 const PAGE_STATE = {
+  mobile: {
+    search: '',
+    selectedCat: 'all',
+  },
   manager: {
     range: 'session',
     sortKey: 't',
@@ -97,14 +101,31 @@ function injectPageShell() {
     <div id="pageToast" class="page-toast" aria-live="polite"></div>
 
     <section id="mobileView" class="alt-view mobile-view">
-      <div class="alt-hero">
-        <div>
+      <div class="mobile-hero">
+        <div class="mobile-hero-copy">
           <div class="alt-kicker">Night Economy</div>
-          <h1 class="alt-title">Mobile Menu</h1>
-          <p class="alt-sub">A compact ordering screen for guests and front-of-house tablets.</p>
+          <h1 class="alt-title">Tonight's Menu</h1>
+          <p class="alt-sub">A fresh digital menu designed to make the drinks feel irresistible, easy to scan, and up to date.</p>
         </div>
         <div class="alt-stats" id="mobileSummary"></div>
       </div>
+      <div class="mobile-search-row">
+        <div class="manager-search-wrap">
+          <input id="mobileSearch" class="manager-search" type="search" placeholder="Search drinks">
+        </div>
+        <div class="mobile-badges">
+          <div class="mobile-badge">Fresh menu</div>
+          <div class="mobile-badge">House picks</div>
+          <div class="mobile-badge">Signature serves</div>
+        </div>
+      </div>
+      <div class="mobile-featured-head">
+        <div>
+          <div class="card-hdr">Featured Now</div>
+          <p class="mobile-featured-sub">The drinks we want people to notice first.</p>
+        </div>
+      </div>
+      <div class="featured-grid" id="mobileFeatured"></div>
       <div class="mobile-filters" id="mobileFilters"></div>
       <div class="menu-grid" id="mobileCatalog"></div>
     </section>
@@ -433,25 +454,76 @@ function renderManagerHistory() {
 
 function renderMobileView() {
   const summary = document.getElementById('mobileSummary');
+  const search = document.getElementById('mobileSearch');
   const filters = document.getElementById('mobileFilters');
+  const featured = document.getElementById('mobileFeatured');
   const catalog = document.getElementById('mobileCatalog');
-  if (!summary || !filters || !catalog) return;
+  if (!summary || !search || !filters || !featured || !catalog) return;
 
   const activeDrinks = D.filter(d => !d.soldOut);
   const soldOutCount = D.length - activeDrinks.length;
   const topDrink = [...D].sort((a, b) => b.o - a.o)[0];
+  const bestValue = [...D].sort((a, b) => {
+    const aScore = (a.o * 2) + Math.max(0, (a.b - a.p) * -1);
+    const bScore = (b.o * 2) + Math.max(0, (b.b - b.p) * -1);
+    return bScore - aScore;
+  })[0];
   summary.innerHTML = '';
   renderStatPill(summary, 'Live items', activeDrinks.length);
   renderStatPill(summary, 'Sold out', soldOutCount);
   renderStatPill(summary, 'Most ordered', topDrink ? topDrink.n : '—');
+  renderStatPill(summary, 'Featured', bestValue ? bestValue.n : '—');
 
   const cats = ['all', ...new Set(D.map(d => d.cat))];
-  filters.innerHTML = cats.map(cat => `<button class="chip ${cat === 'all' ? 'active' : ''}" data-filter="${cat}">${cat === 'all' ? 'All drinks' : escapeHtml(cat.replace('-', ' '))}</button>`).join('');
+  search.value = PAGE_STATE.mobile.search;
+  search.oninput = () => {
+    PAGE_STATE.mobile.search = search.value;
+    renderMobileView();
+  };
+  filters.innerHTML = cats.map(cat => `<button class="chip ${cat === PAGE_STATE.mobile.selectedCat ? 'active' : ''}" data-filter="${cat}">${cat === 'all' ? 'All drinks' : escapeHtml(cat.replace('-', ' '))}</button>`).join('');
   const filterButtons = filters.querySelectorAll('.chip');
 
   const renderCards = (filter = 'all') => {
+    PAGE_STATE.mobile.selectedCat = filter;
     filterButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === filter));
-    const grouped = groupBy(D.filter(d => filter === 'all' || d.cat === filter), d => d.cat);
+    const visible = D.filter(d => {
+      const matchesCat = filter === 'all' || d.cat === filter;
+      const matchesSearch = !PAGE_STATE.mobile.search.trim() || `${d.n} ${d.cat}`.toLowerCase().includes(PAGE_STATE.mobile.search.trim().toLowerCase());
+      return matchesCat && matchesSearch;
+    });
+    const featuredPool = [...visible].sort((a, b) => {
+      const aFeatured = (a.o * 4) + (a.cat === 'signature' ? 10 : 0) + (a.p > a.b ? 2 : 0);
+      const bFeatured = (b.o * 4) + (b.cat === 'signature' ? 10 : 0) + (b.p > b.b ? 2 : 0);
+      return bFeatured - aFeatured;
+    }).slice(0, 4);
+    featured.innerHTML = featuredPool.length ? featuredPool.map((d, index) => {
+      const artClass = [
+        'featured-card',
+        `featured-${d.cat}`,
+        d.soldOut ? 'sold-out' : '',
+        index === 0 ? 'hero' : '',
+      ].filter(Boolean).join(' ');
+      return `
+        <article class="${artClass}" data-featured-id="${escapeHtml(d.id)}">
+          <div class="featured-top">
+            <div class="featured-copy">
+              <span class="featured-kicker">${index === 0 ? "Tonight's headliner" : d.cat.replace('-', ' ')}</span>
+              <h3>${escapeHtml(d.n)}</h3>
+              <p>${escapeHtml(CULTURAL_BLURBS[d.id] || 'A distinctive serve built to stand out on the menu.')}</p>
+            </div>
+            <div class="featured-price">${formatMoney(d.p)}</div>
+          </div>
+          <div class="featured-meta">
+            <span>${d.cat.replace('-', ' ')}</span>
+            ${d.cat === 'signature' ? '<span class="featured-badge">House signature</span>' : ''}
+            ${d.o > 2 ? '<span class="featured-badge warm">Popular</span>' : ''}
+            <span class="status ${d.soldOut ? 'off' : 'on'}">${d.soldOut ? 'Sold out' : 'Available'}</span>
+          </div>
+        </article>
+      `;
+    }).join('') : '<div class="empty-state menu-empty">No drinks match this search.</div>';
+
+    const grouped = groupBy(visible, d => d.cat);
     const orderedSections = Object.values(grouped);
     catalog.innerHTML = orderedSections.length ? orderedSections.map(items => {
       const cat = items[0].cat;
@@ -463,29 +535,24 @@ function renderMobileView() {
           </div>
           <div class="menu-cards">
             ${items.map(d => {
-              const change = ((d.p - d.b) / d.b * 100);
               return `
                 <article class="menu-card ${d.soldOut ? 'sold-out' : ''}">
                   <div class="menu-card-top">
                     <div>
                       <h3>${escapeHtml(d.n)}</h3>
-                      <p>${escapeHtml(d.cat.replace('-', ' '))}</p>
+                      <p>${escapeHtml(CULTURAL_BLURBS[d.id] || d.cat.replace('-', ' '))}</p>
                     </div>
                     <div class="menu-price">${formatMoney(d.p)}</div>
                   </div>
-                  <div class="menu-meta">
-                    <span>Normal ${formatMoney(d.b)}</span>
-                    <span>Floor ${formatMoney(d.floor)}</span>
-                  </div>
-                  <div class="menu-meta">
-                    <span>Ceiling ${formatMoney(d.ceiling)}</span>
-                    <span class="status ${d.soldOut ? 'off' : 'on'}">${d.soldOut ? 'Sold out' : 'Available'}</span>
+                  <div class="menu-chip-row">
+                    <span class="menu-chip">${escapeHtml(d.cat.replace('-', ' '))}</span>
+                    ${d.cat === 'signature' ? '<span class="menu-chip emphasis">House signature</span>' : ''}
+                    ${d.o > 2 ? '<span class="menu-chip warm">Popular</span>' : ''}
                   </div>
                   <div class="menu-body">
-                    <span class="change ${change >= 0 ? 'up' : 'dn'}">${change >= 0 ? '+' : ''}${change.toFixed(1)}%</span>
-                    <span>${d.o} orders</span>
+                    <span class="status ${d.soldOut ? 'off' : 'on'}">${d.soldOut ? 'Sold out' : 'Available'}</span>
+                    <span>${d.cat === 'signature' ? 'Signature pour' : 'Menu favourite'}</span>
                   </div>
-                  <button class="menu-action" data-order="${d.id}" ${d.soldOut ? 'disabled' : ''}>${d.soldOut ? 'Unavailable' : 'Order now'}</button>
                 </article>
               `;
             }).join('')}
@@ -494,15 +561,12 @@ function renderMobileView() {
       `;
     }).join('') : '<div class="empty-state menu-empty">No drinks match this filter.</div>';
 
-    catalog.querySelectorAll('[data-order]').forEach(btn => {
-      btn.addEventListener('click', () => fireOrder(btn.dataset.order));
-    });
   };
 
   filters.querySelectorAll('.chip').forEach(btn => {
     btn.addEventListener('click', () => renderCards(btn.dataset.filter));
   });
-  renderCards('all');
+  renderCards(PAGE_STATE.mobile.selectedCat);
 }
 
 function renderManagerView() {
