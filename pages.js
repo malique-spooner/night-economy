@@ -11,7 +11,6 @@ const APP_VIEW_NAMES = {
 
 const PAGE_STATE = {
   mobile: {
-    search: '',
     selectedCat: 'all',
   },
   manager: {
@@ -103,16 +102,6 @@ function injectPageShell() {
     <section id="mobileView" class="alt-view mobile-view">
       <div class="mobile-header">
         <span class="mobile-brand">Night Economy</span>
-      </div>
-      <div class="mobile-search-row">
-        <div class="manager-search-wrap">
-          <input id="mobileSearch" class="manager-search" type="search" placeholder="Search drinks">
-        </div>
-        <div class="mobile-badges">
-          <div class="mobile-badge">Fresh</div>
-          <div class="mobile-badge">House picks</div>
-          <div class="mobile-badge">Signature</div>
-        </div>
       </div>
       <div class="mobile-featured-head">
         <div>
@@ -457,33 +446,19 @@ function renderManagerHistory() {
 }
 
 function renderMobileView() {
-  const search = document.getElementById('mobileSearch');
   const filters = document.getElementById('mobileFilters');
   const featured = document.getElementById('mobileFeatured');
   const catalog = document.getElementById('mobileCatalog');
-  if (!search || !filters || !featured || !catalog) return;
-
-  const activeDrinks = D.filter(d => !d.soldOut);
-  const soldOutCount = D.length - activeDrinks.length;
-  const topDrink = [...D].sort((a, b) => b.o - a.o)[0];
+  if (!filters || !featured || !catalog) return;
 
   const cats = ['all', ...new Set(D.map(d => d.cat))];
-  search.value = PAGE_STATE.mobile.search;
-  search.oninput = () => {
-    PAGE_STATE.mobile.search = search.value;
-    renderMobileView();
-  };
   filters.innerHTML = cats.map(cat => `<button class="chip ${cat === PAGE_STATE.mobile.selectedCat ? 'active' : ''}" data-filter="${cat}">${cat === 'all' ? 'All drinks' : escapeHtml(cat.replace('-', ' '))}</button>`).join('');
   const filterButtons = filters.querySelectorAll('.chip');
 
   const renderCards = (filter = 'all') => {
     PAGE_STATE.mobile.selectedCat = filter;
     filterButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === filter));
-    const visible = D.filter(d => {
-      const matchesCat = filter === 'all' || d.cat === filter;
-      const matchesSearch = !PAGE_STATE.mobile.search.trim() || `${d.n} ${d.cat}`.toLowerCase().includes(PAGE_STATE.mobile.search.trim().toLowerCase());
-      return matchesCat && matchesSearch;
-    });
+    const visible = D.filter(d => filter === 'all' || d.cat === filter);
     const byPrice = [...visible].filter(d => !d.soldOut).sort((a, b) => a.p - b.p);
     const byMove = [...visible].sort((a, b) => Math.abs((b.p - b.b) / b.b) - Math.abs((a.p - a.b) / a.b));
     const byVolume = [...visible].sort((a, b) => b.o - a.o);
