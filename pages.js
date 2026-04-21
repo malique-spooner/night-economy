@@ -31,12 +31,6 @@ const PAGE_STATE = {
 
 const PAGE_STEP = 0.5;
 const SAFE_PRICE_MIN = 0.25;
-const MARKET_PRESETS = [
-  { key: 'happy-hour', label: 'Happy hour' },
-  { key: 'late-night', label: 'Late night' },
-  { key: 'premium', label: 'Premium' },
-  { key: 'reset', label: 'Reset' },
-];
 
 function getAppView() {
   const params = new URLSearchParams(window.location.search);
@@ -134,7 +128,6 @@ function injectPageShell() {
           <button class="manager-action" id="managerExportCsv">Export CSV</button>
           <button class="manager-action" id="managerExportJson">Export JSON</button>
         </div>
-        <div class="manager-quick-actions" id="managerQuickActions"></div>
       </div>
       <div class="dash-grid">
         <div class="dash-card dash-card-wide">
@@ -416,96 +409,6 @@ function getVisibleEmployeeDrinks() {
   });
 }
 
-function getDrinkPresetPatch(drink, presetKey) {
-  if (presetKey === 'reset') {
-    return {
-      name: drink.baseName || drink.n,
-      cat: drink.baseCat || drink.cat,
-      salePrice: drink.basePrice || drink.b,
-      floor: +(drink.basePrice * 0.65).toFixed(2),
-      ceiling: +(drink.basePrice * 1.65).toFixed(2),
-      soldOut: false,
-    };
-  }
-
-  const base = drink.b;
-  if (presetKey === 'happy-hour') {
-    return {
-      salePrice: +(base * 0.9).toFixed(2),
-      floor: +(base * 0.7).toFixed(2),
-      ceiling: +(base * 1.25).toFixed(2),
-      soldOut: false,
-    };
-  }
-  if (presetKey === 'late-night') {
-    return {
-      salePrice: +(base * 1.05).toFixed(2),
-      floor: +(base * 0.8).toFixed(2),
-      ceiling: +(base * 1.35).toFixed(2),
-      soldOut: false,
-    };
-  }
-  if (presetKey === 'premium') {
-    return {
-      salePrice: +(base * 1.12).toFixed(2),
-      floor: +(base * 0.95).toFixed(2),
-      ceiling: +(base * 1.5).toFixed(2),
-      soldOut: false,
-    };
-  }
-  return null;
-}
-
-function applyPresetToDrink(drinkId, presetKey) {
-  const drink = D.find(item => item.id === drinkId);
-  if (!drink) return;
-  const patch = getDrinkPresetPatch(drink, presetKey);
-  if (!patch) return;
-  commitEmployeeEdit(drinkId, patch, `${drink.n} ${presetKey.replace('-', ' ')}`);
-}
-
-function applyPresetToCategory(cat, presetKey) {
-  const items = D.filter(d => d.cat === cat);
-  if (!items.length) return;
-  const label = `${cat.replace('-', ' ')} ${presetKey.replace('-', ' ')}`;
-  commitCategoryEdit(cat, () => {
-    items.forEach(d => {
-      const patch = getDrinkPresetPatch(d, presetKey);
-      if (!patch) return;
-      MARKET_SETTINGS.drinks[d.id] = {
-        ...(MARKET_SETTINGS.drinks[d.id] || {}),
-        ...patch,
-      };
-    });
-    MARKET_SETTINGS.categories[cat] = {
-      ...(MARKET_SETTINGS.categories[cat] || { label: cat.replace('-', ' ') }),
-      soldOut: false,
-    };
-  }, label);
-}
-
-function applyGlobalPreset(presetKey) {
-  const label = `Market ${presetKey.replace('-', ' ')}`;
-  applyMarketTransaction(label, () => {
-    D.forEach(drink => {
-      const patch = getDrinkPresetPatch(drink, presetKey);
-      if (!patch) return;
-      MARKET_SETTINGS.drinks[drink.id] = {
-        ...(MARKET_SETTINGS.drinks[drink.id] || {}),
-        ...patch,
-      };
-    });
-    Object.keys(MARKET_SETTINGS.categories).forEach(cat => {
-      MARKET_SETTINGS.categories[cat] = {
-        ...(MARKET_SETTINGS.categories[cat] || { label: cat.replace('-', ' ') }),
-        soldOut: false,
-      };
-    });
-  });
-  queueSaveState('saved', `${presetKey.replace('-', ' ')} applied`);
-  renderManagerView();
-}
-
 function renderManagerHistory() {
   const history = document.getElementById('managerHistory');
   if (!history) return;
@@ -612,7 +515,6 @@ function renderManagerView() {
   const search = document.getElementById('managerSearch');
   const sort = document.getElementById('managerSort');
   const head = document.getElementById('managerRecordHead');
-  const quick = document.getElementById('managerQuickActions');
   if (!summary || !sales || !categories || !alerts || !drawer || !range || !search || !sort || !head) return;
 
   const records = getManagerRecords();
@@ -672,13 +574,6 @@ function renderManagerView() {
       renderManagerView();
     });
   });
-
-  if (quick) {
-    quick.innerHTML = MARKET_PRESETS.map(preset => `<button class="manager-action" data-global-preset="${preset.key}">${preset.label}</button>`).join('');
-    quick.querySelectorAll('[data-global-preset]').forEach(btn => {
-      btn.addEventListener('click', () => applyGlobalPreset(btn.dataset.globalPreset));
-    });
-  }
 
   const headers = [
     ['t', 'Time'],
@@ -894,21 +789,17 @@ function renderEmployeeView() {
   const catsGrouped = groupBy(visible, d => d.cat);
   controls.innerHTML = Object.keys(catsGrouped).length ? Object.entries(catsGrouped).map(([cat, items]) => `
     <section class="employee-category" data-cat="${escapeHtml(cat)}">
-      <div class="employee-category-head">
-        <div>
-          <div class="employee-category-name">${escapeHtml(cat.replace('-', ' '))}</div>
-          <div class="employee-category-sub">${items.length} drinks · ${items.filter(d => d.soldOut).length} sold out</div>
-        </div>
-        <div class="employee-category-actions">
-          <select class="employee-preset" data-cat-preset="${escapeHtml(cat)}">
-            <option value="">Category preset</option>
-            ${MARKET_PRESETS.map(preset => `<option value="${preset.key}">${escapeHtml(preset.label)}</option>`).join('')}
-          </select>
-          <button data-cat-action="soldout" data-cat="${escapeHtml(cat)}">Mark sold out</button>
-          <button data-cat-action="reset" data-cat="${escapeHtml(cat)}">Reset category</button>
-          <button data-cat-action="floor-down" data-cat="${escapeHtml(cat)}">Floor -</button>
-          <button data-cat-action="floor-up" data-cat="${escapeHtml(cat)}">Floor +</button>
-          <button data-cat-action="ceiling-down" data-cat="${escapeHtml(cat)}">Ceiling -</button>
+        <div class="employee-category-head">
+          <div>
+            <div class="employee-category-name">${escapeHtml(cat.replace('-', ' '))}</div>
+            <div class="employee-category-sub">${items.length} drinks · ${items.filter(d => d.soldOut).length} sold out</div>
+          </div>
+          <div class="employee-category-actions">
+            <button data-cat-action="soldout" data-cat="${escapeHtml(cat)}">Mark sold out</button>
+            <button data-cat-action="reset" data-cat="${escapeHtml(cat)}">Reset category</button>
+            <button data-cat-action="floor-down" data-cat="${escapeHtml(cat)}">Floor -</button>
+            <button data-cat-action="floor-up" data-cat="${escapeHtml(cat)}">Floor +</button>
+            <button data-cat-action="ceiling-down" data-cat="${escapeHtml(cat)}">Ceiling -</button>
           <button data-cat-action="ceiling-up" data-cat="${escapeHtml(cat)}">Ceiling +</button>
         </div>
       </div>
@@ -1048,17 +939,6 @@ function renderEmployeeView() {
           });
         }, `${cat.replace('-', ' ')} ${field} adjusted`);
       }
-    });
-  });
-
-  controls.querySelectorAll('[data-cat-preset]').forEach(select => {
-    select.addEventListener('change', () => {
-      const cat = select.dataset.catPreset;
-      const preset = select.value;
-      if (!preset) return;
-      applyPresetToCategory(cat, preset);
-      select.value = '';
-      renderEmployeeView();
     });
   });
 
