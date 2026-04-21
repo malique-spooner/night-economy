@@ -436,25 +436,25 @@ function setupThree() {
   renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('threeCanvas'), alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(0x000000, 0);
-  camera.position.z = 6.5;
+  camera.position.z = 7.2;
 
   // Create floating particles network
-  const particleCount = 220;
+  const particleCount = 150;
   const particles = [];
   const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
 
   for (let i = 0; i < particleCount; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 22;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 22;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 22;
+    positions[i * 3] = (Math.random() - 0.5) * 24;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 24;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 24;
     particles.push({
       x: positions[i * 3],
       y: positions[i * 3 + 1],
       z: positions[i * 3 + 2],
-      vx: (Math.random() - 0.5) * 0.02,
-      vy: (Math.random() - 0.5) * 0.02,
-      vz: (Math.random() - 0.5) * 0.02
+      vx: (Math.random() - 0.5) * 0.016,
+      vy: (Math.random() - 0.5) * 0.016,
+      vz: (Math.random() - 0.5) * 0.016
     });
   }
 
@@ -462,10 +462,10 @@ function setupThree() {
 
   const mat = new THREE.PointsMaterial({
     color: 0x3dd68c,
-    size: 0.18,
+    size: 0.12,
     sizeAttenuation: true,
     transparent: true,
-    opacity: 0.92,
+    opacity: 0.58,
     depthWrite: false,
     blending: THREE.AdditiveBlending
   });
@@ -476,10 +476,10 @@ function setupThree() {
 
   const glowMat = new THREE.PointsMaterial({
     color: 0x9df5c7,
-    size: 0.42,
+    size: 0.28,
     sizeAttenuation: true,
     transparent: true,
-    opacity: 0.18,
+    opacity: 0.08,
     depthWrite: false,
     blending: THREE.AdditiveBlending
   });
@@ -493,10 +493,10 @@ function setupThree() {
   scene.userData.mats = [mat, glowMat];
 
   // Soft lighting
-  const ambientLight = new THREE.AmbientLight(0x3dd68c, 0.45);
+  const ambientLight = new THREE.AmbientLight(0x3dd68c, 0.22);
   scene.add(ambientLight);
 
-  const accentLight = new THREE.PointLight(0x3dd68c, 1.2, 60);
+  const accentLight = new THREE.PointLight(0x3dd68c, 0.6, 60);
   accentLight.position.set(0, 0, 10);
   scene.add(accentLight);
 }
@@ -537,7 +537,7 @@ function threeUpdate() {
     const target = threeMode === 'crash' || threeMode === 'crash-peak'
       ? new THREE.Color(0xff5252)
       : new THREE.Color(0x3dd68c);
-    mats.forEach(mat => mat.color.lerp(target, 0.05));
+    mats.forEach(mat => mat.color.lerp(target, 0.035));
   }
 
   renderer.render(scene, camera);
