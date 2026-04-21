@@ -315,9 +315,10 @@ body[data-app-view='employee'] .root{display:none}
 .page-toast.warn{border-color:rgba(201,170,82,0.35)}
 .page-toast.info{border-color:rgba(255,255,255,0.12)}
 
-.manager-sticky,.employee-sticky{position:sticky;top:0;z-index:5;padding-bottom:14px;background:linear-gradient(180deg,rgba(6,6,14,0.98),rgba(6,6,14,0.88),rgba(6,6,14,0.02));backdrop-filter:blur(10px)}
-.manager-hero,.employee-hero{margin-bottom:14px}
-.manager-toolbar,.employee-toolbar{max-width:1200px;margin:0 auto 12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:0 2px}
+.manager-sticky,.employee-sticky{position:relative;padding-bottom:0;background:none;backdrop-filter:none}
+.manager-hero,.employee-hero{margin-bottom:12px;padding:14px 16px;max-width:1200px}
+.manager-toolbar,.employee-toolbar{max-width:1200px;margin:0 auto 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 10px;border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);backdrop-filter:none;position:static;box-shadow:none}
+.manager-quick-actions{max-width:1200px;margin:0 auto 12px;display:flex;flex-wrap:wrap;gap:8px;padding:0 2px}
 .manager-search-wrap{flex:1;min-width:240px}
 .manager-search{width:100%;padding:11px 14px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:#f1ead2;font:inherit}
 .manager-search::placeholder{color:rgba(255,255,255,0.32)}
@@ -356,6 +357,12 @@ body[data-app-view='employee'] .root{display:none}
 .alert-card span{color:rgba(255,255,255,0.45);font-size:12px;line-height:1.45}
 .alert-card.warn{border-color:rgba(201,170,82,0.2)}
 .alert-card.alert{border-color:rgba(255,82,82,0.2)}
+.history-list{display:flex;flex-direction:column;gap:10px}
+.history-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.history-row:last-child{border-bottom:none}
+.history-row strong{display:block;color:#f1ead2;font-size:14px}
+.history-row span{display:block;color:rgba(255,255,255,0.45);font-size:11px}
+.history-undo{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:#e8e4d0;cursor:pointer;font-size:10px;letter-spacing:0.12em;text-transform:uppercase}
 
 .manager-drawer{min-height:180px}
 .drawer-body{display:flex;flex-direction:column;gap:14px}
@@ -384,6 +391,7 @@ body[data-app-view='employee'] .root{display:none}
 .employee-category-name{font-size:15px;font-weight:900;color:#f1ead2;text-transform:capitalize;letter-spacing:0.04em}
 .employee-category-sub{font-size:11px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.12em;margin-top:4px}
 .employee-category-actions{display:flex;flex-wrap:wrap;gap:8px}
+.employee-preset{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.1);background:rgba(6,6,14,0.85);color:#f1ead2;font-size:10px;letter-spacing:0.12em;text-transform:uppercase}
 .employee-category-actions button{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:#e8e4d0;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer}
 .employee-drinks{display:flex;flex-direction:column;gap:12px}
 .employee-row{grid-template-columns:1.1fr 1fr auto;align-items:start;transition:background 0.2s,border-color 0.2s,transform 0.2s}
@@ -436,7 +444,7 @@ body[data-app-view='employee'] .root{display:none}
   .menu-cards,.category-cards{grid-template-columns:1fr}
   .menu-card,.category-card,.employee-category,.preview-card{border-radius:16px}
   .employee-grid,.preview-grid{grid-template-columns:1fr}
-  .employee-category-actions,.manager-toolbar,.employee-toolbar{flex-direction:column;align-items:stretch}
+  .employee-category-actions,.manager-toolbar,.employee-toolbar,.manager-quick-actions{flex-direction:column;align-items:stretch}
   .manager-action,.range-chip,.sort-chip{width:100%}
   .record-row{grid-template-columns:64px 1fr;row-gap:6px}
   .record-row span:nth-child(3),.record-row span:nth-child(4),.record-row span:nth-child(5),.record-head{display:none}

@@ -108,6 +108,8 @@ function rebuildMarketState() {
     const salePrice = typeof s.salePrice === 'number' ? s.salePrice : d.b;
     return {
       ...d,
+      baseName: d.n,
+      baseCat: d.cat,
       n: s.name || d.n,
       cat: s.cat || d.cat,
       basePrice: d.b,
