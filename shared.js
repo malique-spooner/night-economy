@@ -436,25 +436,25 @@ function setupThree() {
   renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('threeCanvas'), alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(0x000000, 0);
-  camera.position.z = 8;
+  camera.position.z = 6.5;
 
   // Create floating particles network
-  const particleCount = 120;
+  const particleCount = 220;
   const particles = [];
   const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
 
   for (let i = 0; i < particleCount; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 25;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 25;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 25;
+    positions[i * 3] = (Math.random() - 0.5) * 22;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 22;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 22;
     particles.push({
       x: positions[i * 3],
       y: positions[i * 3 + 1],
       z: positions[i * 3 + 2],
-      vx: (Math.random() - 0.5) * 0.015,
-      vy: (Math.random() - 0.5) * 0.015,
-      vz: (Math.random() - 0.5) * 0.015
+      vx: (Math.random() - 0.5) * 0.02,
+      vy: (Math.random() - 0.5) * 0.02,
+      vz: (Math.random() - 0.5) * 0.02
     });
   }
 
@@ -462,23 +462,43 @@ function setupThree() {
 
   const mat = new THREE.PointsMaterial({
     color: 0x3dd68c,
-    size: 0.08,
+    size: 0.18,
     sizeAttenuation: true,
     transparent: true,
-    opacity: 0.4
+    opacity: 0.92,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
   });
 
   const points = new THREE.Points(geometry, mat);
+  points.renderOrder = 2;
   scene.add(points);
+
+  const glowMat = new THREE.PointsMaterial({
+    color: 0x9df5c7,
+    size: 0.42,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 0.18,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  const glowPoints = new THREE.Points(geometry, glowMat);
+  glowPoints.renderOrder = 1;
+  scene.add(glowPoints);
 
   // Store for animation
   scene.userData.particles = particles;
   scene.userData.geometry = geometry;
-  scene.userData.mat = mat;
+  scene.userData.mats = [mat, glowMat];
 
   // Soft lighting
-  const ambientLight = new THREE.AmbientLight(0x3dd68c, 0.2);
+  const ambientLight = new THREE.AmbientLight(0x3dd68c, 0.45);
   scene.add(ambientLight);
+
+  const accentLight = new THREE.PointLight(0x3dd68c, 1.2, 60);
+  accentLight.position.set(0, 0, 10);
+  scene.add(accentLight);
 }
 
 function threeUpdate() {
@@ -512,12 +532,12 @@ function threeUpdate() {
   }
 
   // Lerp particle color toward target based on mode
-  const mat = scene.userData.mat;
-  if (mat) {
+  const mats = scene.userData.mats || [];
+  if (mats.length) {
     const target = threeMode === 'crash' || threeMode === 'crash-peak'
       ? new THREE.Color(0xff5252)
       : new THREE.Color(0x3dd68c);
-    mat.color.lerp(target, 0.04);
+    mats.forEach(mat => mat.color.lerp(target, 0.05));
   }
 
   renderer.render(scene, camera);
