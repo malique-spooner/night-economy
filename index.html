@@ -6,7 +6,8 @@
 <title>Night Economy — Control Panel</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=15">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<link rel="stylesheet" href="styles.css?v=23">
 <style>
 .menu-toggle {
   position: fixed;
@@ -137,6 +138,7 @@
             <div class="msp-chart-label">Price trend</div>
             <div id="mini-sp-chart"></div>
           </div>
+          <div class="msp-chart-meta" id="mini-sp-chart-meta"></div>
           <div class="msp-vsbase-wrap">
             <div class="msp-vsbase-hdr">
               <span class="msp-vsbase-lbl">vs base price</span>
@@ -198,9 +200,9 @@
 </style>
 
 <script src="data.js?v=2"></script>
-<script src="shared.js?v=8"></script>
-<script src="pages.js?v=6"></script>
-<script src="home.js?v=2"></script>
+<script src="shared.js?v=10"></script>
+<script src="pages.js?v=15"></script>
+<script src="home.js?v=4"></script>
 <script src="crash.js?v=2"></script>
 
 <script>

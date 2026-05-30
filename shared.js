@@ -118,7 +118,11 @@ function rebuildMarketState() {
       floor: typeof s.floor === 'number' ? s.floor : +(salePrice * 0.65).toFixed(2),
       ceiling: typeof s.ceiling === 'number' ? s.ceiling : +(salePrice * 1.65).toFixed(2),
       soldOut: !!s.soldOut || !!catS.soldOut,
+      timeline: [],
     };
+  });
+  D.forEach(drink => {
+    drink.timeline = buildSyntheticTimeline(drink);
   });
   return D;
 }
@@ -137,6 +141,7 @@ function syncDrinkFromSettings(drinkId) {
     drink.b = s.salePrice;
     drink.p = clampPrice(drink, s.salePrice);
     drink.h = Array.from({ length: Math.max(drink.h.length, 7) }, () => drink.p);
+    drink.timeline = buildSyntheticTimeline(drink);
   }
   if (typeof s.floor === 'number') drink.floor = s.floor;
   if (typeof s.ceiling === 'number') drink.ceiling = s.ceiling;
@@ -147,6 +152,190 @@ function clampPrice(drink, value) {
   const floor = typeof drink.floor === 'number' ? drink.floor : drink.b * 0.65;
   const ceiling = typeof drink.ceiling === 'number' ? drink.ceiling : drink.b * 1.65;
   return Math.max(floor, Math.min(ceiling, value));
+}
+
+function getEveningSessionBounds(referenceTs = Date.now()) {
+  const reference = new Date(referenceTs);
+  const start = new Date(reference);
+  start.setHours(18, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  end.setHours(1, 0, 0, 0);
+  if (reference.getHours() < 1) {
+    start.setDate(start.getDate() - 1);
+    end.setDate(end.getDate() - 1);
+  }
+  return { start, end };
+}
+
+function buildSyntheticTimeline(drink, points = 43) {
+  const anchor = Array.isArray(drink.h) && drink.h.length ? drink.h : [drink.p || drink.b || 0];
+  const { start, end } = getEveningSessionBounds();
+  const spanMs = end.getTime() - start.getTime();
+  const timeline = [];
+  for (let index = 0; index < points; index += 1) {
+    const source = anchor[Math.min(anchor.length - 1, Math.floor((index / Math.max(1, points - 1)) * (anchor.length - 1)))];
+    const progress = index / Math.max(1, points - 1);
+    const eveningRush = Math.sin(progress * Math.PI) * 0.16 * (drink.b || 1);
+    const latePeak = Math.exp(-Math.pow((progress - 0.72) / 0.18, 2)) * 0.22 * (drink.b || 1);
+    const drift = (progress - 0.35) * 0.1 * (drink.b || 1);
+    const noise = ((Math.sin((index + 1) * 1.73 + drink.id.length) + Math.cos((index + 1) * 0.91)) * 0.014) * (drink.b || 1);
+    const price = clampPrice(drink, +(source + eveningRush + latePeak + drift + noise).toFixed(2));
+    timeline.push({
+      t: start.getTime() + progress * spanMs,
+      p: price,
+      o: Math.max(0, Math.round((Math.sin(index * 0.55 + drink.id.length) + 1.15) * 3 + progress * 3)),
+      type: index === points - 1 ? 'seed' : (price >= (timeline[index - 1]?.p ?? price) ? 'buy' : 'sell'),
+    });
+  }
+  if (timeline.length) timeline[timeline.length - 1].p = drink.p;
+  return timeline;
+}
+
+function pushDrinkTimelinePoint(drink, type = 'tick') {
+  if (!drink) return;
+  if (!Array.isArray(drink.timeline) || !drink.timeline.length) {
+    drink.timeline = buildSyntheticTimeline(drink);
+  }
+  const { start, end } = getEveningSessionBounds();
+  const lastPoint = drink.timeline[drink.timeline.length - 1];
+  const stepMs = Math.max(1, Math.round((end.getTime() - start.getTime()) / Math.max(1, drink.timeline.length - 1)));
+  const nextTime = Math.min(end.getTime(), Math.max(start.getTime(), (lastPoint?.t || start.getTime()) + stepMs));
+  drink.timeline.push({
+    t: nextTime,
+    o: drink.o,
+    p: +drink.p.toFixed(2),
+    type,
+  });
+  if (drink.timeline.length > 43) drink.timeline.shift();
+}
+
+function getDrinkSessionRange(drink) {
+  const series = [drink.floor, drink.ceiling, drink.b, drink.p, ...(drink.timeline || []).map(point => point.p)].filter(value => Number.isFinite(value));
+  return {
+    min: Math.min(...series),
+    max: Math.max(...series),
+  };
+}
+
+function buildPricePositionMarkup(drink) {
+  const { min, max } = getDrinkSessionRange(drink);
+  const range = Math.max(0.01, max - min);
+  const low = Math.max(0, Math.min(100, ((drink.floor - min) / range) * 100));
+  const high = Math.max(0, Math.min(100, ((drink.ceiling - min) / range) * 100));
+  const base = Math.max(0, Math.min(100, ((drink.b - min) / range) * 100));
+  const current = Math.max(0, Math.min(100, ((drink.p - min) / range) * 100));
+  const tone = drink.p >= drink.b ? 'up' : 'dn';
+  return `
+    <div class="pos-cell">
+      <div class="pos-track">
+        <div class="pos-range"></div>
+        <div class="pos-window" style="left:${Math.min(low, high)}%;width:${Math.abs(high - low)}%"></div>
+        <div class="pos-base" style="left:${base}%"></div>
+        <div class="pos-current ${tone}" style="left:${current}%"></div>
+      </div>
+      <div class="pos-scale">
+        <span>£${drink.floor.toFixed(2)}</span>
+        <span>£${drink.ceiling.toFixed(2)}</span>
+      </div>
+    </div>
+  `;
+}
+
+const SPOTLIGHT_CHART_CACHE = new WeakMap();
+
+function renderSpotlightTrendChart(el, drink) {
+  if (!el || typeof echarts === 'undefined' || !drink) return;
+  const timeline = (drink.timeline && drink.timeline.length ? drink.timeline : buildSyntheticTimeline(drink)).slice(-43);
+  const priceValues = timeline.map(point => point.p);
+  const labels = timeline.map(point => new Date(point.t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+  const isUp = drink.p >= drink.b;
+  const color = isUp ? '#ff6b57' : '#3dd68c';
+  const buyPoints = [];
+  const sellPoints = [];
+  timeline.forEach((point, index) => {
+    if (point.type === 'buy') buyPoints.push([index, point.p]);
+    if (point.type === 'sell') sellPoints.push([index, point.p]);
+  });
+
+  let chart = SPOTLIGHT_CHART_CACHE.get(el);
+  if (!chart) {
+    chart = echarts.init(el, null, { renderer: 'canvas' });
+    SPOTLIGHT_CHART_CACHE.set(el, chart);
+  }
+  chart.resize({
+    width: el.clientWidth || 260,
+    height: el.clientHeight || 180,
+  });
+
+  chart.setOption({
+    animationDuration: 800,
+    grid: { top: 28, right: 18, bottom: 28, left: 48 },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(8,10,18,0.96)',
+      borderColor: 'rgba(255,255,255,0.1)',
+      textStyle: { color: '#f2ecd7', fontFamily: 'DM Mono' },
+      valueFormatter: value => `£${Number(value).toFixed(2)}`,
+    },
+    xAxis: {
+      type: 'category',
+      data: labels,
+      boundaryGap: false,
+      axisLabel: { color: 'rgba(255,255,255,0.45)', fontSize: 10, fontFamily: 'DM Mono', interval: 5 },
+      axisLine: { lineStyle: { color: 'rgba(255,255,255,0.12)' } },
+      axisTick: { show: false },
+    },
+    yAxis: {
+      type: 'value',
+      scale: true,
+      axisLabel: { color: 'rgba(255,255,255,0.45)', fontSize: 10, fontFamily: 'DM Mono', formatter: value => `£${Number(value).toFixed(2)}` },
+      splitLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } },
+      axisLine: { show: false },
+      axisTick: { show: false },
+    },
+    series: [
+      {
+        type: 'line',
+        data: priceValues,
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { color, width: 3, cap: 'round', join: 'round' },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: `${color}55` },
+            { offset: 1, color: `${color}08` },
+          ]),
+        },
+        markLine: {
+          silent: true,
+          symbol: 'none',
+          label: { color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Mono', formatter: 'Base £{c}' },
+          lineStyle: { color: 'rgba(201,170,82,0.6)', type: 'dashed' },
+          data: [{ yAxis: +drink.b.toFixed(2) }],
+        },
+        endLabel: {
+          show: true,
+          formatter: params => ` £${Number(params.value).toFixed(2)}`,
+          color,
+          fontFamily: 'DM Mono',
+          fontSize: 11,
+        },
+      },
+      {
+        type: 'scatter',
+        data: buyPoints,
+        symbolSize: 8,
+        itemStyle: { color: '#ff6b57' },
+      },
+      {
+        type: 'scatter',
+        data: sellPoints,
+        symbolSize: 8,
+        itemStyle: { color: '#3dd68c' },
+      },
+    ],
+  }, true);
 }
 
 // State tracking
@@ -193,15 +382,7 @@ function fireOrder(dId) {
   drink.h.push(drink.p);
   if (drink.h.length > 12) drink.h.shift();
 
-  // Track order in a short per-drink timeline for the live panels
-  if (!drink.timeline) drink.timeline = [];
-  drink.timeline.push({
-    t: Date.now(),
-    o: drink.o,
-    p: drink.p,
-    type: trend === 'up' ? 'buy' : 'sell'
-  });
-  if (drink.timeline.length > 50) drink.timeline.shift();
+  pushDrinkTimelinePoint(drink, trend === 'up' ? 'buy' : 'sell');
 
   SALES_LOG.push({
     t: Date.now(),
@@ -260,7 +441,7 @@ function updateRowDisplay(d) {
   if (arrEl) { arrEl.textContent = up ? '▲' : '▼'; arrEl.className = `darr ${up?'up':'dn'}`; }
 
   const spEl = document.getElementById(`sp${d.id}`);
-  if (spEl) { spEl.innerHTML = svgSpark(d.h, up, 104, 24); }
+  if (spEl) spEl.innerHTML = buildPricePositionMarkup(d);
 
   const rowEl = document.getElementById(`r${d.id}`);
   if (rowEl) {
@@ -268,12 +449,135 @@ function updateRowDisplay(d) {
   }
 }
 
+const ECHARTS_LINE_CACHE = new WeakMap();
+
+function buildLineChartMarkup(values, options = {}) {
+  const safeValues = (values && values.length ? values : [0]).map(value => Number(value) || 0);
+  const {
+    color = '#3dd68c',
+    width = 120,
+    height = 34,
+    strokeWidth = 2,
+    endLabel = false,
+    className = '',
+  } = options;
+  const classes = ['echart-line', className].filter(Boolean).join(' ');
+  return `<div class="${classes}" data-line-values="${safeValues.join(',')}" data-line-color="${color}" data-line-width="${width}" data-line-height="${height}" data-line-stroke="${strokeWidth}" data-line-end-label="${endLabel ? '1' : '0'}" style="width:${width}px;height:${height}px"></div>`;
+}
+
+function renderEchartsLine(el) {
+  if (!el || typeof echarts === 'undefined') return;
+  const values = (el.dataset.lineValues || '0').split(',').map(value => Number(value) || 0);
+  const color = el.dataset.lineColor || '#3dd68c';
+  const width = Number(el.dataset.lineWidth || el.clientWidth || 120);
+  const height = Number(el.dataset.lineHeight || el.clientHeight || 34);
+  const strokeWidth = Number(el.dataset.lineStroke || 2);
+  const endLabel = el.dataset.lineEndLabel === '1';
+  el.style.width = `${width}px`;
+  el.style.height = `${height}px`;
+
+  let chart = ECHARTS_LINE_CACHE.get(el);
+  if (!chart) {
+    chart = echarts.init(el, null, { renderer: 'canvas' });
+    ECHARTS_LINE_CACHE.set(el, chart);
+  } else {
+    chart.resize({ width, height });
+  }
+
+  const lastIndex = Math.max(0, values.length - 1);
+  const lastValue = values[lastIndex] ?? 0;
+
+  chart.setOption({
+    animationDuration: 900,
+    animationEasing: 'cubicOut',
+    grid: { top: 2, right: endLabel ? 64 : 6, bottom: 2, left: 6, containLabel: false },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      show: false,
+      data: values.map((_, index) => index),
+    },
+    yAxis: {
+      type: 'value',
+      show: false,
+      scale: true,
+    },
+    tooltip: { show: false },
+    series: [
+      {
+        type: 'line',
+        data: values,
+        smooth: true,
+        showSymbol: false,
+        symbol: 'none',
+        lineStyle: {
+          color,
+          width: strokeWidth,
+          cap: 'round',
+          join: 'round',
+        },
+        areaStyle: height > 40 ? {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: `${color}44` },
+            { offset: 1, color: `${color}05` },
+          ]),
+        } : undefined,
+        endLabel: endLabel ? {
+          show: true,
+          formatter: () => `${lastValue >= 0 ? '+' : ''}${lastValue.toFixed(1)}`,
+          color,
+          fontFamily: 'DM Mono',
+          fontSize: 11,
+        } : undefined,
+      },
+      {
+        type: 'effectScatter',
+        coordinateSystem: 'cartesian2d',
+        data: [[lastIndex, lastValue]],
+        symbolSize: height > 40 ? 8 : 5,
+        showEffectOn: 'render',
+        rippleEffect: {
+          scale: height > 40 ? 2.4 : 1.6,
+          brushType: 'stroke',
+        },
+        itemStyle: {
+          color,
+          shadowBlur: 12,
+          shadowColor: color,
+        },
+        tooltip: { show: false },
+        z: 4,
+      },
+    ],
+  }, true);
+}
+
+function hydrateLineCharts(root = document) {
+  if (typeof echarts === 'undefined' || !root) return;
+  ensureLineChartsResizeBinding();
+  const nodes = root.matches?.('.echart-line') ? [root] : Array.from(root.querySelectorAll('.echart-line'));
+  nodes.forEach(renderEchartsLine);
+}
+
+function ensureLineChartsResizeBinding() {
+  if (window.__nightEconomyLineChartsResizeBound) return;
+  window.__nightEconomyLineChartsResizeBound = true;
+  window.addEventListener('resize', () => {
+    document.querySelectorAll('.echart-line').forEach(el => {
+      const chart = ECHARTS_LINE_CACHE.get(el);
+      if (chart) chart.resize();
+    });
+  });
+}
+
 function svgSpark(h, up, W, H) {
-  const mn = Math.min(...h);
-  const mx = Math.max(...h);
-  const rng = mx - mn || 0.01;
-  const pts = h.map((v, i) => `${(i / (h.length - 1)) * (W - 2) + 1},${H - 1 - ((v - mn) / rng) * (H - 4)}`).join(' ');
-  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;overflow:visible"><polyline points="${pts}" fill="none" stroke="${up ? '#ff5252' : '#3dd68c'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return buildLineChartMarkup(h, {
+    color: up ? '#ff5252' : '#3dd68c',
+    width: W,
+    height: H,
+    strokeWidth: H > 40 ? 2.5 : 1.8,
+    endLabel: H >= 56,
+  });
 }
 
 function renderTicker() {

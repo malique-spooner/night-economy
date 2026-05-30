@@ -1,11 +1,13 @@
 # Night Economy
 
-Night Economy is a static, live-updating cocktail market dashboard. It simulates a busy late-night venue with:
+Night Economy is a static prototype for a live cocktail market product. It currently includes:
 
-- A live market board for all drinks
-- A rotating highlight panel for the current market view
-- A crash sequence for dramatic market events
-- Animated pricing, sparklines, and ticker updates
+- A TV market board for the room
+- A guest-facing mobile menu
+- A `mobile-v2` live market board for phones
+- A public landing `site`
+- A subscription-aware operator `portal`
+- A crash sequence and live market simulation
 
 ## Run Locally
 
@@ -15,10 +17,13 @@ From the project root:
 python3 -m http.server 8081
 ```
 
-Then open:
+Then open one of these:
 
 ```text
-http://127.0.0.1:8081
+http://127.0.0.1:8081/?view=tv
+http://127.0.0.1:8081/?view=mobile-v2
+http://127.0.0.1:8081/?view=site
+http://127.0.0.1:8081/?view=portal
 ```
 
 ## Publish
@@ -34,16 +39,16 @@ To publish on GitHub Pages:
 
 ## Project Files
 
-- `index.html` - app shell and page layout
-- `styles.css` - visual system and animations
+- `index.html` - app shell and route entrypoint
+- `styles.css` - shared visual system and page styling
 - `data.js` - drink data and market constants
 - `shared.js` - shared market logic and rendering helpers
-- `home.js` - board and right-panel updates
+- `home.js` - TV board and right-panel updates
+- `pages.js` - site, mobile, mobile-v2, portal, and legacy route handling
 - `crash.js` - crash event sequence
-- `spotlight.js` - spotlight-specific helpers and legacy rendering logic
 
 ## Notes
 
 - The app is intentionally dependency-free at runtime.
-- External fonts and Three.js are loaded from CDNs.
+- External fonts, Three.js, and ECharts are loaded from CDNs.
 - If you change the site layout, keep the `id` values in sync with the scripts.

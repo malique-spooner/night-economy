@@ -3,15 +3,28 @@
    ════════════════════════════════════════════════════════════════════ */
 
 const APP_VIEW_NAMES = {
+  site: 'Site',
   tv: 'TV View',
   mobile: 'Mobile Menu',
+  'mobile-v2': 'Mobile V2',
+  portal: 'Portal',
   manager: 'Manager View',
   employee: 'Employee View',
 };
 
 const PAGE_STATE = {
+  site: {
+    selectedPlan: 'growth',
+  },
   mobile: {
     selectedCat: 'all',
+  },
+  mobileV2: {
+    expandedId: null,
+  },
+  portal: {
+    role: 'owner',
+    selectedTab: 'overview',
   },
   manager: {
     range: 'session',
@@ -38,6 +51,7 @@ const SAFE_PRICE_MIN = 0.25;
 function getAppView() {
   const params = new URLSearchParams(window.location.search);
   const requested = params.get('view');
+  if (requested === 'manager' || requested === 'employee') return 'portal';
   return APP_VIEW_NAMES[requested] ? requested : 'tv';
 }
 
@@ -83,6 +97,34 @@ function getBaseline() {
   return PAGE_STATE.employee.baseline;
 }
 
+const PORTAL_PROFILE_KEY = 'night-economy-portal-profile';
+
+function loadPortalProfile() {
+  const defaults = {
+    subscribed: false,
+    plan: 'growth',
+    venueName: 'Pickle House',
+    ownerName: 'Venue Owner',
+    email: 'owner@night-economy.app',
+    seats: 6,
+    billing: 'Monthly',
+  };
+  try {
+    const raw = localStorage.getItem(PORTAL_PROFILE_KEY);
+    return raw ? { ...defaults, ...JSON.parse(raw) } : defaults;
+  } catch (err) {
+    return defaults;
+  }
+}
+
+function savePortalProfile(profile) {
+  try {
+    localStorage.setItem(PORTAL_PROFILE_KEY, JSON.stringify(profile));
+  } catch (err) {
+    // Ignore storage failures.
+  }
+}
+
 function injectPageShell() {
   if (document.getElementById('pageShell')) return;
 
@@ -91,13 +133,123 @@ function injectPageShell() {
   shell.className = 'page-shell';
   shell.innerHTML = `
     <nav class="page-switcher" aria-label="Page switcher">
+      <a class="page-chip" href="?view=site" data-view="site">Site</a>
       <a class="page-chip" href="?view=tv" data-view="tv">TV</a>
       <a class="page-chip" href="?view=mobile" data-view="mobile">Mobile</a>
-      <a class="page-chip" href="?view=manager" data-view="manager">Manager</a>
-      <a class="page-chip" href="?view=employee" data-view="employee">Employee</a>
+      <a class="page-chip" href="?view=mobile-v2" data-view="mobile-v2">Mobile V2</a>
+      <a class="page-chip" href="?view=portal" data-view="portal">Portal</a>
     </nav>
 
     <div id="pageToast" class="page-toast" aria-live="polite"></div>
+
+    <section id="siteView" class="alt-view site-view">
+      <div class="site-shell">
+        <section class="site-hero">
+          <div class="site-hero-inner">
+            <div class="site-kicker">Night Economy</div>
+            <h1>The live cocktail market for modern venues.</h1>
+            <p>We turn a static menu into a live market guests follow, teams run with confidence, and operators control from one system.</p>
+            <div class="site-cta-row">
+              <button class="site-primary" id="siteStartTrial">Subscribe</button>
+            </div>
+            <div class="site-scroll-cue">Scroll to see how it works</div>
+          </div>
+        </section>
+
+        <section class="site-section site-story">
+          <div class="site-story-grid">
+            <div>
+              <div class="site-kicker">About</div>
+              <h2>Night Economy makes service feel alive.</h2>
+            </div>
+            <p>Built for premium hospitality, Night Economy gives you a cinematic room display, a guest-facing mobile market, and an operator portal that keeps pricing, stock, permissions, and service rhythm under control.</p>
+          </div>
+        </section>
+
+        <section class="site-section">
+          <div class="site-section-intro">
+            <div class="site-kicker">Surfaces</div>
+            <h2>One product. Four distinct jobs.</h2>
+            <p>Each surface has a single purpose, so the experience stays elegant for guests and useful for operators.</p>
+          </div>
+          <div class="site-surface-grid">
+            <article class="site-surface-card tone-room">
+              <span>TV</span>
+              <strong>The room display</strong>
+              <p>A cinematic board for live price movement, spotlight drinks, and market moments the whole venue can feel.</p>
+            </article>
+            <article class="site-surface-card tone-guest">
+              <span>Mobile</span>
+              <strong>The guest companion</strong>
+              <p>A cleaner mobile market that helps guests decide what to buy now, with detail on demand instead of clutter.</p>
+            </article>
+            <article class="site-surface-card tone-ops">
+              <span>Portal</span>
+              <strong>The operator command center</strong>
+              <p>Open the market, manage pricing and stock, control access, and monitor service without losing the floor.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="site-section">
+          <div class="site-section-intro">
+            <div class="site-kicker">How It Works</div>
+            <h2>Simple enough for tonight. Strong enough to scale.</h2>
+          </div>
+          <div class="site-flow">
+            <div class="site-flow-card">
+            <span>01</span>
+            <strong>Show the market</strong>
+            <p>Put the live board on the big screen and let the room follow the night.</p>
+            </div>
+            <div class="site-flow-card">
+            <span>02</span>
+            <strong>Let guests play</strong>
+            <p>Guests check mobile prices, trending drinks, and the current market mood.</p>
+            </div>
+            <div class="site-flow-card">
+            <span>03</span>
+            <strong>Run the venue</strong>
+            <p>Your team manages stock, pricing, permissions, and performance from one portal.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="site-section site-subscribe">
+          <div class="site-subscribe-copy">
+            <div class="site-kicker">Subscribe</div>
+            <h2>Start your first venue.</h2>
+            <p>Choose a plan, add the venue, and open the operator portal. This prototype flow creates a live venue profile instantly.</p>
+          </div>
+          <div class="site-signup-panel">
+            <div class="site-pricing-minimal" id="sitePricing"></div>
+            <form class="site-signup-form" id="siteSignupForm">
+              <label>
+                <span>Venue name</span>
+                <input id="siteVenueName" type="text" placeholder="Pickle House Shoreditch">
+              </label>
+              <label>
+                <span>Owner name</span>
+                <input id="siteOwnerName" type="text" placeholder="Alex Morgan">
+              </label>
+              <label>
+                <span>Email</span>
+                <input id="siteOwnerEmail" type="email" placeholder="owner@venue.com">
+              </label>
+              <label>
+                <span>Plan</span>
+                <select id="sitePlanSelect">
+                  <option value="starter">Starter</option>
+                  <option value="growth">Growth</option>
+                  <option value="premium">Premium</option>
+                </select>
+              </label>
+              <button class="site-primary" type="submit">Buy Now</button>
+            </form>
+          </div>
+        </section>
+      </div>
+    </section>
 
     <section id="mobileView" class="alt-view mobile-view">
       <div class="mobile-header">
@@ -112,6 +264,77 @@ function injectPageShell() {
       <div class="featured-grid" id="mobileFeatured"></div>
       <div class="mobile-filters" id="mobileFilters"></div>
       <div class="menu-grid" id="mobileCatalog"></div>
+    </section>
+
+    <section id="mobile-v2View" class="alt-view mobile-v2-view">
+      <div class="mobile-v2-frame">
+        <div class="mobile-v2-topbar">
+          <div class="mobile-v2-kicker-wrap">
+            <div class="mobile-v2-kicker">Night Economy</div>
+            <h1 class="mobile-v2-title">Live Market Board</h1>
+          </div>
+          <div class="mobile-v2-status">
+            <span class="mobile-v2-live-dot"></span>
+            <span id="mobileV2Timestamp">Updating…</span>
+          </div>
+        </div>
+        <div class="mobile-v2-board-wrap">
+          <div class="board mobile-v2-board-shell">
+            <div class="board-hdr mobile-v2-board-hdr">
+              <span class="slbl">Live Market Board</span>
+              <div class="mobile-v2-summary" id="mobileV2Summary"></div>
+              <span class="updt" id="mobileV2BoardStamp">—</span>
+            </div>
+            <div class="col-hdr mobile-v2-col-hdr">
+              <div class="ch">Drink</div>
+              <div class="ch">Price</div>
+              <div class="ch">Trend</div>
+              <div class="ch">Move</div>
+              <div class="ch"></div>
+            </div>
+            <div class="board-scroll mobile-v2-scroll">
+              <div class="board-inner mobile-v2-board" id="mobileV2Board"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="portalView" class="alt-view portal-view">
+      <div class="portal-shell">
+        <div class="portal-layout">
+          <aside class="portal-sidebar">
+            <div class="portal-sidebar-brand">
+              <div class="portal-sidebar-kicker">Night Economy</div>
+              <strong>Operator Portal</strong>
+            </div>
+            <div class="portal-plan-card" id="portalPlanCard"></div>
+            <div class="portal-role-switch" id="portalRoleSwitch"></div>
+            <div class="portal-tabs portal-sidebar-tabs" id="portalTabs"></div>
+            <div class="portal-launch-actions portal-sidebar-actions">
+              <button class="manager-action" id="portalOpenMarket">Open Market</button>
+              <button class="manager-action" id="portalCrashDrill">Crash Drill</button>
+              <button class="manager-action" id="portalResetVenue">Reset Venue</button>
+            </div>
+            <div class="portal-sidebar-meta" id="portalSidebarMeta"></div>
+          </aside>
+
+          <main class="portal-main">
+            <section class="portal-header">
+              <div>
+                <div class="portal-header-kicker">Venue command center</div>
+                <h1>Run the floor, the pricing, and the launch.</h1>
+                <p id="portalHeaderSub" class="portal-header-sub">A single workspace for live operations, pricing decisions, and venue setup.</p>
+              </div>
+              <div class="portal-inline-actions">
+                <input id="portalDrinkSearch" class="manager-search portal-search" type="search" placeholder="Search drinks">
+                <div class="save-pill" id="portalSaveState">Saved</div>
+              </div>
+            </section>
+            <div id="portalWorkspace" class="portal-workspace"></div>
+          </main>
+        </div>
+      </div>
     </section>
 
     <section id="managerView" class="alt-view manager-view">
@@ -229,18 +452,15 @@ function renderStatPill(container, label, value, tone = '') {
 }
 
 function sparkline(values, color = '#3dd68c', width = 120, height = 34) {
-  if (!values.length) {
-    return `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"></svg>`;
-  }
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+  const safe = (values && values.length ? values : [0]).map(value => Number(value) || 0);
+  const min = Math.min(...safe);
+  const max = Math.max(...safe);
   const range = max - min || 1;
-  const points = values.map((value, index) => {
-    const x = values.length === 1 ? width / 2 : (index / (values.length - 1)) * (width - 4) + 2;
-    const y = height - 2 - ((value - min) / range) * (height - 4);
-    return `${x},${y}`;
-  }).join(' ');
-  return `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" aria-hidden="true"><polyline points="${points}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const bars = safe.map(value => {
+    const pct = Math.max(12, ((value - min) / range) * 100);
+    return `<span style="height:${pct}%"></span>`;
+  }).join('');
+  return `<div class="micro-bars ${height > 40 ? 'tall' : ''}" style="width:${width}px;height:${height}px;--bars-color:${color}">${bars}</div>`;
 }
 
 function getSalesRange(range) {
@@ -326,6 +546,61 @@ function getAttentionItems() {
   return items.slice(0, 6);
 }
 
+function rerenderOperatorView() {
+  const view = getAppView();
+  if (view === 'portal') {
+    renderPortalView();
+    return;
+  }
+  renderEmployeeView();
+}
+
+function buildProgressMeter(value, max, tone = 'green') {
+  const pct = max > 0 ? Math.max(8, Math.min(100, (value / max) * 100)) : 8;
+  return `
+    <div class="meter meter-${tone}">
+      <div class="meter-fill" style="width:${pct}%"></div>
+    </div>
+  `;
+}
+
+function getPortalTimeBuckets(records) {
+  const labels = ['18:00', '19:00', '20:00', '21:00', '22:00', '23:00', '00:00'];
+  const buckets = labels.map(label => ({ label, orders: 0, revenue: 0 }));
+  records.forEach(row => {
+    const hour = new Date(row.t).getHours();
+    let index = hour - 18;
+    if (hour === 0) index = 6;
+    if (index < 0 || index > 6) return;
+    buckets[index].orders += 1;
+    buckets[index].revenue += row.price;
+  });
+  return buckets;
+}
+
+function getPortalHealthSnapshot(records) {
+  const active = D.filter(d => !d.soldOut).length;
+  const soldOut = D.filter(d => d.soldOut).length;
+  const nearCeiling = D.filter(d => d.p >= d.ceiling * 0.98).length;
+  const averageDelta = D.length
+    ? D.reduce((sum, drink) => sum + (((drink.p - drink.b) / drink.b) * 100), 0) / D.length
+    : 0;
+  const revenue = records.reduce((sum, row) => sum + row.price, 0);
+  return {
+    active,
+    soldOut,
+    nearCeiling,
+    averageDelta,
+    revenue,
+  };
+}
+
+function getPortalTopMovers() {
+  return [...D]
+    .sort((a, b) => Math.abs((b.p - b.b) / b.b) - Math.abs((a.p - a.b) / a.b))
+    .slice(0, 5);
+}
+
 function getDrinkBaseline(drinkId) {
   const baseline = getBaseline().drinks[drinkId];
   return baseline || null;
@@ -358,13 +633,13 @@ function queueSaveState(state, message = '') {
 function commitEmployeeEdit(drinkId, patch, label = 'Updated drink') {
   setDrinkMarketConfig(drinkId, patch, { recordHistory: true });
   queueSaveState('saved', label);
-  renderEmployeeView();
+  rerenderOperatorView();
 }
 
 function commitCategoryEdit(cat, mutator, label = 'Updated category') {
   applyMarketTransaction(label, mutator);
   queueSaveState('saved', label);
-  renderEmployeeView();
+  rerenderOperatorView();
 }
 
 function normalizeDrinkPatch(drink, patch) {
@@ -542,6 +817,743 @@ function renderMobileView() {
   renderCards(PAGE_STATE.mobile.selectedCat);
 }
 
+function renderMobileV2View() {
+  const board = document.getElementById('mobileV2Board');
+  const summary = document.getElementById('mobileV2Summary');
+  const timestamp = document.getElementById('mobileV2Timestamp');
+  const boardStamp = document.getElementById('mobileV2BoardStamp');
+  if (!board || !summary || !timestamp || !boardStamp) return;
+
+  const drinks = [...D];
+  const available = drinks.filter(d => !d.soldOut);
+  const gainers = drinks.filter(d => d.p > d.b).length;
+  const decliners = drinks.filter(d => d.p < d.b).length;
+  const avgMove = drinks.length
+    ? drinks.reduce((sum, d) => sum + ((d.p - d.b) / d.b * 100), 0) / drinks.length
+    : 0;
+  const hottest = [...drinks].sort((a, b) => b.o - a.o)[0];
+  const now = new Date();
+
+  timestamp.textContent = `Live ${now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+  boardStamp.textContent = `${now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+  summary.innerHTML = `
+    <span>${available.length}/${drinks.length} live</span>
+    <span class="${avgMove >= 0 ? 'up' : 'dn'}">${avgMove >= 0 ? '+' : ''}${avgMove.toFixed(1)}%</span>
+    <span>${escapeHtml(hottest ? hottest.n : '—')}</span>
+  `;
+
+  const grouped = groupBy(drinks, drink => drink.cat);
+  board.innerHTML = Object.entries(grouped).map(([cat, items]) => {
+    const catChange = (items.reduce((sum, drink) => sum + ((drink.p - drink.b) / drink.b * 100), 0) / items.length).toFixed(1);
+    const rows = items.map(drink => {
+      const change = ((drink.p - drink.b) / drink.b) * 100;
+      const trend = change >= 0 ? 'up' : 'dn';
+      const soldBadge = drink.soldOut ? '<span class="val-badge">SOLD OUT</span>' : '';
+      const isExpanded = PAGE_STATE.mobileV2.expandedId === drink.id;
+      const timeline = (drink.timeline && drink.timeline.length ? drink.timeline : buildSyntheticTimeline(drink)).slice(-43);
+      const low = Math.min(...timeline.map(point => point.p));
+      const high = Math.max(...timeline.map(point => point.p));
+      return `
+        <button class="drow mobile-v2-row ${drink.o > 0 ? 'fresh' : 'decaying'} ${drink.soldOut ? 'sold-out' : ''} ${isExpanded ? 'expanded' : ''}" data-mobile-v2-drink="${escapeHtml(drink.id)}" aria-expanded="${isExpanded ? 'true' : 'false'}">
+          <div><div class="dname">${escapeHtml(drink.n)}${soldBadge}</div><div class="dcat-sub">${escapeHtml(drink.cat.replace('-', ' '))}</div></div>
+          <div class="dprice ${trend}">${formatMoney(drink.p)}</div>
+          <div class="spark-cell">${buildPricePositionMarkup(drink)}</div>
+          <div class="dpct ${trend}">${change >= 0 ? '+' : ''}${change.toFixed(1)}%</div>
+          <div class="decay-wrap"><div class="decay-bar"><div class="decay-fill" style="width:${Math.min(100, drink.o * 8.33)}%"></div></div><div class="darr ${trend}">${trend === 'up' ? '▲' : '▼'}</div></div>
+        </button>
+        ${isExpanded ? `
+          <div class="mobile-v2-detail" data-mobile-v2-detail="${escapeHtml(drink.id)}">
+            <div class="mobile-v2-detail-chart" id="mobileV2Chart-${escapeHtml(drink.id)}"></div>
+            <div class="mobile-v2-detail-meta">
+              <span>Low ${formatMoney(low)}</span>
+              <span>Base ${formatMoney(drink.b)}</span>
+              <span>High ${formatMoney(high)}</span>
+            </div>
+          </div>
+        ` : ''}
+      `;
+    }).join('');
+
+    return `
+      <section class="mobile-v2-section">
+        <div class="mobile-v2-section-head">
+          <span class="cat-name mobile-v2-section-name ${escapeHtml(cat)}">◆ ${escapeHtml(cat.replace('-', ' '))}</span>
+          <span class="cat-meta mobile-v2-section-meta">${catChange > 0 ? '+' : ''}${catChange}%</span>
+        </div>
+        <div class="mobile-v2-list">${rows}</div>
+      </section>
+    `;
+  }).join('');
+  board.querySelectorAll('[data-mobile-v2-drink]').forEach(row => {
+    row.addEventListener('click', () => {
+      const id = row.dataset.mobileV2Drink;
+      PAGE_STATE.mobileV2.expandedId = PAGE_STATE.mobileV2.expandedId === id ? null : id;
+      renderMobileV2View();
+    });
+  });
+  if (PAGE_STATE.mobileV2.expandedId) {
+    const drink = D.find(item => item.id === PAGE_STATE.mobileV2.expandedId);
+    const chartEl = document.getElementById(`mobileV2Chart-${PAGE_STATE.mobileV2.expandedId}`);
+    if (drink && chartEl) renderSpotlightTrendChart(chartEl, drink);
+  }
+}
+
+function renderSiteView() {
+  const pricing = document.getElementById('sitePricing');
+  const form = document.getElementById('siteSignupForm');
+  const venueInput = document.getElementById('siteVenueName');
+  const ownerInput = document.getElementById('siteOwnerName');
+  const emailInput = document.getElementById('siteOwnerEmail');
+  const planSelect = document.getElementById('sitePlanSelect');
+  const startTrial = document.getElementById('siteStartTrial');
+  if (!pricing || !form || !venueInput || !ownerInput || !emailInput || !planSelect || !startTrial) return;
+
+  const plans = [
+    { id: 'starter', name: 'Starter', price: '£149/mo', blurb: 'Small venue launch.', perks: ['Board', 'Mobile menu'] },
+    { id: 'growth', name: 'Growth', price: '£299/mo', blurb: 'Full operator setup.', perks: ['Portal', 'Analytics'] },
+    { id: 'premium', name: 'Premium', price: '£549/mo', blurb: 'Multi-venue rollout.', perks: ['Support', 'Custom rollout'] },
+  ];
+
+  pricing.innerHTML = plans.map(plan => `
+    <article class="site-price-pill ${PAGE_STATE.site.selectedPlan === plan.id ? 'active' : ''}" data-site-plan="${plan.id}">
+      <div>
+        <strong>${plan.name}</strong>
+        <span>${plan.price}</span>
+      </div>
+      <p>${plan.blurb}</p>
+    </article>
+  `).join('');
+  pricing.querySelectorAll('[data-site-plan]').forEach(card => {
+    card.addEventListener('click', () => {
+      PAGE_STATE.site.selectedPlan = card.dataset.sitePlan;
+      planSelect.value = PAGE_STATE.site.selectedPlan;
+      renderSiteView();
+    });
+  });
+
+  const profile = loadPortalProfile();
+  venueInput.value = profile.venueName === 'Pickle House' ? '' : profile.venueName;
+  ownerInput.value = profile.ownerName === 'Venue Owner' ? '' : profile.ownerName;
+  emailInput.value = profile.email === 'owner@night-economy.app' ? '' : profile.email;
+  planSelect.value = PAGE_STATE.site.selectedPlan;
+
+  form.onsubmit = (event) => {
+    event.preventDefault();
+    const nextProfile = {
+      ...profile,
+      subscribed: true,
+      plan: planSelect.value,
+      venueName: venueInput.value.trim() || 'New Night Economy Venue',
+      ownerName: ownerInput.value.trim() || 'Venue Owner',
+      email: emailInput.value.trim() || 'owner@night-economy.app',
+      seats: planSelect.value === 'starter' ? 3 : planSelect.value === 'growth' ? 8 : 20,
+      billing: 'Monthly',
+    };
+    savePortalProfile(nextProfile);
+    PAGE_STATE.portal.role = 'owner';
+    showToast(`Subscription activated for ${nextProfile.venueName}`, 'success');
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', 'portal');
+    window.history.pushState({}, '', url);
+    setActiveAppView('portal');
+    refreshAuxViews();
+  };
+
+  startTrial.onclick = () => {
+    document.querySelector('.site-subscribe')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => venueInput.focus(), 300);
+  };
+}
+
+function bindPortalEmployeeControls(controls) {
+  controls.querySelectorAll('[data-drink-row]').forEach(row => {
+    row.addEventListener('click', (event) => {
+      if (event.target.closest('input, select, button, label')) return;
+      PAGE_STATE.employee.selectedId = row.dataset.drinkRow;
+      renderPortalView();
+    });
+  });
+
+  controls.querySelectorAll('[data-field]').forEach(el => {
+    if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+      el.addEventListener('focus', () => {
+        PAGE_STATE.employee.selectedId = el.dataset.id;
+      });
+    }
+  });
+
+  controls.querySelectorAll('input, select').forEach(el => {
+    const apply = () => {
+      const id = el.dataset.id;
+      const field = el.dataset.field;
+      const drink = D.find(item => item.id === id);
+      if (!drink) return;
+      const patch = {};
+      if (field === 'name' || field === 'cat') patch[field] = el.value;
+      if (field === 'salePrice' || field === 'floor' || field === 'ceiling') patch[field] = Number(el.value);
+      if (field === 'soldOut') patch.soldOut = el.checked;
+      const next = normalizeDrinkPatch(drink, patch);
+      PAGE_STATE.employee.saveState = 'unsaved';
+      const pill = document.getElementById('portalSaveState');
+      if (pill) {
+        pill.textContent = 'Unsaved';
+        pill.className = 'save-pill unsaved';
+      }
+      clearTimeout(PAGE_STATE.employee.dirtyTimer);
+      PAGE_STATE.employee.dirtyTimer = setTimeout(() => {
+        commitEmployeeEdit(id, next, `Updated ${drink.n}`);
+        renderPortalView();
+      }, 350);
+    };
+    if (el.type === 'checkbox' || el.tagName === 'SELECT') el.addEventListener('change', apply);
+    else el.addEventListener('input', apply);
+  });
+
+  controls.querySelectorAll('[data-step]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const field = btn.dataset.field;
+      const dir = Number(btn.dataset.step);
+      const drink = D.find(item => item.id === id);
+      if (!drink) return;
+      const current = field === 'salePrice' ? drink.b : drink[field];
+      const patch = {};
+      patch[field] = +(Number(current) + dir).toFixed(2);
+      commitEmployeeEdit(id, normalizeDrinkPatch(drink, patch), `Adjusted ${drink.n}`);
+      renderPortalView();
+    });
+  });
+
+  controls.querySelectorAll('[data-reset-drink]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.resetDrink;
+      const drink = DRINKS.find(item => item.id === id);
+      if (!drink) return;
+      commitEmployeeEdit(id, {
+        name: drink.n,
+        cat: drink.cat,
+        salePrice: drink.b,
+        floor: +(drink.b * 0.65).toFixed(2),
+        ceiling: +(drink.b * 1.65).toFixed(2),
+        soldOut: false,
+      }, `Reset ${drink.n}`);
+      renderPortalView();
+    });
+  });
+
+  controls.querySelectorAll('[data-cat-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cat = btn.dataset.cat;
+      const action = btn.dataset.catAction;
+      const items = D.filter(d => d.cat === cat);
+      if (!items.length) return;
+      if (action === 'soldout') {
+        commitCategoryEdit(cat, () => {
+          MARKET_SETTINGS.categories[cat] = { ...(MARKET_SETTINGS.categories[cat] || { label: cat.replace('-', ' ') }), soldOut: true };
+          items.forEach(d => {
+            MARKET_SETTINGS.drinks[d.id] = { ...(MARKET_SETTINGS.drinks[d.id] || {}), soldOut: true };
+          });
+        }, `${cat.replace('-', ' ')} sold out`);
+      }
+      if (action === 'reset') {
+        commitCategoryEdit(cat, () => {
+          MARKET_SETTINGS.categories[cat] = { label: cat.replace('-', ' '), soldOut: false };
+          DRINKS.filter(d => d.cat === cat).forEach(src => {
+            MARKET_SETTINGS.drinks[src.id] = { name: src.n, cat: src.cat, salePrice: src.b, floor: +(src.b * 0.65).toFixed(2), ceiling: +(src.b * 1.65).toFixed(2), soldOut: false };
+          });
+        }, `${cat.replace('-', ' ')} reset`);
+      }
+    });
+  });
+}
+
+function renderPortalView() {
+  const profile = loadPortalProfile();
+  const roleSwitch = document.getElementById('portalRoleSwitch');
+  const planCard = document.getElementById('portalPlanCard');
+  const tabs = document.getElementById('portalTabs');
+  const sidebarMeta = document.getElementById('portalSidebarMeta');
+  const workspace = document.getElementById('portalWorkspace');
+  const search = document.getElementById('portalDrinkSearch');
+  const saveState = document.getElementById('portalSaveState');
+  const headerSub = document.getElementById('portalHeaderSub');
+  if (!roleSwitch || !planCard || !tabs || !sidebarMeta || !workspace || !search || !saveState || !headerSub) return;
+
+  const roles = [
+    { id: 'owner', label: 'Owner', desc: 'Billing, launch controls, pricing, team.' },
+    { id: 'manager', label: 'Manager', desc: 'Sales, exports, stock, and session ops.' },
+    { id: 'staff', label: 'Staff', desc: 'Floor-safe view with limited pricing controls.' },
+  ];
+  const portalTabs = [
+    ['overview', 'Overview'],
+    ['ops', 'Live Ops'],
+    ['menu', 'Menu & Pricing'],
+    ['performance', 'Performance'],
+    ['team', 'Team'],
+    ['settings', 'Settings'],
+  ];
+
+  roleSwitch.innerHTML = roles.map(role => `<button class="range-chip ${PAGE_STATE.portal.role === role.id ? 'active' : ''}" data-portal-role="${role.id}">${role.label}</button>`).join('');
+  roleSwitch.querySelectorAll('[data-portal-role]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      PAGE_STATE.portal.role = btn.dataset.portalRole;
+      renderPortalView();
+    });
+  });
+
+  planCard.innerHTML = `
+    <strong>${escapeHtml(profile.venueName)}</strong>
+    <span>${escapeHtml(profile.plan)} plan · ${profile.subscribed ? 'Active subscription' : 'Demo mode'}</span>
+    <span>${profile.seats} team seats · ${escapeHtml(profile.billing)}</span>
+  `;
+
+  tabs.innerHTML = portalTabs.map(([tab, label]) => `<button class="sort-chip ${PAGE_STATE.portal.selectedTab === tab ? 'active' : ''}" data-portal-tab="${tab}">${label}</button>`).join('');
+  tabs.querySelectorAll('[data-portal-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      PAGE_STATE.portal.selectedTab = btn.dataset.portalTab;
+      renderPortalView();
+    });
+  });
+
+  const records = getManagerRecords();
+  const sessionRecords = getSalesRange('session');
+  const snapshot = getPortalHealthSnapshot(sessionRecords);
+  const topCategory = getTopCategory(sessionRecords);
+  const topMovers = getPortalTopMovers();
+  const categoryRows = getCategoryCardsData();
+  const alerts = getAttentionItems();
+  const previewDrink = getEmployeePreviewDrink();
+  const visible = getVisibleEmployeeDrinks();
+  const groupedVisible = groupBy(visible, drink => drink.cat);
+  const buckets = getPortalTimeBuckets(sessionRecords);
+  const maxOrders = Math.max(1, ...categoryRows.map(row => row.totalOrders));
+  const maxBucketRevenue = Math.max(1, ...buckets.map(bucket => bucket.revenue));
+
+  sidebarMeta.innerHTML = `
+    <div class="portal-sidebar-stat">
+      <span>Market</span>
+      <strong>${typeof crashActive !== 'undefined' && crashActive ? 'Crash mode' : 'Live'}</strong>
+    </div>
+    <div class="portal-sidebar-stat">
+      <span>Revenue tonight</span>
+      <strong>${formatMoney(snapshot.revenue)}</strong>
+    </div>
+    <div class="portal-sidebar-stat">
+      <span>Sold out</span>
+      <strong>${snapshot.soldOut} drinks</strong>
+    </div>
+  `;
+
+  const headerCopy = {
+    overview: 'A concise workspace for service, stock, and pricing decisions.',
+    ops: 'Launch controls, live alerts, and operating rhythm for the floor team.',
+    menu: 'Edit drinks, pricing guardrails, and sold-out state with real session context.',
+    performance: 'Track demand, revenue, and category movement across the evening session.',
+    team: 'Set access by role and keep operations safe as the venue scales.',
+    settings: 'Configure the venue, subscription, displays, and rollout defaults.',
+  };
+  headerSub.textContent = headerCopy[PAGE_STATE.portal.selectedTab] || headerCopy.overview;
+
+  const billingHtml = `
+    <div class="portal-billing-stack">
+      <div><span>Plan</span><strong>${escapeHtml(profile.plan)}</strong></div>
+      <div><span>Billing</span><strong>${escapeHtml(profile.billing)}</strong></div>
+      <div><span>Seats</span><strong>${profile.seats}</strong></div>
+      <div><span>Top category</span><strong>${escapeHtml((topCategory?.cat || '—').replace('-', ' '))}</strong></div>
+    </div>
+    <div class="portal-permission-list">
+      ${roles.map(role => `<article class="portal-permission ${PAGE_STATE.portal.role === role.id ? 'active' : ''}"><strong>${role.label}</strong><span>${role.desc}</span></article>`).join('')}
+    </div>
+  `;
+  const alertHtml = alerts.length ? alerts.map(item => `
+    <article class="alert-card ${item.tone}">
+      <strong>${escapeHtml(item.title)}</strong>
+      <span>${escapeHtml(item.body)}</span>
+    </article>
+  `).join('') : '<div class="empty-state">No urgent issues right now.</div>';
+  const categoriesHtml = categoryRows.map(row => `
+    <article class="portal-category-card">
+      <div class="portal-category-head">
+        <div>
+          <strong>${escapeHtml(row.cat.replace('-', ' '))}</strong>
+          <span>${row.items.length} drinks · ${row.totalOrders} orders</span>
+        </div>
+        <div class="portal-category-price">${formatMoney(row.avgPrice)}</div>
+      </div>
+      <div class="portal-category-metric">
+        <label>Order volume</label>
+        ${buildProgressMeter(row.totalOrders, maxOrders, 'green')}
+      </div>
+      <div class="portal-category-meta">
+        <span>${row.items.filter(d => d.soldOut).length} sold out</span>
+        <span>${row.items.filter(d => d.p >= d.ceiling * 0.98).length} near ceiling</span>
+      </div>
+    </article>
+  `).join('');
+  const moversHtml = topMovers.map(drink => {
+    const delta = ((drink.p - drink.b) / drink.b) * 100;
+    return `
+      <article class="portal-mover-row">
+        <div>
+          <strong>${escapeHtml(drink.n)}</strong>
+          <span>${escapeHtml(drink.cat.replace('-', ' '))}</span>
+        </div>
+        <div class="portal-mover-metrics">
+          <span>${formatMoney(drink.p)}</span>
+          <strong class="${delta >= 0 ? 'up' : 'dn'}">${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%</strong>
+        </div>
+      </article>
+    `;
+  }).join('');
+  const activityHtml = records.length ? records.map(row => `
+    <button class="record-row" data-portal-record="${row.id}:${row.t}">
+      <span>${formatShortTime(row.t)}</span>
+      <strong>${escapeHtml(row.n)}</strong>
+      <span>${escapeHtml(row.cat.replace('-', ' '))}</span>
+      <span class="tone ${row.type === 'buy' ? 'up' : 'dn'}">${row.type.toUpperCase()}</span>
+      <span>${formatMoney(row.price)}</span>
+    </button>
+  `).join('') : '<div class="empty-state">No orders logged yet.</div>';
+  const timelineHtml = buckets.map(bucket => `
+    <article class="portal-timeline-row">
+      <div>
+        <strong>${bucket.label}</strong>
+        <span>${bucket.orders} orders</span>
+      </div>
+      <div class="portal-timeline-bar">${buildProgressMeter(bucket.revenue, maxBucketRevenue, 'blue')}</div>
+      <strong>${formatMoney(bucket.revenue)}</strong>
+    </article>
+  `).join('');
+  const historyHtml = MARKET_HISTORY.slice().reverse().slice(0, 8).map(entry => `
+    <article class="history-row">
+      <div>
+        <strong>${escapeHtml(entry.label || entry.kind || 'Change')}</strong>
+        <span>${escapeHtml(formatShortDate(entry.t))} ${escapeHtml(formatShortTime(entry.t))}</span>
+      </div>
+      <button class="history-undo" data-portal-undo="${entry.t}">Undo last</button>
+    </article>
+  `).join('') || '<div class="empty-state">No saved changes yet.</div>';
+
+  if (PAGE_STATE.portal.selectedTab === 'overview') {
+    workspace.innerHTML = `
+      <section class="portal-overview-grid">
+        <div class="portal-pane portal-pane-summary">
+          <div class="card-hdr">Venue Health</div>
+          <div class="portal-summary" id="portalSummary"></div>
+        </div>
+        <div class="portal-pane">
+          <div class="card-hdr">Live Alerts</div>
+          <div class="alert-list">${alertHtml}</div>
+        </div>
+        <div class="portal-pane">
+          <div class="card-hdr">Subscription & Access</div>
+          <div class="portal-billing">${billingHtml}</div>
+        </div>
+      </section>
+      <section class="portal-analytics-grid">
+        <div class="portal-pane">
+          <div class="card-hdr">Top Movers</div>
+          <div class="portal-mover-list">${moversHtml}</div>
+        </div>
+        <div class="portal-pane">
+          <div class="card-hdr">Category Health</div>
+          <div class="portal-category-list">${categoriesHtml}</div>
+        </div>
+        <div class="portal-pane">
+          <div class="card-hdr">Tonight Timeline</div>
+          <div class="portal-timeline-list">${timelineHtml}</div>
+        </div>
+      </section>
+    `;
+  } else if (PAGE_STATE.portal.selectedTab === 'ops') {
+    workspace.innerHTML = `
+      <section class="portal-overview-grid portal-overview-grid-ops">
+        <div class="portal-pane portal-pane-summary">
+          <div class="card-hdr">Session Status</div>
+          <div class="portal-summary" id="portalSummary"></div>
+        </div>
+        <div class="portal-pane">
+          <div class="card-hdr">Checklist</div>
+          <div class="portal-checklist">
+            <article><strong>Board live</strong><span>TV display is ready to run the room.</span></article>
+            <article><strong>Mobile linked</strong><span>Mobile V2 reflects the same market state.</span></article>
+            <article><strong>Price rails set</strong><span>Each drink has a base, floor, and ceiling.</span></article>
+            <article><strong>Team access</strong><span>${PAGE_STATE.portal.role === 'staff' ? 'Staff-safe mode is active.' : 'Manager access is available tonight.'}</span></article>
+          </div>
+        </div>
+        <div class="portal-pane">
+          <div class="card-hdr">Live Alerts</div>
+          <div class="alert-list">${alertHtml}</div>
+        </div>
+      </section>
+      <section class="portal-pane">
+        <div class="portal-section-head">
+          <div>
+            <div class="card-hdr">Launch Log</div>
+            <div class="portal-section-sub">Every operator change is tracked so the session can be reset safely.</div>
+          </div>
+          <div class="portal-inline-actions">
+            <button class="manager-action" id="portalUndo">Undo last change</button>
+            <button class="manager-action" id="portalHighlight">Highlight changes: on</button>
+          </div>
+        </div>
+        <div class="history-list" id="portalHistory">${historyHtml}</div>
+      </section>
+    `;
+  } else if (PAGE_STATE.portal.selectedTab === 'menu') {
+    workspace.innerHTML = `
+      <section class="portal-ops-pane">
+        <div class="portal-section-head">
+          <div>
+            <div class="card-hdr">Menu & Pricing</div>
+            <div class="portal-section-sub">Edit drinks, stock status, and guardrails without leaving the operator workflow.</div>
+          </div>
+          <div class="portal-inline-actions">
+            <button class="manager-action" id="portalUndo">Undo last change</button>
+            <button class="manager-action" id="portalHighlight">Highlight changes: on</button>
+          </div>
+        </div>
+        <div class="portal-preview" id="portalPreview"></div>
+        <div class="portal-filter-row" id="portalCatFilters"></div>
+        <div class="employee-list" id="portalControls"></div>
+      </section>
+    `;
+  } else if (PAGE_STATE.portal.selectedTab === 'performance') {
+    workspace.innerHTML = `
+      <section class="portal-overview-grid">
+        <div class="portal-pane portal-pane-summary">
+          <div class="card-hdr">Performance Snapshot</div>
+          <div class="portal-summary" id="portalSummary"></div>
+        </div>
+        <div class="portal-pane">
+          <div class="card-hdr">Category Health</div>
+          <div class="portal-category-list">${categoriesHtml}</div>
+        </div>
+        <div class="portal-pane">
+          <div class="card-hdr">Timeline</div>
+          <div class="portal-timeline-list">${timelineHtml}</div>
+        </div>
+      </section>
+      <section class="portal-pane portal-pane-feed">
+        <div class="portal-section-head">
+          <div class="card-hdr">Order Activity</div>
+          <div class="portal-inline-actions">
+            <button class="manager-action" id="portalExportCsv">Export CSV</button>
+            <button class="manager-action" id="portalExportJson">Export JSON</button>
+          </div>
+        </div>
+        <div class="record-head" id="portalRecordHead"></div>
+        <div class="record-list" id="portalSales">${activityHtml}</div>
+      </section>
+    `;
+  } else if (PAGE_STATE.portal.selectedTab === 'team') {
+    workspace.innerHTML = `
+      <section class="portal-overview-grid">
+        <div class="portal-pane portal-pane-summary">
+          <div class="card-hdr">Roles</div>
+          <div class="portal-summary" id="portalSummary"></div>
+        </div>
+        <div class="portal-pane">
+          <div class="card-hdr">Permission Model</div>
+          <div class="portal-billing">${billingHtml}</div>
+        </div>
+        <div class="portal-pane">
+          <div class="card-hdr">Recommended Access</div>
+          <div class="portal-checklist">
+            <article><strong>Owner</strong><span>Billing, venue setup, launch logic, and system overrides.</span></article>
+            <article><strong>Manager</strong><span>Session ops, stock, exports, and pricing guardrails.</span></article>
+            <article><strong>Staff</strong><span>Read-heavy access with limited venue editing.</span></article>
+          </div>
+        </div>
+      </section>
+      <section class="portal-pane">
+        <div class="card-hdr">Recent Change Log</div>
+        <div class="history-list" id="portalHistory">${historyHtml}</div>
+      </section>
+    `;
+  } else {
+    workspace.innerHTML = `
+      <section class="portal-overview-grid">
+        <div class="portal-pane portal-pane-summary">
+          <div class="card-hdr">Venue Setup</div>
+          <div class="portal-summary" id="portalSummary"></div>
+        </div>
+        <div class="portal-pane">
+          <div class="card-hdr">Subscription</div>
+          <div class="portal-settings-list">
+            <article><span>Venue</span><strong>${escapeHtml(profile.venueName)}</strong></article>
+            <article><span>Plan</span><strong>${escapeHtml(profile.plan)}</strong></article>
+            <article><span>Billing</span><strong>${escapeHtml(profile.billing)}</strong></article>
+            <article><span>Seats</span><strong>${profile.seats}</strong></article>
+          </div>
+        </div>
+        <div class="portal-pane">
+          <div class="card-hdr">Devices & Surfaces</div>
+          <div class="portal-checklist">
+            <article><strong>TV surface</strong><span>Configured for the room display.</span></article>
+            <article><strong>Mobile V2</strong><span>Configured for guest-facing market browsing.</span></article>
+            <article><strong>Portal</strong><span>Configured for operator access and control.</span></article>
+          </div>
+        </div>
+      </section>
+      <section class="portal-pane">
+        <div class="card-hdr">Prototype Notes</div>
+        <div class="portal-settings-list">
+          <article><span>State</span><strong>${profile.subscribed ? 'Subscribed prototype' : 'Demo mode'}</strong></article>
+          <article><span>Market behaviour</span><strong>Live synthetic session from 18:00 to 01:00</strong></article>
+          <article><span>Access model</span><strong>Owner, manager, and staff permission simulation</strong></article>
+        </div>
+      </section>
+    `;
+  }
+
+  const summary = workspace.querySelector('#portalSummary');
+  if (summary) {
+    summary.innerHTML = '';
+    renderStatPill(summary, 'Revenue', formatMoney(snapshot.revenue));
+    renderStatPill(summary, 'Orders', String(sessionRecords.length));
+    renderStatPill(summary, 'Active', String(snapshot.active));
+    renderStatPill(summary, 'Sold Out', String(snapshot.soldOut));
+    renderStatPill(summary, 'Near Ceiling', String(snapshot.nearCeiling));
+    renderStatPill(summary, 'Avg Move', `${snapshot.averageDelta >= 0 ? '+' : ''}${snapshot.averageDelta.toFixed(1)}%`, snapshot.averageDelta >= 0 ? 'up' : '');
+  }
+
+  search.value = PAGE_STATE.employee.search;
+  search.oninput = () => {
+    PAGE_STATE.employee.search = search.value;
+    renderPortalView();
+  };
+
+  const head = workspace.querySelector('#portalRecordHead');
+  if (head) {
+    const headers = [['t', 'Time'], ['n', 'Drink'], ['cat', 'Category'], ['type', 'Type'], ['price', 'Price']];
+    head.innerHTML = headers.map(([key, label]) => `<button class="record-head-btn ${PAGE_STATE.manager.sortKey === key ? 'active' : ''}" data-sort="${key}">${escapeHtml(label)}</button>`).join('');
+    head.querySelectorAll('[data-sort]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (PAGE_STATE.manager.sortKey === btn.dataset.sort) PAGE_STATE.manager.sortDir = PAGE_STATE.manager.sortDir === 'asc' ? 'desc' : 'asc';
+        else {
+          PAGE_STATE.manager.sortKey = btn.dataset.sort;
+          PAGE_STATE.manager.sortDir = btn.dataset.sort === 'price' ? 'desc' : 'asc';
+        }
+        renderPortalView();
+      });
+    });
+  }
+
+  const history = workspace.querySelector('#portalHistory');
+  history?.querySelectorAll('[data-portal-undo]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      undoLastMarketChange();
+      renderPortalView();
+    });
+  });
+
+  const filters = workspace.querySelector('#portalCatFilters');
+  if (filters) {
+    filters.innerHTML = ['all', ...new Set(D.map(d => d.cat))].map(cat => `<button class="range-chip ${PAGE_STATE.employee.selectedCat === cat ? 'active' : ''}" data-portal-cat="${cat}">${escapeHtml(cat === 'all' ? 'All categories' : cat.replace('-', ' '))}</button>`).join('');
+    filters.querySelectorAll('[data-portal-cat]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        PAGE_STATE.employee.selectedCat = btn.dataset.portalCat;
+        renderPortalView();
+      });
+    });
+  }
+
+  const preview = workspace.querySelector('#portalPreview');
+  if (preview) {
+    preview.innerHTML = previewDrink ? `
+      <div class="preview-card ${previewDrink.soldOut ? 'sold-out' : ''}">
+        <div class="preview-top">
+          <div>
+            <div class="card-hdr">Selected Drink</div>
+            <div class="preview-name">${escapeHtml(previewDrink.n)}</div>
+            <div class="preview-sub">${escapeHtml(previewDrink.cat.replace('-', ' '))}</div>
+          </div>
+          <div class="preview-price">${formatMoney(previewDrink.p)}</div>
+        </div>
+        <div class="portal-preview-layout">
+          <div class="portal-preview-chart-wrap">
+            <div class="portal-preview-chart" id="portalPreviewChart"></div>
+          </div>
+          <div class="portal-preview-aside">
+            <div class="portal-preview-range">${buildPricePositionMarkup(previewDrink)}</div>
+            <div class="preview-grid">
+              <div><span>Base</span><strong>${formatMoney(previewDrink.b)}</strong></div>
+              <div><span>Floor</span><strong>${formatMoney(previewDrink.floor)}</strong></div>
+              <div><span>Ceiling</span><strong>${formatMoney(previewDrink.ceiling)}</strong></div>
+              <div><span>Status</span><strong>${previewDrink.soldOut ? 'Sold out' : 'Live'}</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    ` : '<div class="empty-state">No drinks match this search.</div>';
+    const previewChart = document.getElementById('portalPreviewChart');
+    if (previewDrink && previewChart) renderSpotlightTrendChart(previewChart, previewDrink);
+  }
+
+  const controls = workspace.querySelector('#portalControls');
+  if (controls) {
+    controls.innerHTML = Object.keys(groupedVisible).length ? Object.entries(groupedVisible).map(([cat, items]) => `
+      <section class="employee-category">
+        <div class="employee-category-head">
+          <div>
+            <div class="employee-category-name">${escapeHtml(cat.replace('-', ' '))}</div>
+            <div class="employee-category-sub">${items.length} drinks · ${items.filter(d => d.soldOut).length} sold out</div>
+          </div>
+          <div class="employee-category-actions">
+            <button data-cat-action="soldout" data-cat="${escapeHtml(cat)}">Mark sold out</button>
+            <button data-cat-action="reset" data-cat="${escapeHtml(cat)}">Reset category</button>
+          </div>
+        </div>
+        <div class="employee-drinks">${items.map(renderEmployeeDrinkRow).join('')}</div>
+      </section>
+    `).join('') : '<div class="empty-state">No drinks match this search.</div>';
+    bindPortalEmployeeControls(controls);
+  }
+
+  saveState.textContent = PAGE_STATE.employee.saveState === 'saved' ? 'Saved' : PAGE_STATE.employee.saveState === 'saving' ? 'Saving…' : 'Unsaved';
+  saveState.className = `save-pill ${PAGE_STATE.employee.saveState}`;
+
+  document.getElementById('portalOpenMarket').onclick = () => {
+    if (typeof initMode === 'function') initMode('base');
+    showToast('Market opened on the live board', 'success');
+  };
+  document.getElementById('portalCrashDrill').onclick = () => {
+    if (typeof initMode === 'function') initMode('crash');
+    showToast('Crash drill launched', 'warn');
+  };
+  document.getElementById('portalResetVenue').onclick = () => {
+    rebuildMarketState();
+    if (typeof initMode === 'function') initMode('base');
+    renderPortalView();
+    showToast('Venue reset to opening state', 'success');
+  };
+
+  const undo = workspace.querySelector('#portalUndo');
+  if (undo) {
+    undo.onclick = () => {
+      if (undoLastMarketChange()) {
+        queueSaveState('saved', 'Reverted last change');
+        renderPortalView();
+      }
+    };
+  }
+
+  const highlight = workspace.querySelector('#portalHighlight');
+  if (highlight) {
+    highlight.onclick = () => {
+      PAGE_STATE.employee.highlightChanges = !PAGE_STATE.employee.highlightChanges;
+      renderPortalView();
+    };
+    highlight.textContent = `Highlight changes: ${PAGE_STATE.employee.highlightChanges ? 'on' : 'off'}`;
+  }
+
+  const exportCsv = workspace.querySelector('#portalExportCsv');
+  if (exportCsv) exportCsv.onclick = () => downloadManagerExport('csv', records);
+  const exportJson = workspace.querySelector('#portalExportJson');
+  if (exportJson) exportJson.onclick = () => downloadManagerExport('json', records);
+}
+
 function renderManagerView() {
   const summary = document.getElementById('managerSummary');
   const sales = document.getElementById('managerSales');
@@ -654,25 +1666,26 @@ function renderManagerView() {
   });
 
   const categoryRows = getCategoryCardsData();
-  categories.innerHTML = categoryRows.map(row => {
-    const changeValues = row.changeSeries.map(value => +value.toFixed(1));
-    return `
-      <article class="category-card">
-        <div class="category-card-head">
-          <div>
-            <strong>${escapeHtml(row.cat.replace('-', ' '))}</strong>
-            <span>${row.items.length} drinks · ${row.totalOrders} orders</span>
-          </div>
-          <div class="category-card-stat">${formatMoney(row.avgPrice)}</div>
+  const managerMaxOrders = Math.max(1, ...categoryRows.map(row => row.totalOrders));
+  categories.innerHTML = categoryRows.map(row => `
+    <article class="category-card">
+      <div class="category-card-head">
+        <div>
+          <strong>${escapeHtml(row.cat.replace('-', ' '))}</strong>
+          <span>${row.items.length} drinks · ${row.totalOrders} orders</span>
         </div>
-        <div class="category-card-chart">${sparkline(changeValues.length ? changeValues : [0], row.totalOrders > 0 ? '#3dd68c' : '#c9aa52')}</div>
-        <div class="category-card-foot">
-          <span>${row.items.filter(d => d.soldOut).length} sold out</span>
-          <span>${row.items.filter(d => d.p >= d.ceiling * 0.98).length} near ceiling</span>
-        </div>
-      </article>
-    `;
-  }).join('');
+        <div class="category-card-stat">${formatMoney(row.avgPrice)}</div>
+      </div>
+      <div class="portal-category-metric">
+        <label>Order volume</label>
+        ${buildProgressMeter(row.totalOrders, managerMaxOrders, 'green')}
+      </div>
+      <div class="category-card-foot">
+        <span>${row.items.filter(d => d.soldOut).length} sold out</span>
+        <span>${row.items.filter(d => d.p >= d.ceiling * 0.98).length} near ceiling</span>
+      </div>
+    </article>
+  `).join('');
 
   alerts.innerHTML = getAttentionItems().map(item => `
     <article class="alert-card ${item.tone}">
@@ -686,6 +1699,7 @@ function renderManagerView() {
   const selected = rows.find(row => `${row.id}:${row.t}` === PAGE_STATE.manager.selectedId) || rows[0] || null;
   if (selected) PAGE_STATE.manager.selectedId = `${selected.id}:${selected.t}`;
   drawer.innerHTML = selected ? renderManagerDrawer(selected, allRecords) : 'Select a sales record to inspect its history.';
+  hydrateLineCharts(drawer);
 
   document.getElementById('managerExportCsv').onclick = () => downloadManagerExport('csv', rows);
   document.getElementById('managerExportJson').onclick = () => downloadManagerExport('json', rows);
@@ -813,7 +1827,7 @@ function renderEmployeeView() {
         </div>
         <div class="preview-price">${formatMoney(previewDrink.p)}</div>
       </div>
-      <div class="preview-chart">${sparkline(previewDrink.h, previewDrink.soldOut ? '#ff5252' : '#3dd68c', 220, 52)}</div>
+      <div class="portal-preview-range">${buildPricePositionMarkup(previewDrink)}</div>
       <div class="preview-grid">
         <div><span>Normal sale</span><strong>${formatMoney(previewDrink.b)}</strong></div>
         <div><span>Floor</span><strong>${formatMoney(previewDrink.floor)}</strong></div>
@@ -1069,7 +2083,10 @@ function downloadManagerExport(kind, rows) {
 
 function refreshAuxViews() {
   const view = getAppView();
+  if (view === 'site') renderSiteView();
   if (view === 'mobile') renderMobileView();
+  if (view === 'mobile-v2') renderMobileV2View();
+  if (view === 'portal') renderPortalView();
   if (view === 'manager') renderManagerView();
   if (view === 'employee') renderEmployeeView();
 }
@@ -1102,8 +2119,8 @@ function initAppPages() {
 
   document.addEventListener('keydown', (event) => {
     const viewNow = getAppView();
-    if (event.key === '/' && (viewNow === 'manager' || viewNow === 'employee')) {
-      const inputId = viewNow === 'manager' ? 'managerSearch' : 'employeeSearch';
+    if (event.key === '/' && (viewNow === 'manager' || viewNow === 'employee' || viewNow === 'portal')) {
+      const inputId = viewNow === 'manager' ? 'managerSearch' : viewNow === 'employee' ? 'employeeSearch' : 'portalDrinkSearch';
       const input = document.getElementById(inputId);
       if (input) {
         event.preventDefault();
@@ -1112,7 +2129,7 @@ function initAppPages() {
       }
     }
 
-    if (viewNow === 'employee' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) {
+    if ((viewNow === 'employee' || viewNow === 'portal') && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) {
       const visible = getVisibleEmployeeDrinks();
       if (!visible.length) return;
       const currentIndex = Math.max(0, visible.findIndex(d => d.id === PAGE_STATE.employee.selectedId));
@@ -1120,25 +2137,25 @@ function initAppPages() {
         event.preventDefault();
         const next = visible[Math.min(visible.length - 1, currentIndex + 1)];
         PAGE_STATE.employee.selectedId = next ? next.id : visible[0].id;
-        renderEmployeeView();
+        viewNow === 'portal' ? renderPortalView() : renderEmployeeView();
       }
       if (event.key === 'ArrowUp') {
         event.preventDefault();
         const prev = visible[Math.max(0, currentIndex - 1)];
         PAGE_STATE.employee.selectedId = prev ? prev.id : visible[0].id;
-        renderEmployeeView();
+        viewNow === 'portal' ? renderPortalView() : renderEmployeeView();
       }
       if (event.key === 'Escape') {
         PAGE_STATE.employee.search = '';
         PAGE_STATE.employee.selectedCat = 'all';
-        renderEmployeeView();
+        viewNow === 'portal' ? renderPortalView() : renderEmployeeView();
       }
     }
   });
 
   setInterval(() => {
     const viewNow = getAppView();
-    if (viewNow === 'mobile' || viewNow === 'manager') refreshAuxViews();
+    if (viewNow === 'mobile' || viewNow === 'mobile-v2' || viewNow === 'manager' || viewNow === 'portal') refreshAuxViews();
   }, 1500);
 }
 

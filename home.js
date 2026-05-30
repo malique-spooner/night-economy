@@ -7,6 +7,7 @@ function applyDecay() {
     d.p = clampPrice(d, d.p * 0.995);
     d.h.push(d.p);
     if (d.h.length > 12) d.h.shift();
+    pushDrinkTimelinePoint(d, 'tick');
     updateRowDisplay(d);
   });
   renderTicker();
@@ -68,7 +69,7 @@ function buildBoard(viewIdx) {
         row.innerHTML = `
           <div><div class="dname">${d.n}${soldBadge}</div><div class="dcat-sub">${d.cat.replace('-',' ')}</div></div>
           <div class="dprice ${up?'up':'dn'}" id="p${d.id}">£${d.p.toFixed(2)}</div>
-          <div class="spark-cell" id="sp${d.id}">${svgSpark(d.h,up,104,24)}</div>
+          <div class="spark-cell" id="sp${d.id}">${buildPricePositionMarkup(d)}</div>
           <div class="dpct ${up?'up':'dn'}" id="pct${d.id}">${up?'+':''}${pct}%</div>
           <div class="decay-wrap"><div class="decay-bar"><div class="decay-fill" style="width:${Math.min(100, d.o * 8.33)}%"></div></div><div class="darr ${up?'up':'dn'}" id="arr${d.id}">${up?'▲':'▼'}</div></div>
         `;
@@ -77,6 +78,7 @@ function buildBoard(viewIdx) {
       inner.appendChild(sec);
     });
 
+    hydrateLineCharts(inner);
     inner.style.opacity = '1';
   }, 350);
 }
@@ -199,7 +201,20 @@ function updateMiniSpotlight() {
   chgEl.className = 'mini-sp-chg ' + (isUp ? 'up' : 'dn');
 
   const chartEl = document.getElementById('mini-sp-chart');
-  if (chartEl) chartEl.innerHTML = svgSpark(drink.h, isUp, 260, 72);
+  if (chartEl) renderSpotlightTrendChart(chartEl, drink);
+  const chartMetaEl = document.getElementById('mini-sp-chart-meta');
+  if (chartMetaEl) {
+    const timeline = (drink.timeline && drink.timeline.length ? drink.timeline : buildSyntheticTimeline(drink)).slice(-43);
+    const prices = timeline.map(point => point.p);
+    const low = Math.min(...prices);
+    const high = Math.max(...prices);
+    const lastTrade = timeline[timeline.length - 1] || null;
+    chartMetaEl.innerHTML = `
+      <span>Low £${low.toFixed(2)}</span>
+      <span>High £${high.toFixed(2)}</span>
+      <span>${lastTrade ? `Last ${new Date(lastTrade.t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : 'Live'}</span>
+    `;
+  }
 
   const barPct = Math.min(100, Math.max(0, ((drink.p / drink.b) - 0.5) * 100));
   const fillEl = document.getElementById('mini-sp-vs-fill');
