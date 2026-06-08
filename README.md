@@ -3,8 +3,7 @@
 Night Economy is a static prototype for a live cocktail market product. It currently includes:
 
 - A TV market board for the room
-- A guest-facing mobile menu
-- A `mobile-v2` live market board for phones
+- A guest-facing mobile menu with cocktails, zeroes, beers, and food
 - A public landing `site`
 - A subscription-aware operator `portal`
 - A crash sequence and live market simulation
@@ -21,7 +20,7 @@ Then open one of these:
 
 ```text
 http://127.0.0.1:8081/?view=tv
-http://127.0.0.1:8081/?view=mobile-v2
+http://127.0.0.1:8081/?view=mobile
 http://127.0.0.1:8081/?view=site
 http://127.0.0.1:8081/?view=portal
 ```
@@ -44,7 +43,7 @@ To publish on GitHub Pages:
 - `data.js` - drink data and market constants
 - `shared.js` - shared market logic and rendering helpers
 - `home.js` - TV board and right-panel updates
-- `pages.js` - site, mobile, mobile-v2, portal, and legacy route handling
+- `pages.js` - site, mobile, portal, and legacy route handling
 - `crash.js` - crash event sequence
 
 ## Notes

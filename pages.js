@@ -9,13 +9,19 @@ const APP_VIEW_NAMES = {
   portal: 'Portal',
 };
 
+const APP_VIEW_ALIASES = {
+  manager: 'portal',
+  employee: 'portal',
+  'mobile-v2': 'mobile',
+};
+
 const PAGE_STATE = {
   site: {
     selectedPlan: 'growth',
     activeMoment: 'market',
   },
   mobile: {
-    selectedCat: 'all',
+    selectedCat: 'cocktails',
   },
   portal: {
     role: 'owner',
@@ -43,11 +49,66 @@ const PAGE_STATE = {
 const PAGE_STEP = 0.5;
 const SAFE_PRICE_MIN = 0.25;
 
+const MOBILE_MENU_SECTIONS = [
+  {
+    id: 'cocktails',
+    label: 'Cocktails',
+    note: 'House cocktails and signatures in one simple stream.',
+    items: () => [...D]
+      .filter(d => d.cat !== 'mocktail')
+      .sort((a, b) => b.o - a.o || a.p - b.p)
+      .map(d => ({
+        name: d.n,
+        price: formatMoney(d.p),
+        note: getMobileMenuNote(d),
+        tone: getMobileMenuTone(d),
+        delta: +(((d.p - d.b) / d.b) * 100).toFixed(1),
+      })),
+  },
+  {
+    id: 'zeroes',
+    label: 'Zeroes',
+    note: 'Alcohol-free drinks for easy ordering.',
+    items: () => D
+      .filter(d => d.cat === 'mocktail')
+      .sort((a, b) => a.p - b.p || a.n.localeCompare(b.n))
+      .map(d => ({
+        name: d.n,
+        price: formatMoney(d.p),
+        note: 'Zero alcohol',
+        tone: 'zero',
+        delta: 0,
+      })),
+  },
+  {
+    id: 'beers',
+    label: 'Beers',
+    note: 'Simple bottles and pints for the table.',
+    items: () => ([
+      { name: 'House Lager', price: '£6.80', note: 'Clean and cold', tone: 'beer', delta: 0.4 },
+      { name: 'Pale Ale', price: '£7.20', note: 'Bright and easy', tone: 'beer', delta: -0.3 },
+      { name: 'Session IPA', price: '£7.60', note: 'A little more bite', tone: 'beer', delta: 0.8 },
+      { name: 'Pilsner', price: '£6.90', note: 'Sharp and simple', tone: 'beer', delta: -0.2 },
+    ]),
+  },
+  {
+    id: 'food',
+    label: 'Food',
+    note: 'Small plates that keep the order moving.',
+    items: () => ([
+      { name: 'Salted Chips', price: '£5.50', note: 'Crackly and hot', tone: 'food', delta: 0.2 },
+      { name: 'Olives', price: '£4.80', note: 'Quick table starter', tone: 'food', delta: 0.0 },
+      { name: 'Loaded Fries', price: '£8.90', note: 'Best with a round', tone: 'food', delta: -0.4 },
+      { name: 'Croquettes', price: '£7.80', note: 'Small, rich, shareable', tone: 'food', delta: 0.1 },
+    ]),
+  },
+];
+
 function getAppView() {
   const params = new URLSearchParams(window.location.search);
   const requested = params.get('view');
-  if (requested === 'manager' || requested === 'employee') return 'portal';
-  return APP_VIEW_NAMES[requested] ? requested : 'tv';
+  const resolved = APP_VIEW_ALIASES[requested] || requested;
+  return APP_VIEW_NAMES[resolved] ? resolved : 'tv';
 }
 
 function escapeHtml(value) {
@@ -120,6 +181,28 @@ function savePortalProfile(profile) {
   }
 }
 
+function getMobileMenuTone(drink) {
+  if (!drink) return 'muted';
+  if (drink.p <= drink.b) return 'value';
+  if (drink.o > 2) return 'fast';
+  if (drink.cat === 'signature') return 'house';
+  if (drink.cat === 'mocktail') return 'zero';
+  return 'classic';
+}
+
+function getMobileMenuNote(drink) {
+  if (!drink) return '';
+  if (drink.cat === 'signature') return 'House signature';
+  if (drink.cat === 'spritz') return 'Bright and easy';
+  if (drink.cat === 'espresso') return 'Coffee-led classic';
+  if (drink.cat === 'old-fashioned') return 'A darker pour';
+  if (drink.cat === 'negroni') return 'Bitter and clean';
+  if (drink.cat === 'margarita') return 'Fast crowd-pleaser';
+  if (drink.cat === 'bloody-mary') return 'Bold and savoury';
+  if (drink.cat === 'mocktail') return 'Zero alcohol';
+  return 'Bar staple';
+}
+
 function injectPageShell() {
   if (document.getElementById('pageShell')) return;
 
@@ -153,12 +236,31 @@ function injectPageShell() {
         </section>
 
         <section id="site-why" class="site-section site-why">
-          <div class="site-section-split">
-            <div>
-              <div class="site-kicker">Why it wins</div>
-              <h2>Software the room can feel.</h2>
+          <div class="site-why-shell">
+            <div class="site-section-split site-why-grid">
+              <div class="site-why-copy">
+                <div class="site-kicker">Why it wins</div>
+                <h2>Software the room can feel.</h2>
+                <p>Night Economy works because it feels immediate, not technical. Guests read the movement at a glance, staff know where to steer attention, and operators keep control without turning service into a system demo.</p>
+              </div>
+              <div class="site-why-panel" aria-label="Why Night Economy works">
+                <article class="site-why-card site-why-card-primary">
+                  <span>01</span>
+                  <strong>Instantly legible</strong>
+                  <p>Big type, clear movement, and one live signal make the room easy to understand from across the bar.</p>
+                </article>
+                <article class="site-why-card">
+                  <span>02</span>
+                  <strong>Calm under pressure</strong>
+                  <p>The experience feels editorial and premium, so the room gets energy without noise or friction.</p>
+                </article>
+                <article class="site-why-card">
+                  <span>03</span>
+                  <strong>Guides demand, not just price</strong>
+                  <p>Operators can shape what people notice next, which is the real lever behind higher-quality orders.</p>
+                </article>
+              </div>
             </div>
-            <p>Night Economy works because it is instantly legible. Guests understand what is moving, staff know where to guide demand, and operators stay in control without slowing service down.</p>
           </div>
         </section>
 
@@ -293,18 +395,13 @@ function injectPageShell() {
     </section>
 
     <section id="mobileView" class="alt-view mobile-view">
-      <div class="mobile-header">
-        <span class="mobile-brand">Night Economy</span>
+      <div class="mobile-shell">
+        <section class="mobile-hero">
+          <div class="brand mobile-hero-title">Night Economy</div>
+        </section>
+        <nav class="mobile-rail" id="mobileMenuRail" aria-label="Menu categories"></nav>
+        <main class="mobile-menu" id="mobileMenuSections"></main>
       </div>
-      <div class="mobile-featured-head">
-        <div>
-          <div class="card-hdr">Featured</div>
-          <p class="mobile-featured-sub">Three quick picks to help people choose faster.</p>
-        </div>
-      </div>
-      <div class="featured-grid" id="mobileFeatured"></div>
-      <div class="mobile-filters" id="mobileFilters"></div>
-      <div class="menu-grid" id="mobileCatalog"></div>
     </section>
 
     <section id="portalView" class="alt-view portal-view">
@@ -361,6 +458,17 @@ function setActiveAppView(view) {
   document.querySelectorAll('.alt-view').forEach(panel => {
     panel.classList.toggle('active', panel.id === `${view}View`);
   });
+
+  if (view === 'site') {
+    const sitePanel = document.getElementById('siteView');
+    if (sitePanel) {
+      sitePanel.scrollTop = 0;
+      requestAnimationFrame(() => {
+        sitePanel.scrollTop = 0;
+      });
+    }
+    window.scrollTo?.(0, 0);
+  }
 
   document.title = `Night Economy — ${APP_VIEW_NAMES[view] || 'TV View'}`;
 }
@@ -621,13 +729,110 @@ function getVisibleEmployeeDrinks() {
   });
 }
 
-function getMobileTagline(drink) {
-  if (!drink) return '';
-  if (drink.cat === 'signature') return 'House signature';
-  if (drink.cat === 'mocktail') return 'Zero alcohol';
-  if (drink.o > 2) return 'Popular now';
-  if (drink.p <= drink.b) return 'Good value';
-  return 'Fresh serve';
+function renderBoardInto(viewIdx, config = {}) {
+  if (viewIdx !== undefined) currentBoardView = viewIdx;
+  const view = BOARD_VIEWS[currentBoardView];
+  const inner = document.getElementById(config.innerId || 'boardInner');
+  const featured = document.getElementById(config.featuredId || 'boardFeatured');
+  const labelEl = document.getElementById(config.labelId || 'boardViewLabel');
+  const updatedEl = document.getElementById(config.updatedId || 'lupdt');
+  const dots = config.dotSelector ? document.querySelectorAll(config.dotSelector) : document.querySelectorAll('.bdot');
+
+  if (!inner) return;
+
+  if (labelEl) labelEl.textContent = view.label;
+  if (updatedEl) {
+    const now = new Date();
+    updatedEl.textContent = `Updated ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  }
+
+  dots.forEach((dot, idx) => {
+    if (idx === currentBoardView) dot.classList.add('active');
+    else dot.classList.remove('active');
+  });
+
+  inner.style.transition = 'opacity 0.35s';
+  inner.style.opacity = '0';
+  if (featured) featured.style.opacity = '0';
+
+  setTimeout(() => {
+    inner.innerHTML = '';
+    const drinks = D.filter(d => view.ids.includes(d.id));
+    const featuredDrinks = [...drinks]
+      .filter(d => !d.soldOut)
+      .sort((a, b) => b.o - a.o || Math.abs((b.p - b.b) / b.b) - Math.abs((a.p - a.b) / a.b))
+      .slice(0, 3);
+    const cats = [...new Set(drinks.map(d => d.cat))];
+
+    if (featured) {
+      featured.innerHTML = featuredDrinks.map((d, idx) => {
+        const pct = ((d.p - d.b) / d.b * 100);
+        const up = d.p >= d.b;
+        return `
+          <article class="feature-tile ${d.soldOut ? 'sold-out' : ''}">
+            <div class="feature-tile-top">
+              <span class="feature-rank">0${idx + 1}</span>
+              <span class="feature-cat">${d.cat.replace('-', ' ')}</span>
+            </div>
+            <strong class="feature-name">${d.n}</strong>
+            <div class="feature-bottom">
+              <div class="feature-price ${up ? 'up' : 'dn'}">£${d.p.toFixed(2)}</div>
+              <div class="feature-change ${up ? 'up' : 'dn'}">${up ? '+' : ''}${pct.toFixed(1)}%</div>
+            </div>
+            ${buildPricePositionMarkup(d)}
+          </article>
+        `;
+      }).join('');
+      featured.style.opacity = '1';
+    }
+
+    cats.forEach(cat => {
+      const items = drinks.filter(d => d.cat === cat);
+      if (!items.length) return;
+      const sec = document.createElement('div');
+      sec.className = 'cat-section';
+
+      const catChg = (items.reduce((s, d) => s + ((d.p - d.b) / d.b * 100), 0) / items.length).toFixed(1);
+      const hdr = document.createElement('div');
+      hdr.className = 'cat-header';
+      hdr.innerHTML = `<span class="cat-name ${cat}">◆ ${cat.replace('-', ' ')}</span><span class="cat-meta">${catChg > 0 ? '+' : ''}${catChg}%</span>`;
+      sec.appendChild(hdr);
+
+      items.forEach(d => {
+        const row = document.createElement('div');
+        row.className = `drow ${d.o > 0 ? 'fresh' : 'decaying'} ${d.soldOut ? 'sold-out' : ''}`;
+        row.id = `mobile-r${d.id}`;
+        const pct = ((d.p - d.b) / d.b * 100).toFixed(1);
+        const up = d.p >= d.b;
+        const soldBadge = d.soldOut ? '<span class="val-badge">SOLD OUT</span>' : '';
+        row.innerHTML = `
+          <div><div class="dname">${d.n}${soldBadge}</div><div class="dcat-sub">${d.cat.replace('-',' ')}</div></div>
+          <div class="dprice ${up?'up':'dn'}" id="mobile-p${d.id}">£${d.p.toFixed(2)}</div>
+          <div class="spark-cell" id="mobile-sp${d.id}">${buildPricePositionMarkup(d)}</div>
+          <div class="dpct ${up?'up':'dn'}" id="mobile-pct${d.id}">${up?'+':''}${pct}%</div>
+          <div class="decay-wrap"><div class="decay-bar"><div class="decay-fill" style="width:${Math.min(100, d.o * 8.33)}%"></div></div><div class="darr ${up?'up':'dn'}" id="mobile-arr${d.id}">${up?'▲':'▼'}</div></div>
+        `;
+        sec.appendChild(row);
+      });
+      inner.appendChild(sec);
+    });
+
+    hydrateLineCharts(inner);
+    inner.style.opacity = '1';
+  }, 350);
+}
+
+function renderMobileMenuCards(items) {
+  return items.map(item => `
+    <article class="mobile-menu-card ${item.delta >= 0 ? 'up' : 'dn'}">
+      <div class="mobile-menu-card-top">
+        <strong>${escapeHtml(item.name)}</strong>
+        <span>${escapeHtml(item.price)}</span>
+      </div>
+      <div class="mobile-menu-card-trend ${item.delta >= 0 ? 'up' : 'dn'}">${item.delta >= 0 ? '▲' : '▼'} ${Math.abs(item.delta).toFixed(1)}%</div>
+      <div class="mobile-menu-card-note">${escapeHtml(item.note)}</div>
+    </article>
+  `).join('');
 }
 
 function renderManagerHistory() {
@@ -653,100 +858,59 @@ function renderManagerHistory() {
 }
 
 function renderMobileView() {
-  const filters = document.getElementById('mobileFilters');
-  const featured = document.getElementById('mobileFeatured');
-  const catalog = document.getElementById('mobileCatalog');
-  if (!filters || !featured || !catalog) return;
+  const rail = document.getElementById('mobileMenuRail');
+  const sections = document.getElementById('mobileMenuSections');
+  if (!rail || !sections) return;
 
-  const cats = ['all', ...new Set(D.map(d => d.cat))];
-  filters.innerHTML = cats.map(cat => `<button class="chip ${cat === PAGE_STATE.mobile.selectedCat ? 'active' : ''}" data-filter="${cat}">${cat === 'all' ? 'All drinks' : escapeHtml(cat.replace('-', ' '))}</button>`).join('');
-  const filterButtons = filters.querySelectorAll('.chip');
+  const activeSection = MOBILE_MENU_SECTIONS.some(section => section.id === PAGE_STATE.mobile.selectedCat)
+    ? PAGE_STATE.mobile.selectedCat
+    : MOBILE_MENU_SECTIONS[0].id;
+  PAGE_STATE.mobile.selectedCat = activeSection;
 
-  const renderCards = (filter = 'all') => {
-    PAGE_STATE.mobile.selectedCat = filter;
-    filterButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === filter));
-    const visible = D.filter(d => filter === 'all' || d.cat === filter);
-    const byPrice = [...visible].filter(d => !d.soldOut).sort((a, b) => a.p - b.p);
-    const byMove = [...visible].sort((a, b) => Math.abs((b.p - b.b) / b.b) - Math.abs((a.p - a.b) / a.b));
-    const byVolume = [...visible].sort((a, b) => b.o - a.o);
-    const featuredPool = [];
-    const pushUnique = (drink, label, tone = '') => {
-      if (!drink || featuredPool.some(item => item.id === drink.id)) return;
-      featuredPool.push({ ...drink, featureLabel: label, featureTone: tone });
-    };
-    pushUnique(byPrice[0], 'Lowest price now', 'price');
-    pushUnique(byMove[0], 'Biggest mover', 'move');
-    pushUnique(byVolume[0], 'Best seller', 'seller');
-    featured.innerHTML = featuredPool.length ? featuredPool.map((d, index) => {
-      const artClass = [
-        'featured-card',
-        `featured-${d.cat}`,
-        d.soldOut ? 'sold-out' : '',
-        index === 0 ? 'hero' : '',
-        d.featureTone,
-      ].filter(Boolean).join(' ');
-      return `
-        <article class="${artClass}" data-featured-id="${escapeHtml(d.id)}">
-          <div class="featured-top">
-            <div class="featured-copy">
-              <span class="featured-kicker">${escapeHtml(d.featureLabel)}</span>
-              <h3>${escapeHtml(d.n)}</h3>
-            </div>
-            <div class="featured-price">${formatMoney(d.p)}</div>
-          </div>
-          <div class="featured-meta">
-            <span>${escapeHtml(d.cat.replace('-', ' '))}</span>
-            ${d.cat === 'signature' ? '<span class="featured-badge">Signature</span>' : ''}
-            ${d.o > 2 ? '<span class="featured-badge warm">Popular</span>' : ''}
-            <span class="featured-badge muted">${escapeHtml(getMobileTagline(d))}</span>
-            <span class="status ${d.soldOut ? 'off' : 'on'}">${d.soldOut ? 'Sold out' : 'Available'}</span>
-          </div>
-        </article>
-      `;
-    }).join('') : '<div class="empty-state menu-empty">No drinks match this search.</div>';
+  rail.innerHTML = MOBILE_MENU_SECTIONS.map(section => `
+    <button class="mobile-rail-chip ${section.id === activeSection ? 'active' : ''}" data-mobile-section="${section.id}" type="button">
+      ${escapeHtml(section.label)}
+    </button>
+  `).join('');
 
-    const grouped = groupBy(visible, d => d.cat);
-    const orderedSections = Object.values(grouped);
-    catalog.innerHTML = orderedSections.length ? orderedSections.map(items => {
-      const cat = items[0].cat;
-      return `
-        <div class="menu-section">
-          <div class="menu-section-hdr">
-            <span>${escapeHtml(cat.replace('-', ' '))}</span>
-            <span>${items.length} drinks</span>
+  sections.innerHTML = MOBILE_MENU_SECTIONS.map(section => {
+    const items = section.items();
+    return `
+      <section class="mobile-menu-section" id="mobile-section-${escapeHtml(section.id)}">
+        <div class="mobile-menu-section-head">
+          <div>
+            <h2>${escapeHtml(section.label)}</h2>
+            <p>${escapeHtml(section.note)}</p>
           </div>
-          <div class="menu-cards">
-            ${items.map(d => {
-              return `
-                <article class="menu-card ${d.soldOut ? 'sold-out' : ''}">
-                  <div class="menu-card-top">
-                    <div>
-                      <h3>${escapeHtml(d.n)}</h3>
-                      <p>${escapeHtml(CULTURAL_BLURBS[d.id] || 'A current menu staple.')}</p>
-                    </div>
-                    <div class="menu-price">${formatMoney(d.p)}</div>
-                  </div>
-                  <div class="menu-chip-row">
-                    <span class="menu-chip">${escapeHtml(d.cat.replace('-', ' '))}</span>
-                    <span class="menu-chip muted">${escapeHtml(getMobileTagline(d))}</span>
-                  </div>
-                  <div class="menu-body">
-                    <span class="status ${d.soldOut ? 'off' : 'on'}">${d.soldOut ? 'Sold out' : 'Available'}</span>
-                  </div>
-                </article>
-              `;
-            }).join('')}
-          </div>
+          <span>${items.length} items</span>
         </div>
-      `;
-    }).join('') : '<div class="empty-state menu-empty">No drinks match this filter.</div>';
+        <div class="mobile-menu-grid">
+          ${renderMobileMenuCards(items)}
+        </div>
+      </section>
+    `;
+  }).join('');
 
-  };
-
-  filters.querySelectorAll('.chip').forEach(btn => {
-    btn.addEventListener('click', () => renderCards(btn.dataset.filter));
+  rail.querySelectorAll('[data-mobile-section]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sectionId = btn.dataset.mobileSection;
+      const target = document.getElementById(`mobile-section-${sectionId}`);
+      PAGE_STATE.mobile.selectedCat = sectionId;
+      rail.querySelectorAll('.mobile-rail-chip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.mobileSection === sectionId);
+      });
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   });
-  renderCards(PAGE_STATE.mobile.selectedCat);
+
+  const mobileView = document.getElementById('mobileView');
+  if (mobileView) {
+    mobileView.scrollTop = 0;
+    requestAnimationFrame(() => {
+      mobileView.scrollTop = 0;
+    });
+  }
+  window.scrollTo?.(0, 0);
 }
 
 const SITE_MOMENTS = {
@@ -2096,6 +2260,10 @@ function initAppPages() {
     refreshAuxViews();
   });
 
+  window.addEventListener('focus', () => {
+    if (getAppView() === 'mobile') renderMobileView();
+  });
+
   window.refreshAuxViews = refreshAuxViews;
 
   document.addEventListener('keydown', (event) => {
@@ -2136,7 +2304,7 @@ function initAppPages() {
 
   setInterval(() => {
     const viewNow = getAppView();
-    if (viewNow === 'mobile' || viewNow === 'portal') refreshAuxViews();
+    if (viewNow === 'portal') refreshAuxViews();
   }, 1500);
 }
 
