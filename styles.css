@@ -2284,12 +2284,6 @@ body[data-app-view='site'] .site-view{
 .site-testimonial-card.tone-green p,.site-testimonial-card.tone-green span,.site-testimonial-card.tone-green .quote-mark{color:rgba(245,240,229,0.96)}
 .site-testimonial-card.tone-dark{background:#16201c;color:#f5f0e5}
 .site-testimonial-card.tone-dark p,.site-testimonial-card.tone-dark span,.site-testimonial-card.tone-dark .quote-mark{color:rgba(245,240,229,0.96)}
-.site-testimonial-ticker{width:100vw;margin:0 calc(50% - 50vw);overflow:hidden;border-top:1px solid rgba(16,24,20,0.14);border-bottom:1px solid rgba(16,24,20,0.14);background:rgba(16,24,20,0.92);color:#f5f0e6}
-.site-testimonial-ticker-track{display:inline-flex;align-items:center;gap:22px;white-space:nowrap;padding:12px 0;animation:siteTickerLoop 34s linear infinite}
-.site-testimonial-ticker span,.site-testimonial-ticker strong{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase}
-.site-testimonial-ticker span{color:rgba(245,240,230,0.62)}
-.site-testimonial-ticker strong{color:#b7ff83;font-weight:800}
-@keyframes siteTickerLoop{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .site-subscribe{display:grid;grid-template-columns:0.9fr 1.1fr;gap:28px;align-items:start}
 .site-signup-panel{display:grid;gap:18px;padding:20px;border-radius:34px;border:1px solid rgba(16,24,20,0.08);background:linear-gradient(180deg,#fffdf8 0%,#f4efe6 100%);box-shadow:0 24px 54px rgba(16,24,20,0.08)}
 .site-pricing-minimal{display:grid;gap:10px}

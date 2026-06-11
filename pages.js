@@ -591,22 +591,6 @@ function injectPageShell() {
               `).join('')}
             </div>
           </div>
-          <div class="site-testimonial-ticker" aria-hidden="true">
-            <div class="site-testimonial-ticker-track">
-              <span>Live venue signal</span>
-              <strong>Guests checking the board between rounds</strong>
-              <span>Demand guided without staff prompts</span>
-              <strong>Crash moments remembered after close</strong>
-              <span>Operator controls stay calm under pressure</span>
-              <strong>Premium energy without noise</strong>
-              <span>Live venue signal</span>
-              <strong>Guests checking the board between rounds</strong>
-              <span>Demand guided without staff prompts</span>
-              <strong>Crash moments remembered after close</strong>
-              <span>Operator controls stay calm under pressure</span>
-              <strong>Premium energy without noise</strong>
-            </div>
-          </div>
         </section>
 
         <section id="site-subscribe" class="site-section site-subscribe">
