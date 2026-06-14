@@ -102,25 +102,51 @@ function saveMarketHistory() {
 }
 
 function rebuildMarketState() {
-  D = DRINKS.map(d => {
-    const s = MARKET_SETTINGS.drinks[d.id] || {};
-    const catS = MARKET_SETTINGS.categories[d.cat] || {};
-    const salePrice = typeof s.salePrice === 'number' ? s.salePrice : d.b;
-    return {
-      ...d,
-      n: s.name || d.n,
-      cat: s.cat || d.cat,
-      basePrice: d.b,
-      b: salePrice,
-      p: salePrice,
-      h: Array.from({ length: d.h.length }, () => salePrice),
-      o: 0,
-      floor: typeof s.floor === 'number' ? s.floor : +(salePrice * 0.65).toFixed(2),
-      ceiling: typeof s.ceiling === 'number' ? s.ceiling : +(salePrice * 1.65).toFixed(2),
-      soldOut: !!s.soldOut || !!catS.soldOut,
-      timeline: [],
-    };
-  });
+  const defaultIds = new Set(DRINKS.map(d => d.id));
+  const defaultDrinks = DRINKS
+    .filter(d => !(MARKET_SETTINGS.drinks[d.id] && MARKET_SETTINGS.drinks[d.id].hidden))
+    .map(d => {
+      const s = MARKET_SETTINGS.drinks[d.id] || {};
+      const catS = MARKET_SETTINGS.categories[d.cat] || {};
+      const salePrice = typeof s.salePrice === 'number' ? s.salePrice : d.b;
+      return {
+        ...d,
+        n: s.name || d.n,
+        cat: s.cat || d.cat,
+        basePrice: d.b,
+        b: salePrice,
+        p: salePrice,
+        h: Array.from({ length: d.h.length }, () => salePrice),
+        o: 0,
+        floor: typeof s.floor === 'number' ? s.floor : +(salePrice * 0.65).toFixed(2),
+        ceiling: typeof s.ceiling === 'number' ? s.ceiling : +(salePrice * 1.65).toFixed(2),
+        soldOut: !!s.soldOut || !!catS.soldOut,
+        timeline: [],
+      };
+    });
+  const customDrinks = Object.entries(MARKET_SETTINGS.drinks || {})
+    .filter(([id, s]) => !defaultIds.has(id) && !s.hidden)
+    .map(([id, s]) => {
+      const salePrice = typeof s.salePrice === 'number' ? s.salePrice : 10;
+      const cat = s.cat || 'signature';
+      const catS = MARKET_SETTINGS.categories[cat] || {};
+      return {
+        id,
+        n: s.name || 'New drink',
+        cat,
+        b: salePrice,
+        p: salePrice,
+        h: h(salePrice),
+        o: 0,
+        basePrice: salePrice,
+        floor: typeof s.floor === 'number' ? s.floor : +(salePrice * 0.65).toFixed(2),
+        ceiling: typeof s.ceiling === 'number' ? s.ceiling : +(salePrice * 1.65).toFixed(2),
+        soldOut: !!s.soldOut || !!catS.soldOut,
+        timeline: [],
+        custom: true,
+      };
+    });
+  D = [...defaultDrinks, ...customDrinks];
   D.forEach(drink => {
     drink.timeline = buildSyntheticTimeline(drink);
   });

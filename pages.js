@@ -433,7 +433,7 @@ function injectPageShell() {
           <div class="site-hero-inner">
             <div class="site-kicker">Night Economy</div>
             <h1>Turn your menu into a live market.</h1>
-            <p>Night Economy brings live pricing, momentum, and market moments to the room, giving guests a reason to look up, order faster, and come back for what happens next.</p>
+            <p>Live pricing for bars and venues: a room display, guest menu, and operator portal that move together.</p>
             <div class="site-hero-stats" aria-label="Live market stats">
               <span>Live index +12.4%</span>
               <span>Volume 1,840 orders</span>
@@ -449,22 +449,22 @@ function injectPageShell() {
               <div class="site-why-copy">
                 <div class="site-kicker">Why it wins</div>
                 <h2>Software the room can feel.</h2>
-                <p>Night Economy works because it feels immediate, not technical. Guests read the movement at a glance, staff know where to steer attention, and operators keep control without turning service into a system demo.</p>
+                <p>Guests see momentum. Staff see where to steer demand. Operators keep the market playful, profitable, and under control.</p>
                 <div class="site-why-panel" aria-label="Why Night Economy works">
                   <article class="site-why-card site-why-card-primary">
                     <span>01</span>
                     <strong>Instantly legible</strong>
-                    <p>Big type, clear movement, and one live signal make the room easy to understand from across the bar.</p>
+                    <p>Big prices and clear movement make the board readable from across the bar.</p>
                   </article>
                   <article class="site-why-card">
                     <span>02</span>
                     <strong>Calm under pressure</strong>
-                    <p>The experience feels editorial and premium, so the room gets energy without noise or friction.</p>
+                    <p>Guardrails keep the game lively without letting prices run away.</p>
                   </article>
                   <article class="site-why-card">
                     <span>03</span>
                     <strong>Guides demand, not just price</strong>
-                    <p>Operators can shape what people notice next, which is the real lever behind higher-quality orders.</p>
+                    <p>Spotlights and events help move guests toward the right drinks at the right time.</p>
                   </article>
                 </div>
               </div>
@@ -482,7 +482,7 @@ function injectPageShell() {
                     <div class="site-display-rows">
                       <i></i><i></i><i></i><i></i>
                     </div>
-                    <div class="site-display-note" data-why-stage-sub>Big type, clear movement, and one live signal make the room easy to understand from across the bar.</div>
+                    <div class="site-display-note" data-why-stage-sub>Big prices and clear movement make the board readable from across the bar.</div>
                   </div>
                 </div>
               </div>
@@ -493,23 +493,23 @@ function injectPageShell() {
         <section id="site-what" class="site-section">
           <div class="site-section-intro">
             <div class="site-kicker">The payoff</div>
-            <h2>Three numbers the room can feel.</h2>
+            <h2>More attention, cleaner control.</h2>
           </div>
           <div class="site-metric-grid">
             <article class="site-metric-card tone-room">
               <span data-count-to="3">0</span>
-              <strong>Connected product surfaces</strong>
-              <p>Room display, guest mobile, and operator portal all work together as one system.</p>
+              <strong>Connected surfaces</strong>
+              <p>The board, menu, and portal share one live market state.</p>
             </article>
             <article class="site-metric-card tone-guest">
               <span data-count-to="1840" data-count-suffix="+">0</span>
-              <strong>Shared live market model</strong>
-              <p>Orders can flow through a single live state, so every screen feels consistent at every touchpoint.</p>
+              <strong>Orders shaped by demand</strong>
+              <p>Guests react to movement, not a static list.</p>
             </article>
             <article class="site-metric-card tone-ops">
               <span data-count-to="12" data-count-prefix="+" data-count-suffix="%">0</span>
-              <strong>Moments that keep attention alive</strong>
-              <p>Movement, spotlight moments, and crash events give guests fresh reasons to look up and re-engage.</p>
+              <strong>Market lift without chaos</strong>
+              <p>Pricing rules and event controls keep the floor safe.</p>
             </article>
           </div>
         </section>
@@ -518,33 +518,29 @@ function injectPageShell() {
           <div class="site-section-intro">
             <div class="site-kicker">Product flow</div>
             <h2>Drag through the venue stack.</h2>
-            <p>Each surface has a job: make the room readable, keep the guest menu alive, and give operators calm control behind the bar.</p>
+            <p>Shuffle through the live room display, guest menu, operator portal, and market event view.</p>
           </div>
           <div class="site-deck-track" data-drag-scroll aria-label="Venue stack carousel">
+            <div class="site-deck-drag-cue" aria-hidden="true">
+              <span>↔</span>
+              <strong>Drag</strong>
+            </div>
             <article class="site-deck-slide tone-display">
-              <span>(01) Room display</span>
-              <strong>Live pricing the whole room can read.</strong>
               <div class="site-deck-screen site-deck-preview">
                 <iframe src="./?view=tv" title="Night Economy TV view preview" loading="lazy"></iframe>
               </div>
             </article>
             <article class="site-deck-slide tone-mobile">
-              <span>(02) Guest mobile</span>
-              <strong>A menu that mirrors the moment.</strong>
               <div class="site-deck-screen site-deck-preview phone">
                 <iframe src="./?view=mobile" title="Night Economy mobile view preview" loading="lazy"></iframe>
               </div>
             </article>
             <article class="site-deck-slide tone-portal">
-              <span>(03) Operator portal</span>
-              <strong>Control demand without slowing service.</strong>
               <div class="site-deck-screen site-deck-preview">
                 <iframe src="./?view=portal" title="Night Economy portal preview" loading="lazy"></iframe>
               </div>
             </article>
             <article class="site-deck-slide tone-event">
-              <span>(04) Crash moment</span>
-              <strong>High-attention events that create ritual.</strong>
               <div class="site-deck-screen site-deck-preview">
                 <iframe src="./?view=tv&mode=crash" title="Night Economy crash preview" loading="lazy"></iframe>
               </div>
@@ -561,31 +557,31 @@ function injectPageShell() {
             <div class="site-testimonial-track">
               ${[0, 1].map(() => `
                 <article class="site-testimonial-card tone-cream">
-                  <p>It stops feeling like a menu and starts feeling like a live part of the venue. Guests begin talking about what is moving before the team even prompts them.</p>
+                  <p>The menu became something guests actually watched.</p>
                   <span>Venue founder, premium cocktail concept</span>
                 </article>
                 <article class="site-testimonial-card tone-white">
-                  <p>The crash mechanic is what guests remember, but the control layer is what makes the product operationally usable.</p>
+                  <p>The crash moment is memorable. The controls make it usable.</p>
                   <span>Operator, launch partner</span>
                 </article>
                 <article class="site-testimonial-card tone-green">
-                  <p>Spotlight and live value give us a natural way to guide demand without making the room feel scripted.</p>
+                  <p>Spotlights helped us guide demand without scripting the floor.</p>
                   <span>Bar manager, hotel group</span>
                 </article>
                 <article class="site-testimonial-card tone-dark">
-                  <p>It gives the room its own ritual. Guests begin following the market instead of just reading a list and moving on.</p>
+                  <p>Guests started following the market between rounds.</p>
                   <span>Creative director, launch venue</span>
                 </article>
                 <article class="site-testimonial-card tone-cream">
-                  <p>The best part is how quickly the team understood it. The screen gives them a shared language for the floor.</p>
+                  <p>The team understood it in one service.</p>
                   <span>General manager, late-night venue</span>
                 </article>
                 <article class="site-testimonial-card tone-white">
-                  <p>It makes premium ordering feel playful without cheapening the venue. That balance is hard to get right.</p>
+                  <p>Premium ordering finally felt playful, not gimmicky.</p>
                   <span>Hospitality consultant</span>
                 </article>
                 <article class="site-testimonial-card tone-green">
-                  <p>Guests kept checking the board between rounds. It created a rhythm we normally have to manufacture with staff prompts.</p>
+                  <p>It created a rhythm we usually need staff to manufacture.</p>
                   <span>Events lead, members club</span>
                 </article>
               `).join('')}
@@ -597,7 +593,7 @@ function injectPageShell() {
           <div class="site-subscribe-copy">
             <div class="site-kicker">Get started</div>
             <h2>Start your first venue.</h2>
-            <p>Choose the right plan, create the venue, and open your operator portal. From there, your live market is ready to configure and run.</p>
+            <p>Pick a plan, create the venue, and open the operator portal.</p>
           </div>
           <div class="site-signup-panel">
             <div class="site-pricing-minimal" id="sitePricing"></div>
@@ -630,7 +626,7 @@ function injectPageShell() {
         <footer class="site-footer">
           <div class="site-footer-brand">
             <div class="site-kicker">Night Economy</div>
-            <h2>Build the venue people watch.</h2>
+            <h2>Make the room worth watching.</h2>
           </div>
           <div class="site-footer-cols">
             <div>
@@ -672,25 +668,18 @@ function injectPageShell() {
           <aside class="portal-sidebar">
             <div class="portal-sidebar-brand">
               <div class="portal-sidebar-kicker">Night Economy</div>
-              <strong>Operator Portal</strong>
+              <strong>Market Control</strong>
             </div>
             <div class="portal-plan-card" id="portalPlanCard"></div>
-            <div class="portal-role-switch" id="portalRoleSwitch"></div>
-            <div class="portal-tabs portal-sidebar-tabs" id="portalTabs"></div>
-            <div class="portal-launch-actions portal-sidebar-actions">
-              <button class="manager-action" id="portalOpenMarket">Open Market</button>
-              <button class="manager-action" id="portalCrashDrill">Crash Drill</button>
-              <button class="manager-action" id="portalResetVenue">Reset Venue</button>
-            </div>
             <div class="portal-sidebar-meta" id="portalSidebarMeta"></div>
           </aside>
 
           <main class="portal-main">
             <section class="portal-header">
               <div>
-                <div class="portal-header-kicker">Venue command center</div>
-                <h1>Run the floor, the pricing, and the launch.</h1>
-                <p id="portalHeaderSub" class="portal-header-sub">A single workspace for live operations, pricing decisions, and venue setup.</p>
+                <div class="portal-header-kicker">Single operator login</div>
+                <h1>Set the market. Keep service moving.</h1>
+                <p id="portalHeaderSub" class="portal-header-sub">Add drinks, pause items, and set price rails for the live board and guest menu.</p>
               </div>
               <div class="portal-inline-actions">
                 <input id="portalDrinkSearch" class="manager-search portal-search" type="search" placeholder="Search drinks">
@@ -1102,6 +1091,81 @@ function renderMobileMenuCards(items) {
   `).join('');
 }
 
+function getMobileSectionStats(items) {
+  const count = Math.max(1, items.length);
+  const avgDelta = items.reduce((sum, item) => sum + Number(item.delta || 0), 0) / count;
+  const leader = [...items].sort((a, b) => Math.abs(Number(b.delta || 0)) - Math.abs(Number(a.delta || 0)))[0];
+  return {
+    avgDelta,
+    leader,
+    tone: avgDelta >= 0 ? 'up' : 'dn',
+  };
+}
+
+function getMobileRowPosition(item) {
+  const drink = D.find(d => d.n === item.name);
+  if (drink) {
+    const span = Math.max(0.01, drink.ceiling - drink.floor);
+    return clamp01((drink.p - drink.floor) / span) * 100;
+  }
+  return clamp01(0.5 + Number(item.delta || 0) / 18) * 100;
+}
+
+function getMobileTickerSymbol(name) {
+  return String(name || '')
+    .replace(/[^a-zA-Z0-9 ]/g, '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 3)
+    .map(part => part[0])
+    .join('')
+    .slice(0, 4)
+    .toUpperCase() || 'NE';
+}
+
+function getMobileDrinkAccent(item, index = 0) {
+  const tone = String(item?.tone || '').toLowerCase();
+  const name = String(item?.name || '').toLowerCase();
+  if (tone.includes('zero')) return { mark: '0%', hook: 'No alcohol', accent: 'mint' };
+  if (tone.includes('beer') || name.includes('lager') || name.includes('ale') || name.includes('pilsner')) return { mark: 'Pint', hook: 'Cold pour', accent: 'gold' };
+  if (tone.includes('food') || name.includes('fries') || name.includes('chips')) return { mark: 'Bite', hook: 'Table snack', accent: 'amber' };
+  if (name.includes('negroni') || name.includes('campari')) return { mark: 'Bitter', hook: 'Sharp finish', accent: 'ruby' };
+  if (name.includes('spritz') || name.includes('hugo')) return { mark: 'Fizz', hook: 'Light & bright', accent: 'citrus' };
+  if (name.includes('margarita')) return { mark: 'Salt', hook: 'Crowd mover', accent: 'lime' };
+  if (name.includes('espresso')) return { mark: 'Crema', hook: 'Late-night lift', accent: 'coffee' };
+  if (name.includes('bloody')) return { mark: 'Spice', hook: 'Savoury hit', accent: 'tomato' };
+  if (name.includes('old fashioned')) return { mark: 'Slow', hook: 'Spirit led', accent: 'oak' };
+  return { mark: index < 3 ? 'Hot' : 'Pour', hook: item?.note || 'Bar favourite', accent: 'house' };
+}
+
+function renderMobileMarketRows(items) {
+  return items.map((item, index) => {
+    const delta = Number(item.delta || 0);
+    const up = delta >= 0;
+    const movement = Math.abs(delta) < 0.05 ? 'Holding' : up ? 'Moving up' : 'Cooling';
+    const movementMark = Math.abs(delta) < 0.05 ? '•' : up ? '▲' : '▼';
+    const accent = getMobileDrinkAccent(item, index);
+    return `
+      <article class="mobile-market-row ${up ? 'up' : 'dn'} accent-${escapeHtml(accent.accent)}">
+        <div class="mobile-drink-mark" aria-hidden="true">
+          <span>${escapeHtml(accent.mark)}</span>
+        </div>
+        <div class="mobile-market-main">
+          <div class="mobile-market-name">
+            <strong>${escapeHtml(item.name)}</strong>
+            <span>${escapeHtml(accent.hook)} · ${movement}</span>
+          </div>
+          <div class="mobile-market-price ${up ? 'up' : 'dn'}">${escapeHtml(item.price)}</div>
+        </div>
+        <div class="mobile-market-meta">
+          <span class="${up ? 'up' : 'dn'}">${movementMark} ${Math.abs(delta).toFixed(1)}%</span>
+          <span>#${String(index + 1).padStart(2, '0')}</span>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
 function getActiveScrollablePanel() {
   const view = getAppView();
   if (view !== 'site' && view !== 'mobile') return null;
@@ -1185,24 +1249,42 @@ function renderMobileView() {
     </button>
   `).join('');
 
-  sections.innerHTML = MOBILE_MENU_SECTIONS.map(section => {
+  const allItems = MOBILE_MENU_SECTIONS.flatMap(section => section.items());
+  const highestMover = [...allItems].sort((a, b) => Math.abs(Number(b.delta || 0)) - Math.abs(Number(a.delta || 0)))[0];
+  const upCount = allItems.filter(item => Number(item.delta || 0) >= 0).length;
+  const downCount = allItems.length - upCount;
+
+  sections.innerHTML = `
+    <section class="mobile-market-brief" aria-label="Live market summary">
+      <div>
+        <span class="mobile-kicker">Live prices</span>
+        <h1>Tonight's market</h1>
+      </div>
+      <div class="mobile-market-tape">
+        <span>${upCount} up · ${downCount} down</span>
+        <strong>${escapeHtml(getMobileTickerSymbol(highestMover?.name || 'Live board'))} ${highestMover?.delta >= 0 ? '▲' : '▼'} ${Math.abs(Number(highestMover?.delta || 0)).toFixed(1)}%</strong>
+      </div>
+    </section>
+  ` + MOBILE_MENU_SECTIONS.map(section => {
     const items = section.items();
+    const stats = getMobileSectionStats(items);
     return `
-      <section class="mobile-menu-section" id="mobile-section-${escapeHtml(section.id)}">
+      <section class="mobile-menu-section mobile-market-section" id="mobile-section-${escapeHtml(section.id)}">
         <div class="mobile-menu-section-head">
           <div>
             <h2>${escapeHtml(section.label)}</h2>
-            <p>${escapeHtml(section.note)}</p>
+            <p>${items.length} live prices</p>
           </div>
-          <span>${items.length} items</span>
+          <span class="mobile-section-move ${stats.tone}">${stats.avgDelta >= 0 ? '+' : ''}${stats.avgDelta.toFixed(1)}%</span>
         </div>
-        <div class="mobile-menu-grid">
-          ${renderMobileMenuCards(items)}
+        <div class="mobile-market-list">
+          ${renderMobileMarketRows(items)}
         </div>
       </section>
     `;
   }).join('');
 
+  let railScrollTimeout = 0;
   rail.querySelectorAll('[data-mobile-section]').forEach(btn => {
     btn.addEventListener('click', () => {
       const sectionId = btn.dataset.mobileSection;
@@ -1211,18 +1293,46 @@ function renderMobileView() {
       rail.querySelectorAll('.mobile-rail-chip').forEach(chip => {
         chip.classList.toggle('active', chip.dataset.mobileSection === sectionId);
       });
-      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const mobileView = document.getElementById('mobileView');
+      if (target && mobileView) {
+        const railHeight = rail.getBoundingClientRect().height || 0;
+        const viewRect = mobileView.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const top = mobileView.scrollTop + targetRect.top - viewRect.top - railHeight - 12;
+        mobileView.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      }
     });
   });
 
   const mobileView = document.getElementById('mobileView');
   if (mobileView) {
-    mobileView.scrollTop = 0;
-    requestAnimationFrame(() => {
-      mobileView.scrollTop = 0;
-    });
+    const onMobileScroll = () => {
+      clearTimeout(railScrollTimeout);
+      railScrollTimeout = setTimeout(() => {
+        const railHeight = rail.getBoundingClientRect().height || 0;
+        const current = MOBILE_MENU_SECTIONS
+          .map(section => {
+            const el = document.getElementById(`mobile-section-${section.id}`);
+            return { id: section.id, top: el ? el.getBoundingClientRect().top : Infinity };
+          })
+          .filter(item => Number.isFinite(item.top))
+          .sort((a, b) => Math.abs(a.top - railHeight - 20) - Math.abs(b.top - railHeight - 20))[0];
+        if (!current || current.id === PAGE_STATE.mobile.selectedCat) return;
+        PAGE_STATE.mobile.selectedCat = current.id;
+        rail.querySelectorAll('.mobile-rail-chip').forEach(chip => {
+          chip.classList.toggle('active', chip.dataset.mobileSection === current.id);
+        });
+      }, 60);
+    };
+    mobileView.onscroll = onMobileScroll;
+    requestAnimationFrame(onMobileScroll);
+    const activeChip = rail.querySelector(`[data-mobile-section="${activeSection}"]`);
+    if (activeChip) {
+      rail.scrollLeft = Math.max(0, activeChip.offsetLeft - (rail.clientWidth - activeChip.clientWidth) / 2);
+    }
+  } else {
+    railScrollTimeout = 0;
   }
-  window.scrollTo?.(0, 0);
 }
 
 const SITE_MOMENTS = {
@@ -1532,356 +1642,160 @@ function bindPortalEmployeeControls(controls) {
   });
 }
 
+function renderPortalDrinkRow(d) {
+  const delta = ((d.p - d.b) / d.b) * 100;
+  const changed = hasDrinkChanged(d);
+  const custom = !DRINKS.some(item => item.id === d.id);
+  const cats = [...new Set([...DRINKS.map(item => item.cat), d.cat, 'signature'])];
+  return `
+    <article class="portal-drink-row ${d.soldOut ? 'paused' : ''} ${changed ? 'changed' : ''}" data-drink-row="${escapeHtml(d.id)}">
+      <div class="portal-drink-live">
+        <button class="portal-live-toggle ${d.soldOut ? 'off' : 'on'}" data-portal-toggle="${escapeHtml(d.id)}" type="button">${d.soldOut ? 'Paused' : 'Live'}</button>
+        <span>${custom ? 'Custom' : 'Menu'}</span>
+      </div>
+      <label class="portal-drink-name">
+        <span>Drink</span>
+        <input data-field="name" data-id="${escapeHtml(d.id)}" value="${escapeHtml(d.n)}">
+      </label>
+      <label class="portal-drink-cat">
+        <span>Category</span>
+        <select data-field="cat" data-id="${escapeHtml(d.id)}">
+          ${cats.map(cat => `<option value="${escapeHtml(cat)}" ${cat === d.cat ? 'selected' : ''}>${escapeHtml(cat.replace('-', ' '))}</option>`).join('')}
+        </select>
+      </label>
+      ${portalMoneyField('Sale', 'salePrice', d.id, d.b)}
+      ${portalMoneyField('Floor', 'floor', d.id, d.floor)}
+      ${portalMoneyField('Ceiling', 'ceiling', d.id, d.ceiling)}
+      <div class="portal-drink-signal">
+        <span class="${delta >= 0 ? 'up' : 'dn'}">${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%</span>
+        <small>${d.o} orders</small>
+      </div>
+      <button class="portal-remove-drink" data-portal-remove="${escapeHtml(d.id)}" type="button">Remove</button>
+    </article>
+  `;
+}
+
+function portalMoneyField(label, field, id, value) {
+  return `
+    <label class="portal-money-field">
+      <span>${escapeHtml(label)}</span>
+      <div>
+        <button type="button" data-step="-${PAGE_STEP}" data-field="${field}" data-id="${escapeHtml(id)}">−</button>
+        <input type="number" step="0.01" data-field="${field}" data-id="${escapeHtml(id)}" value="${Number(value).toFixed(2)}">
+        <button type="button" data-step="${PAGE_STEP}" data-field="${field}" data-id="${escapeHtml(id)}">+</button>
+      </div>
+    </label>
+  `;
+}
+
 function renderPortalView() {
   const profile = loadPortalProfile();
-  const roleSwitch = document.getElementById('portalRoleSwitch');
   const planCard = document.getElementById('portalPlanCard');
-  const tabs = document.getElementById('portalTabs');
   const sidebarMeta = document.getElementById('portalSidebarMeta');
   const workspace = document.getElementById('portalWorkspace');
   const search = document.getElementById('portalDrinkSearch');
   const saveState = document.getElementById('portalSaveState');
   const headerSub = document.getElementById('portalHeaderSub');
-  if (!roleSwitch || !planCard || !tabs || !sidebarMeta || !workspace || !search || !saveState || !headerSub) return;
+  if (!planCard || !sidebarMeta || !workspace || !search || !saveState || !headerSub) return;
 
-  const roles = [
-    { id: 'owner', label: 'Owner', desc: 'Billing, launch controls, pricing, team.' },
-    { id: 'manager', label: 'Manager', desc: 'Sales, exports, stock, and session ops.' },
-    { id: 'staff', label: 'Staff', desc: 'Floor-safe view with limited pricing controls.' },
-  ];
-  const portalTabs = [
-    ['overview', 'Overview'],
-    ['ops', 'Live Ops'],
-    ['menu', 'Menu & Pricing'],
-    ['performance', 'Performance'],
-    ['team', 'Team'],
-    ['settings', 'Settings'],
-  ];
-
-  roleSwitch.innerHTML = roles.map(role => `<button class="range-chip ${PAGE_STATE.portal.role === role.id ? 'active' : ''}" data-portal-role="${role.id}">${role.label}</button>`).join('');
-  roleSwitch.querySelectorAll('[data-portal-role]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      PAGE_STATE.portal.role = btn.dataset.portalRole;
-      renderPortalView();
-    });
-  });
+  const sessionRecords = getSalesRange('session');
+  const snapshot = getPortalHealthSnapshot(sessionRecords);
+  const alerts = getAttentionItems();
+  const visible = getVisibleEmployeeDrinks();
+  const groupedVisible = groupBy(visible, drink => drink.cat);
+  const changedCount = D.filter(d => hasDrinkChanged(d)).length;
+  const guardrailIssues = D.filter(d => d.floor >= d.ceiling || d.b < d.floor || d.b > d.ceiling).length;
+  const liveCount = D.filter(d => !d.soldOut).length;
 
   planCard.innerHTML = `
     <strong>${escapeHtml(profile.venueName)}</strong>
-    <span>${escapeHtml(profile.plan)} plan · ${profile.subscribed ? 'Active subscription' : 'Demo mode'}</span>
-    <span>${profile.seats} team seats · ${escapeHtml(profile.billing)}</span>
+    <span>Single login · ${profile.subscribed ? 'Active' : 'Demo'} market</span>
+    <span>${liveCount} live drinks · ${snapshot.soldOut} paused</span>
   `;
-
-  tabs.innerHTML = portalTabs.map(([tab, label]) => `<button class="sort-chip ${PAGE_STATE.portal.selectedTab === tab ? 'active' : ''}" data-portal-tab="${tab}">${label}</button>`).join('');
-  tabs.querySelectorAll('[data-portal-tab]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      PAGE_STATE.portal.selectedTab = btn.dataset.portalTab;
-      renderPortalView();
-    });
-  });
-
-  const records = getManagerRecords();
-  const sessionRecords = getSalesRange('session');
-  const snapshot = getPortalHealthSnapshot(sessionRecords);
-  const topCategory = getTopCategory(sessionRecords);
-  const topMovers = getPortalTopMovers();
-  const categoryRows = getCategoryCardsData();
-  const alerts = getAttentionItems();
-  const previewDrink = getEmployeePreviewDrink();
-  const visible = getVisibleEmployeeDrinks();
-  const groupedVisible = groupBy(visible, drink => drink.cat);
-  const buckets = getPortalTimeBuckets(sessionRecords);
-  const maxOrders = Math.max(1, ...categoryRows.map(row => row.totalOrders));
-  const maxBucketRevenue = Math.max(1, ...buckets.map(bucket => bucket.revenue));
 
   sidebarMeta.innerHTML = `
     <div class="portal-sidebar-stat">
-      <span>Market</span>
-      <strong>${typeof crashActive !== 'undefined' && crashActive ? 'Crash mode' : 'Live'}</strong>
+      <span>Market state</span>
+      <strong>${typeof crashActive !== 'undefined' && crashActive ? 'Event mode' : 'Ready'}</strong>
     </div>
     <div class="portal-sidebar-stat">
-      <span>Revenue tonight</span>
-      <strong>${formatMoney(snapshot.revenue)}</strong>
+      <span>Changed rails</span>
+      <strong>${changedCount}</strong>
     </div>
     <div class="portal-sidebar-stat">
-      <span>Sold out</span>
-      <strong>${snapshot.soldOut} drinks</strong>
+      <span>Guardrail issues</span>
+      <strong>${guardrailIssues}</strong>
     </div>
   `;
 
-  const headerCopy = {
-    overview: 'A concise workspace for service, stock, and pricing decisions.',
-    ops: 'Launch controls, live alerts, and operating rhythm for the floor team.',
-    menu: 'Edit drinks, pricing guardrails, and sold-out state with real session context.',
-    performance: 'Track demand, revenue, and category movement across the evening session.',
-    team: 'Set access by role and keep operations safe as the venue scales.',
-    settings: 'Configure the venue, subscription, displays, and rollout defaults.',
-  };
-  headerSub.textContent = headerCopy[PAGE_STATE.portal.selectedTab] || headerCopy.overview;
+  headerSub.textContent = 'The portal only controls what Night Economy needs: menu membership, live status, sale price, floor, and ceiling.';
 
-  const billingHtml = `
-    <div class="portal-billing-stack">
-      <div><span>Plan</span><strong>${escapeHtml(profile.plan)}</strong></div>
-      <div><span>Billing</span><strong>${escapeHtml(profile.billing)}</strong></div>
-      <div><span>Seats</span><strong>${profile.seats}</strong></div>
-      <div><span>Top category</span><strong>${escapeHtml((topCategory?.cat || '—').replace('-', ' '))}</strong></div>
-    </div>
-    <div class="portal-permission-list">
-      ${roles.map(role => `<article class="portal-permission ${PAGE_STATE.portal.role === role.id ? 'active' : ''}"><strong>${role.label}</strong><span>${role.desc}</span></article>`).join('')}
-    </div>
-  `;
-  const alertHtml = alerts.length ? alerts.map(item => `
+  const alertHtml = alerts.length ? alerts.slice(0, 3).map(item => `
     <article class="alert-card ${item.tone}">
       <strong>${escapeHtml(item.title)}</strong>
       <span>${escapeHtml(item.body)}</span>
     </article>
-  `).join('') : '<div class="empty-state">No urgent issues right now.</div>';
-  const categoriesHtml = categoryRows.map(row => `
-    <article class="portal-category-card">
-      <div class="portal-category-head">
-        <div>
-          <strong>${escapeHtml(row.cat.replace('-', ' '))}</strong>
-          <span>${row.items.length} drinks · ${row.totalOrders} orders</span>
-        </div>
-        <div class="portal-category-price">${formatMoney(row.avgPrice)}</div>
-      </div>
-      <div class="portal-category-metric">
-        <label>Order volume</label>
-        ${buildProgressMeter(row.totalOrders, maxOrders, 'green')}
-      </div>
-      <div class="portal-category-meta">
-        <span>${row.items.filter(d => d.soldOut).length} sold out</span>
-        <span>${row.items.filter(d => d.p >= d.ceiling * 0.98).length} near ceiling</span>
-      </div>
-    </article>
-  `).join('');
-  const moversHtml = topMovers.map(drink => {
-    const delta = ((drink.p - drink.b) / drink.b) * 100;
-    return `
-      <article class="portal-mover-row">
-        <div>
-          <strong>${escapeHtml(drink.n)}</strong>
-          <span>${escapeHtml(drink.cat.replace('-', ' '))}</span>
-        </div>
-        <div class="portal-mover-metrics">
-          <span>${formatMoney(drink.p)}</span>
-          <strong class="${delta >= 0 ? 'up' : 'dn'}">${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%</strong>
-        </div>
-      </article>
-    `;
-  }).join('');
-  const activityHtml = records.length ? records.map(row => `
-    <button class="record-row" data-portal-record="${row.id}:${row.t}">
-      <span>${formatShortTime(row.t)}</span>
-      <strong>${escapeHtml(row.n)}</strong>
-      <span>${escapeHtml(row.cat.replace('-', ' '))}</span>
-      <span class="tone ${row.type === 'buy' ? 'up' : 'dn'}">${row.type.toUpperCase()}</span>
-      <span>${formatMoney(row.price)}</span>
-    </button>
-  `).join('') : '<div class="empty-state">No orders logged yet.</div>';
-  const timelineHtml = buckets.map(bucket => `
-    <article class="portal-timeline-row">
-      <div>
-        <strong>${bucket.label}</strong>
-        <span>${bucket.orders} orders</span>
-      </div>
-      <div class="portal-timeline-bar">${buildProgressMeter(bucket.revenue, maxBucketRevenue, 'blue')}</div>
-      <strong>${formatMoney(bucket.revenue)}</strong>
-    </article>
-  `).join('');
-  const historyHtml = MARKET_HISTORY.slice().reverse().slice(0, 8).map(entry => `
-    <article class="history-row">
-      <div>
-        <strong>${escapeHtml(entry.label || entry.kind || 'Change')}</strong>
-        <span>${escapeHtml(formatShortDate(entry.t))} ${escapeHtml(formatShortTime(entry.t))}</span>
-      </div>
-      <button class="history-undo" data-portal-undo="${entry.t}">Undo last</button>
-    </article>
-  `).join('') || '<div class="empty-state">No saved changes yet.</div>';
+  `).join('') : '<div class="empty-state">No platform issues right now.</div>';
 
-  if (PAGE_STATE.portal.selectedTab === 'overview') {
-    workspace.innerHTML = `
-      <section class="portal-overview-grid">
-        <div class="portal-pane portal-pane-summary">
-          <div class="card-hdr">Venue Health</div>
-          <div class="portal-summary" id="portalSummary"></div>
-        </div>
-        <div class="portal-pane">
-          <div class="card-hdr">Live Alerts</div>
-          <div class="alert-list">${alertHtml}</div>
-        </div>
-        <div class="portal-pane">
-          <div class="card-hdr">Subscription & Access</div>
-          <div class="portal-billing">${billingHtml}</div>
-        </div>
-      </section>
-      <section class="portal-analytics-grid">
-        <div class="portal-pane">
-          <div class="card-hdr">Top Movers</div>
-          <div class="portal-mover-list">${moversHtml}</div>
-        </div>
-        <div class="portal-pane">
-          <div class="card-hdr">Category Health</div>
-          <div class="portal-category-list">${categoriesHtml}</div>
-        </div>
-        <div class="portal-pane">
-          <div class="card-hdr">Tonight Timeline</div>
-          <div class="portal-timeline-list">${timelineHtml}</div>
-        </div>
-      </section>
-    `;
-  } else if (PAGE_STATE.portal.selectedTab === 'ops') {
-    workspace.innerHTML = `
-      <section class="portal-overview-grid portal-overview-grid-ops">
-        <div class="portal-pane portal-pane-summary">
-          <div class="card-hdr">Session Status</div>
-          <div class="portal-summary" id="portalSummary"></div>
-        </div>
-        <div class="portal-pane">
-          <div class="card-hdr">Checklist</div>
-          <div class="portal-checklist">
-            <article><strong>Board live</strong><span>TV display is ready to run the room.</span></article>
-            <article><strong>Mobile linked</strong><span>Mobile reflects the same market state.</span></article>
-            <article><strong>Price rails set</strong><span>Each drink has a base, floor, and ceiling.</span></article>
-            <article><strong>Team access</strong><span>${PAGE_STATE.portal.role === 'staff' ? 'Staff-safe mode is active.' : 'Manager access is available tonight.'}</span></article>
-          </div>
-        </div>
-        <div class="portal-pane">
-          <div class="card-hdr">Live Alerts</div>
-          <div class="alert-list">${alertHtml}</div>
-        </div>
-      </section>
-      <section class="portal-pane">
-        <div class="portal-section-head">
+  workspace.innerHTML = `
+    <section class="portal-simple-grid">
+      <div class="portal-editor">
+        <div class="portal-editor-head">
           <div>
-            <div class="card-hdr">Launch Log</div>
-            <div class="portal-section-sub">Every operator change is tracked so the session can be reset safely.</div>
+            <div class="card-hdr">Market Drinks</div>
+            <h2>Drinks</h2>
           </div>
           <div class="portal-inline-actions">
-            <button class="manager-action" id="portalUndo">Undo last change</button>
-            <button class="manager-action" id="portalHighlight">Highlight changes: on</button>
+            <button class="manager-action" id="portalOpenMarket">Open market</button>
+            <button class="manager-action" id="portalUndo">Undo</button>
+            <button class="manager-action" id="portalResetVenue">Reset</button>
           </div>
         </div>
-        <div class="history-list" id="portalHistory">${historyHtml}</div>
-      </section>
-    `;
-  } else if (PAGE_STATE.portal.selectedTab === 'menu') {
-    workspace.innerHTML = `
-      <section class="portal-ops-pane">
-        <div class="portal-section-head">
-          <div>
-            <div class="card-hdr">Menu & Pricing</div>
-            <div class="portal-section-sub">Edit drinks, stock status, and guardrails without leaving the operator workflow.</div>
-          </div>
-          <div class="portal-inline-actions">
-            <button class="manager-action" id="portalUndo">Undo last change</button>
-            <button class="manager-action" id="portalHighlight">Highlight changes: on</button>
-          </div>
-        </div>
-        <div class="portal-preview" id="portalPreview"></div>
+
+        <form class="portal-add-drink" id="portalAddDrink">
+          <input name="name" placeholder="Add drink name" required>
+          <select name="cat">
+            ${[...new Set(DRINKS.map(d => d.cat))].map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat.replace('-', ' '))}</option>`).join('')}
+          </select>
+          <input name="price" type="number" step="0.01" min="0.25" value="12.00" aria-label="Sale price">
+          <button class="manager-action" type="submit">Add</button>
+        </form>
+
         <div class="portal-filter-row" id="portalCatFilters"></div>
-        <div class="employee-list" id="portalControls"></div>
-      </section>
-    `;
-  } else if (PAGE_STATE.portal.selectedTab === 'performance') {
-    workspace.innerHTML = `
-      <section class="portal-overview-grid">
-        <div class="portal-pane portal-pane-summary">
-          <div class="card-hdr">Performance Snapshot</div>
-          <div class="portal-summary" id="portalSummary"></div>
+        <div class="portal-drink-list" id="portalControls">
+          ${Object.keys(groupedVisible).length ? Object.entries(groupedVisible).map(([cat, items]) => `
+            <section class="portal-drink-group">
+              <div class="portal-drink-group-head">
+                <strong>${escapeHtml(cat.replace('-', ' '))}</strong>
+                <span>${items.length} drinks · ${items.filter(d => d.soldOut).length} paused</span>
+              </div>
+              ${items.map(renderPortalDrinkRow).join('')}
+            </section>
+          `).join('') : '<div class="empty-state">No drinks match this search.</div>'}
         </div>
-        <div class="portal-pane">
-          <div class="card-hdr">Category Health</div>
-          <div class="portal-category-list">${categoriesHtml}</div>
-        </div>
-        <div class="portal-pane">
-          <div class="card-hdr">Timeline</div>
-          <div class="portal-timeline-list">${timelineHtml}</div>
-        </div>
-      </section>
-      <section class="portal-pane portal-pane-feed">
-        <div class="portal-section-head">
-          <div class="card-hdr">Order Activity</div>
-          <div class="portal-inline-actions">
-            <button class="manager-action" id="portalExportCsv">Export CSV</button>
-            <button class="manager-action" id="portalExportJson">Export JSON</button>
-          </div>
-        </div>
-        <div class="record-head" id="portalRecordHead"></div>
-        <div class="record-list" id="portalSales">${activityHtml}</div>
-      </section>
-    `;
-  } else if (PAGE_STATE.portal.selectedTab === 'team') {
-    workspace.innerHTML = `
-      <section class="portal-overview-grid">
-        <div class="portal-pane portal-pane-summary">
-          <div class="card-hdr">Roles</div>
-          <div class="portal-summary" id="portalSummary"></div>
-        </div>
-        <div class="portal-pane">
-          <div class="card-hdr">Permission Model</div>
-          <div class="portal-billing">${billingHtml}</div>
-        </div>
-        <div class="portal-pane">
-          <div class="card-hdr">Recommended Access</div>
-          <div class="portal-checklist">
-            <article><strong>Owner</strong><span>Billing, venue setup, launch logic, and system overrides.</span></article>
-            <article><strong>Manager</strong><span>Session ops, stock, exports, and pricing guardrails.</span></article>
-            <article><strong>Staff</strong><span>Read-heavy access with limited venue editing.</span></article>
-          </div>
-        </div>
-      </section>
-      <section class="portal-pane">
-        <div class="card-hdr">Recent Change Log</div>
-        <div class="history-list" id="portalHistory">${historyHtml}</div>
-      </section>
-    `;
-  } else {
-    workspace.innerHTML = `
-      <section class="portal-overview-grid">
-        <div class="portal-pane portal-pane-summary">
-          <div class="card-hdr">Venue Setup</div>
-          <div class="portal-summary" id="portalSummary"></div>
-        </div>
-        <div class="portal-pane">
-          <div class="card-hdr">Subscription</div>
-          <div class="portal-settings-list">
-            <article><span>Venue</span><strong>${escapeHtml(profile.venueName)}</strong></article>
-            <article><span>Plan</span><strong>${escapeHtml(profile.plan)}</strong></article>
-            <article><span>Billing</span><strong>${escapeHtml(profile.billing)}</strong></article>
-            <article><span>Seats</span><strong>${profile.seats}</strong></article>
-          </div>
-        </div>
-        <div class="portal-pane">
-          <div class="card-hdr">Devices & Surfaces</div>
-          <div class="portal-checklist">
-            <article><strong>TV surface</strong><span>Configured for the room display.</span></article>
-            <article><strong>Mobile</strong><span>Configured for guest-facing market browsing.</span></article>
-            <article><strong>Portal</strong><span>Configured for operator access and control.</span></article>
-          </div>
-        </div>
-      </section>
-      <section class="portal-pane">
-        <div class="card-hdr">Prototype Notes</div>
-        <div class="portal-settings-list">
-          <article><span>State</span><strong>${profile.subscribed ? 'Subscribed prototype' : 'Demo mode'}</strong></article>
-          <article><span>Market behaviour</span><strong>Live synthetic session from 18:00 to 01:00</strong></article>
-          <article><span>Access model</span><strong>Owner, manager, and staff permission simulation</strong></article>
-        </div>
-      </section>
-    `;
-  }
+      </div>
 
-  const summary = workspace.querySelector('#portalSummary');
-  if (summary) {
-    summary.innerHTML = '';
-    renderStatPill(summary, 'Revenue', formatMoney(snapshot.revenue));
-    renderStatPill(summary, 'Orders', String(sessionRecords.length));
-    renderStatPill(summary, 'Active', String(snapshot.active));
-    renderStatPill(summary, 'Sold Out', String(snapshot.soldOut));
-    renderStatPill(summary, 'Near Ceiling', String(snapshot.nearCeiling));
-    renderStatPill(summary, 'Avg Move', `${snapshot.averageDelta >= 0 ? '+' : ''}${snapshot.averageDelta.toFixed(1)}%`, snapshot.averageDelta >= 0 ? 'up' : '');
-  }
+      <aside class="portal-signal-panel">
+        <section class="portal-signal-card primary">
+          <div class="card-hdr">Platform Signal</div>
+          <div class="portal-signal-number">${snapshot.nearCeiling}</div>
+          <p>drinks are close to their ceiling. Use this to spot when the market rails are doing useful work.</p>
+        </section>
+        <section class="portal-signal-card">
+          <div class="card-hdr">Needs Attention</div>
+          <div class="alert-list">${alertHtml}</div>
+        </section>
+        <section class="portal-signal-card">
+          <div class="card-hdr">Locked Setup</div>
+          <div class="portal-locked-list">
+            <article><span>PIN</span><strong>Event rules</strong><p>Crash events, surge limits, and spotlight timing.</p></article>
+            <article><span>PIN</span><strong>Display pairing</strong><p>Connect room screens and QR menus.</p></article>
+            <article><span>PIN</span><strong>Billing</strong><p>Plan, invoices, and account settings.</p></article>
+          </div>
+        </section>
+      </aside>
+    </section>
+  `;
 
   search.value = PAGE_STATE.employee.search;
   search.oninput = () => {
@@ -1889,134 +1803,94 @@ function renderPortalView() {
     renderPortalView();
   };
 
-  const head = workspace.querySelector('#portalRecordHead');
-  if (head) {
-    const headers = [['t', 'Time'], ['n', 'Drink'], ['cat', 'Category'], ['type', 'Type'], ['price', 'Price']];
-    head.innerHTML = headers.map(([key, label]) => `<button class="record-head-btn ${PAGE_STATE.manager.sortKey === key ? 'active' : ''}" data-sort="${key}">${escapeHtml(label)}</button>`).join('');
-    head.querySelectorAll('[data-sort]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (PAGE_STATE.manager.sortKey === btn.dataset.sort) PAGE_STATE.manager.sortDir = PAGE_STATE.manager.sortDir === 'asc' ? 'desc' : 'asc';
-        else {
-          PAGE_STATE.manager.sortKey = btn.dataset.sort;
-          PAGE_STATE.manager.sortDir = btn.dataset.sort === 'price' ? 'desc' : 'asc';
-        }
-        renderPortalView();
-      });
-    });
-  }
-
-  const history = workspace.querySelector('#portalHistory');
-  history?.querySelectorAll('[data-portal-undo]').forEach(btn => {
+  const filters = workspace.querySelector('#portalCatFilters');
+  filters.innerHTML = ['all', ...new Set(D.map(d => d.cat))].map(cat => `<button class="range-chip ${PAGE_STATE.employee.selectedCat === cat ? 'active' : ''}" data-portal-cat="${cat}">${escapeHtml(cat === 'all' ? 'All drinks' : cat.replace('-', ' '))}</button>`).join('');
+  filters.querySelectorAll('[data-portal-cat]').forEach(btn => {
     btn.addEventListener('click', () => {
-      undoLastMarketChange();
+      PAGE_STATE.employee.selectedCat = btn.dataset.portalCat;
       renderPortalView();
     });
   });
 
-  const filters = workspace.querySelector('#portalCatFilters');
-  if (filters) {
-    filters.innerHTML = ['all', ...new Set(D.map(d => d.cat))].map(cat => `<button class="range-chip ${PAGE_STATE.employee.selectedCat === cat ? 'active' : ''}" data-portal-cat="${cat}">${escapeHtml(cat === 'all' ? 'All categories' : cat.replace('-', ' '))}</button>`).join('');
-    filters.querySelectorAll('[data-portal-cat]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        PAGE_STATE.employee.selectedCat = btn.dataset.portalCat;
-        renderPortalView();
-      });
-    });
-  }
-
-  const preview = workspace.querySelector('#portalPreview');
-  if (preview) {
-    preview.innerHTML = previewDrink ? `
-      <div class="preview-card ${previewDrink.soldOut ? 'sold-out' : ''}">
-        <div class="preview-top">
-          <div>
-            <div class="card-hdr">Selected Drink</div>
-            <div class="preview-name">${escapeHtml(previewDrink.n)}</div>
-            <div class="preview-sub">${escapeHtml(previewDrink.cat.replace('-', ' '))}</div>
-          </div>
-          <div class="preview-price">${formatMoney(previewDrink.p)}</div>
-        </div>
-        <div class="portal-preview-layout">
-          <div class="portal-preview-chart-wrap">
-            <div class="portal-preview-chart" id="portalPreviewChart"></div>
-          </div>
-          <div class="portal-preview-aside">
-            <div class="portal-preview-range">${buildPricePositionMarkup(previewDrink)}</div>
-            <div class="preview-grid">
-              <div><span>Base</span><strong>${formatMoney(previewDrink.b)}</strong></div>
-              <div><span>Floor</span><strong>${formatMoney(previewDrink.floor)}</strong></div>
-              <div><span>Ceiling</span><strong>${formatMoney(previewDrink.ceiling)}</strong></div>
-              <div><span>Status</span><strong>${previewDrink.soldOut ? 'Sold out' : 'Live'}</strong></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    ` : '<div class="empty-state">No drinks match this search.</div>';
-    const previewChart = document.getElementById('portalPreviewChart');
-    if (previewDrink && previewChart) renderSpotlightTrendChart(previewChart, previewDrink);
-  }
-
   const controls = workspace.querySelector('#portalControls');
-  if (controls) {
-    controls.innerHTML = Object.keys(groupedVisible).length ? Object.entries(groupedVisible).map(([cat, items]) => `
-      <section class="employee-category">
-        <div class="employee-category-head">
-          <div>
-            <div class="employee-category-name">${escapeHtml(cat.replace('-', ' '))}</div>
-            <div class="employee-category-sub">${items.length} drinks · ${items.filter(d => d.soldOut).length} sold out</div>
-          </div>
-          <div class="employee-category-actions">
-            <button data-cat-action="soldout" data-cat="${escapeHtml(cat)}">Mark sold out</button>
-            <button data-cat-action="reset" data-cat="${escapeHtml(cat)}">Reset category</button>
-          </div>
-        </div>
-        <div class="employee-drinks">${items.map(renderEmployeeDrinkRow).join('')}</div>
-      </section>
-    `).join('') : '<div class="empty-state">No drinks match this search.</div>';
-    bindPortalEmployeeControls(controls);
-  }
+  bindPortalEmployeeControls(controls);
+
+  workspace.querySelectorAll('[data-portal-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const drink = D.find(d => d.id === btn.dataset.portalToggle);
+      if (!drink) return;
+      commitEmployeeEdit(drink.id, normalizeDrinkPatch(drink, { soldOut: !drink.soldOut }), `${drink.soldOut ? 'Resumed' : 'Paused'} ${drink.n}`);
+      renderPortalView();
+    });
+  });
+
+  workspace.querySelectorAll('[data-portal-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const drink = D.find(d => d.id === btn.dataset.portalRemove);
+      if (!drink) return;
+      applyMarketTransaction(`Removed ${drink.n}`, () => {
+        MARKET_SETTINGS.drinks[drink.id] = { ...(MARKET_SETTINGS.drinks[drink.id] || {}), hidden: true, soldOut: true };
+      });
+      rebuildMarketState();
+      queueSaveState('saved', `Removed ${drink.n}`);
+      renderPortalView();
+    });
+  });
+
+  const addForm = workspace.querySelector('#portalAddDrink');
+  addForm.onsubmit = event => {
+    event.preventDefault();
+    const form = new FormData(addForm);
+    const name = String(form.get('name') || '').trim();
+    const cat = String(form.get('cat') || 'signature');
+    const price = Math.max(SAFE_PRICE_MIN, Number(form.get('price') || 12));
+    if (!name) return;
+    const id = `custom-${Date.now().toString(36)}`;
+    applyMarketTransaction(`Added ${name}`, () => {
+      if (!MARKET_SETTINGS.categories[cat]) MARKET_SETTINGS.categories[cat] = { label: cat.replace('-', ' '), soldOut: false };
+      MARKET_SETTINGS.drinks[id] = {
+        name,
+        cat,
+        salePrice: +price.toFixed(2),
+        floor: +(price * 0.65).toFixed(2),
+        ceiling: +(price * 1.65).toFixed(2),
+        soldOut: false,
+        custom: true,
+      };
+    });
+    rebuildMarketState();
+    PAGE_STATE.employee.search = '';
+    PAGE_STATE.employee.selectedCat = cat;
+    queueSaveState('saved', `Added ${name}`);
+    renderPortalView();
+  };
 
   saveState.textContent = PAGE_STATE.employee.saveState === 'saved' ? 'Saved' : PAGE_STATE.employee.saveState === 'saving' ? 'Saving…' : 'Unsaved';
   saveState.className = `save-pill ${PAGE_STATE.employee.saveState}`;
 
-  document.getElementById('portalOpenMarket').onclick = () => {
+  const undo = workspace.querySelector('#portalUndo');
+  undo.onclick = () => {
+    if (undoLastMarketChange()) {
+      rebuildMarketState();
+      queueSaveState('saved', 'Reverted last change');
+      renderPortalView();
+    }
+  };
+
+  workspace.querySelector('#portalOpenMarket').onclick = () => {
     if (typeof initMode === 'function') initMode('base');
     showToast('Market opened on the live board', 'success');
   };
-  document.getElementById('portalCrashDrill').onclick = () => {
-    if (typeof initMode === 'function') initMode('crash');
-    showToast('Crash drill launched', 'warn');
-  };
-  document.getElementById('portalResetVenue').onclick = () => {
+
+  workspace.querySelector('#portalResetVenue').onclick = () => {
+    applyMarketTransaction('Reset venue to opening state', () => {
+      MARKET_SETTINGS = buildDefaultMarketSettings();
+    });
     rebuildMarketState();
     if (typeof initMode === 'function') initMode('base');
+    queueSaveState('saved', 'Venue reset');
     renderPortalView();
-    showToast('Venue reset to opening state', 'success');
   };
-
-  const undo = workspace.querySelector('#portalUndo');
-  if (undo) {
-    undo.onclick = () => {
-      if (undoLastMarketChange()) {
-        queueSaveState('saved', 'Reverted last change');
-        renderPortalView();
-      }
-    };
-  }
-
-  const highlight = workspace.querySelector('#portalHighlight');
-  if (highlight) {
-    highlight.onclick = () => {
-      PAGE_STATE.employee.highlightChanges = !PAGE_STATE.employee.highlightChanges;
-      renderPortalView();
-    };
-    highlight.textContent = `Highlight changes: ${PAGE_STATE.employee.highlightChanges ? 'on' : 'off'}`;
-  }
-
-  const exportCsv = workspace.querySelector('#portalExportCsv');
-  if (exportCsv) exportCsv.onclick = () => downloadManagerExport('csv', records);
-  const exportJson = workspace.querySelector('#portalExportJson');
-  if (exportJson) exportJson.onclick = () => downloadManagerExport('json', records);
 }
 
 function renderManagerView() {
@@ -2578,7 +2452,9 @@ function initAppPages() {
   });
 
   window.addEventListener('focus', () => {
-    if (getAppView() === 'mobile') renderMobileView();
+    if (getAppView() === 'mobile' && !document.getElementById('mobileMenuSections')?.children.length) {
+      renderMobileView();
+    }
   });
 
   window.refreshAuxViews = refreshAuxViews;
