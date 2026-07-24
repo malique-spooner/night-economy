@@ -30,8 +30,6 @@ import {
 } from "../api/market";
 import { prepareMarketProductConfiguration } from "../components/portal/portalHelpers";
 import { PageSwitcher } from "./PageSwitcher";
-import { controlSimulator, getSimulatorState, simulatorStatus, updateSimulatorService, type SimulatorCrowd, type SimulatorState } from "../api/simulator";
-import { PortalSimulatorControls } from "../components/portal/PortalSimulatorControls";
 
 type Props = {
   venueSlug: string;
@@ -43,7 +41,7 @@ export function Portal({ venueSlug }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
-  const [lastSavedMessage, setLastSavedMessage] = useState("");
+  const [, setLastSavedMessage] = useState("");
   const [memberRole, setMemberRole] = useState<VenueMemberRole | null>(null);
   const [isCheckingAccess, setIsCheckingAccess] = useState(false);
   const [activeTab, setActiveTab] = useState<PortalTab>("start");
@@ -52,8 +50,6 @@ export function Portal({ venueSlug }: Props) {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [priceHistory, setPriceHistory] = useState<MarketPriceHistoryPoint[]>([]);
   const [priceHistoryLoading, setPriceHistoryLoading] = useState(false);
-  const [simulatorState, setSimulatorState] = useState<SimulatorState | null>(null);
-  const [simulatorError, setSimulatorError] = useState("");
 
   useEffect(() => {
     void refreshSession();
@@ -101,34 +97,6 @@ export function Portal({ venueSlug }: Props) {
       cancelled = true;
     };
   }, [isSignedIn, state?.source, state?.venue.id]);
-
-  useEffect(() => {
-    if (!simulatorStatus.ready) return undefined;
-    let cancelled = false;
-    async function refreshSimulator() {
-      try {
-        const nextState = await getSimulatorState();
-        if (!cancelled) {
-          setSimulatorState(nextState);
-          setSimulatorError("");
-        }
-      } catch (error) {
-        if (!cancelled) setSimulatorError(error instanceof Error ? error.message : "Could not reach the local POS simulator");
-      }
-    }
-    void refreshSimulator();
-    const timer = window.setInterval(() => { void refreshSimulator(); }, 2000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!state) return;
-    if (selectedProductId && state.products.some(product => product.id === selectedProductId)) return;
-    setSelectedProductId(state.products.find(product => product.isLive && !product.isSoldOut)?.id ?? state.products[0]?.id ?? null);
-  }, [selectedProductId, state]);
 
   useEffect(() => {
     if (!state || !selectedProductId || state.source === "seed") {
@@ -231,6 +199,10 @@ export function Portal({ venueSlug }: Props) {
     }
   }
 
+  function handleToggleProductHistory(productId: string) {
+    setSelectedProductId(currentProductId => currentProductId === productId ? null : productId);
+  }
+
   async function handleConfigurePosProduct(posProduct: PosProduct) {
     if (!state) return false;
 
@@ -273,27 +245,6 @@ export function Portal({ venueSlug }: Props) {
     } catch (error) {
       setState(current => (current ? { ...current, venue: previousVenue } : current));
       setLastSavedMessage(error instanceof Error ? `Not saved: ${error.message}` : "Not saved");
-    }
-  }
-
-  async function handleSimulatorControl(action: "start" | "pause" | "reset") {
-    try {
-      const nextState = await controlSimulator(action, action === "start" ? { speed: simulatorState?.service.speed ?? 32, crowd: simulatorState?.service.crowd ?? "normal" } : {});
-      setSimulatorState(nextState);
-      setSimulatorError("");
-      setLastSavedMessage(action === "reset" ? "Local test service reset. The market runner will clear its next cycle." : `Local test service ${action === "start" ? "started" : "paused"}.`);
-    } catch (error) {
-      setSimulatorError(error instanceof Error ? error.message : "Could not update the local test service");
-    }
-  }
-
-  async function handleSimulatorServiceChange(options: { crowd?: SimulatorCrowd; speed?: number }) {
-    try {
-      const nextState = await updateSimulatorService(options);
-      setSimulatorState(nextState);
-      setSimulatorError("");
-    } catch (error) {
-      setSimulatorError(error instanceof Error ? error.message : "Could not update local test service settings");
     }
   }
 
@@ -358,26 +309,15 @@ export function Portal({ venueSlug }: Props) {
               <div className="portal-workspace">
                 {activeTab === "start" ? (
                   <PortalStartPage
-                    lastSavedMessage={lastSavedMessage}
                     onConfigurePosProduct={handleConfigurePosProduct}
                     onProductChange={handleProductChange}
-                    onSelectProduct={setSelectedProductId}
+                    onSelectProduct={handleToggleProductHistory}
                     onVenueSettingsChange={handleVenueSettingsChange}
                     products={state.products}
                     priceHistory={priceHistory}
                     priceHistoryLoading={priceHistoryLoading}
                     posProducts={posProducts}
                     selectedProductId={selectedProductId}
-                    source={state.source}
-                    simulatorControls={
-                      <PortalSimulatorControls
-                        error={simulatorError}
-                        onControl={handleSimulatorControl}
-                        onServiceChange={handleSimulatorServiceChange}
-                        ready={simulatorStatus.ready}
-                        state={simulatorState}
-                      />
-                    }
                     venue={state.venue}
                   />
                 ) : (
