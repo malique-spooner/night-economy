@@ -33,13 +33,52 @@ describe("Friday-night POS simulation", () => {
     expect(simulation.getSales().some(sale => sale.productId === "pos_tlj_cocktails_classic_espresso")).toBe(false);
   });
 
-  it("completes the full eight-hour service in fifteen real minutes at 32x", () => {
+  it("completes the six-hour 18:00–00:00 service in eleven minutes at 32x", () => {
     const simulation = createFridayNightSimulation({ seed: 9 });
     simulation.control({ action: "start", speed: 32 });
     simulation.tick(15 * 60_000);
 
-    expect(simulation.getState().service).toMatchObject({ isComplete: true, minute: 480, running: false });
+    expect(simulation.getState().service).toMatchObject({ isComplete: true, minute: 360, running: false });
     expect(simulation.getSales().length).toBeGreaterThan(0);
+  });
+
+  it("quick starts a fresh 18:00 service while keeping the simulator settings", () => {
+    const simulation = createFridayNightSimulation({ seed: 9 });
+    simulation.control({ speed: 60, targetRevenueMinor: 850_000 });
+    simulation.advance(120);
+
+    simulation.control({ action: "quick_start" });
+
+    expect(simulation.getState().service).toMatchObject({ minute: 0, running: true, speed: 60, targetRevenueMinor: 850_000, simulatedTime: "2026-07-17T17:00:00.000Z" });
+  });
+
+  it("keeps the simulated clock moving while paused, without adding sales", () => {
+    const simulation = createFridayNightSimulation({ seed: 12 });
+    simulation.control({ action: "quick_start" });
+    simulation.advance(20);
+    const saleCount = simulation.getSales().length;
+    const product = simulation.getProducts().find(item => item.id === "pos_tlj_cocktails_classic_espresso");
+    simulation.publishPrices({ publicationId: "pause_price", lines: [{ productId: product.id, newPriceMinor: product.basePriceMinor + 100 }] });
+
+    simulation.control({ action: "pause" });
+    simulation.control({ speed: 1 });
+    simulation.tick(10 * 60_000);
+
+    expect(simulation.getState().service).toMatchObject({ minute: 30, running: false, paused: true, isOpen: true });
+    expect(simulation.getSales()).toHaveLength(saleCount);
+    expect(simulation.getProducts().find(item => item.id === product.id)?.currentPriceMinor).toBe(product.basePriceMinor);
+  });
+
+  it("ends a service and resets prices to base", () => {
+    const simulation = createFridayNightSimulation({ seed: 13 });
+    simulation.control({ action: "quick_start" });
+    const product = simulation.getProducts().find(item => item.id === "pos_tlj_cocktails_classic_espresso");
+    simulation.publishPrices({ publicationId: "end_price", lines: [{ productId: product.id, newPriceMinor: product.basePriceMinor + 100 }] });
+
+    simulation.control({ action: "end" });
+
+    expect(simulation.getState().service).toMatchObject({ running: false, ended: true, isOpen: false });
+    expect(simulation.getProducts().find(item => item.id === product.id)?.currentPriceMinor).toBe(product.basePriceMinor);
   });
 
   it("identifies a fresh reset so the market runner can clear the previous demo service", () => {

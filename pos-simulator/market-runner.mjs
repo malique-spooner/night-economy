@@ -1,8 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import { fileURLToPath } from "node:url";
-import { priceMarket } from "./src/marketPricing.mjs";
-
 const MARKET_CYCLE_MS = 5 * 60_000;
 
 export async function startMarketRunner({
@@ -14,8 +12,12 @@ export async function startMarketRunner({
   const intervalMs = Number(env.SIMULATOR_CYCLE_MS ?? 3750);
   const supabaseUrl = env.SUPABASE_URL ?? env.VITE_SUPABASE_URL;
   const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  const schedulerSecret = env.SCHEDULER_SECRET;
   if (!supabaseUrl || !serviceRoleKey || isPlaceholder(serviceRoleKey)) {
     throw new Error("Set SUPABASE_URL (or VITE_SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY before running the local market runner.");
+  }
+  if (!schedulerSecret || isPlaceholder(schedulerSecret)) {
+    throw new Error("Set SCHEDULER_SECRET before running the local market sync.");
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
@@ -30,7 +32,16 @@ export async function startMarketRunner({
     if (running) return;
     running = true;
     try {
-      const result = await runMarketCycle({ supabase, simulatorUrl, venueSlug, lastProcessedRoundEnd, lastSimulatorResetId });
+      const result = await runMarketCycle({
+        supabase,
+        simulatorUrl,
+        venueSlug,
+        marketCycleUrl: `${supabaseUrl}/functions/v1/market-cycle`,
+        schedulerSecret,
+        serviceRoleKey,
+        lastProcessedRoundEnd,
+        lastSimulatorResetId,
+      });
       if (result.processedRoundEnd) lastProcessedRoundEnd = result.processedRoundEnd;
       if (result.simulatorResetId !== undefined) lastSimulatorResetId = result.simulatorResetId;
       log.log(`${result.referenceTime} ${result.status}: ${result.importedSales} sale line${result.importedSales === 1 ? "" : "s"}, ${result.publishedLines} price update${result.publishedLines === 1 ? "" : "s"}`);
@@ -53,7 +64,17 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   });
 }
 
-export async function runMarketCycle({ supabase, simulatorUrl, venueSlug, fetchImpl = fetch, lastProcessedRoundEnd, lastSimulatorResetId } = {}) {
+export async function runMarketCycle({
+  supabase,
+  simulatorUrl,
+  venueSlug,
+  fetchImpl = fetch,
+  marketCycleUrl,
+  schedulerSecret,
+  serviceRoleKey,
+  lastProcessedRoundEnd,
+  lastSimulatorResetId,
+} = {}) {
   const [{ data: venue, error: venueError }, simulatorState] = await Promise.all([
     supabase.from("venues").select("id, slug, market_live").eq("slug", venueSlug).maybeSingle(),
     getJson(fetchImpl, `${simulatorUrl}/v1/simulation/state`),
@@ -86,52 +107,44 @@ export async function runMarketCycle({ supabase, simulatorUrl, venueSlug, fetchI
   });
   const referenceTime = simulatorState.service.simulatedTime;
 
-  if (!venue.market_live) {
-    return { importedSales, publishedLines: 0, referenceTime, simulatorResetId, status: resetDetected ? "service reset; market paused" : "market paused" };
+  if (!venue.market_live || simulatorState.service.running === false) {
+    const publishedLines = await resetPausedMarket({ supabase, fetchImpl, posBaseUrl, venueId: venue.id, connectionId: connection.id, productMap });
+    return { importedSales, publishedLines: publishedLines.length, referenceTime, simulatorResetId, status: resetDetected ? "service reset; market paused" : "market paused" };
   }
 
   const roundEnd = new Date(Math.floor(Date.parse(referenceTime) / MARKET_CYCLE_MS) * MARKET_CYCLE_MS).toISOString();
-  const roundStart = new Date(Date.parse(roundEnd) - MARKET_CYCLE_MS).toISOString();
   if (lastProcessedRoundEnd === roundEnd) {
     return { importedSales, publishedLines: 0, referenceTime, simulatorResetId, status: resetDetected ? "service reset; waiting for next five-minute round" : "waiting for next five-minute round" };
   }
 
-  const [{ data: latestSnapshot, error: snapshotLoadError }, { data: marketProducts, error: marketError }, { data: recentSales, error: salesError }] = await Promise.all([
+  const [{ data: latestSnapshot, error: snapshotLoadError }, { data: marketProducts, error: marketError }] = await Promise.all([
     supabase.from("market_price_snapshots").select("snapshot").eq("venue_id", venue.id).order("created_at", { ascending: false }).limit(1),
     supabase
       .from("market_products")
       .select("id, pos_product_id, category, base_price_minor, current_price_minor, floor_price_minor, ceiling_price_minor, is_live, is_sold_out")
       .eq("venue_id", venue.id)
       .not("pos_product_id", "is", null),
-    supabase
-      .from("pos_sales_events")
-      .select("pos_product_id, quantity")
-      .eq("venue_id", venue.id)
-      .gte("occurred_at", roundStart)
-      .lt("occurred_at", roundEnd),
   ]);
   throwIfError(snapshotLoadError, "load last market round");
   throwIfError(marketError, "load mapped market products");
-  throwIfError(salesError, "load five-minute sales window");
   if (latestSnapshot?.[0]?.snapshot?.roundEnd === roundEnd) {
     return { importedSales, publishedLines: 0, referenceTime, simulatorResetId, status: resetDetected ? "service reset; waiting for next five-minute round" : "waiting for next five-minute round" };
   }
 
-  const pricedProducts = (marketProducts ?? []).map(product => ({
-    id: product.id,
-    posProductId: product.pos_product_id,
-    basePriceMinor: product.base_price_minor,
-    currentPriceMinor: product.current_price_minor,
-    floorPriceMinor: product.floor_price_minor,
-    ceilingPriceMinor: product.ceiling_price_minor,
-    category: product.category,
-    isLive: product.is_live,
-    isSoldOut: product.is_sold_out,
-  }));
-  const decisions = priceMarket(pricedProducts, recentSales ?? []);
-
-  const changed = decisions
-    .map((decision, index) => ({ ...decision, posProductId: pricedProducts[index].posProductId }))
+  if (!marketCycleUrl || !schedulerSecret || !serviceRoleKey) {
+    throw new Error("The cloud market-cycle URL, scheduler secret, and server key are required.");
+  }
+  const cycle = await invokeCloudMarketCycle({
+    fetchImpl,
+    marketCycleUrl,
+    schedulerSecret,
+    serviceRoleKey,
+    venueSlug,
+    roundEnd,
+  });
+  const posProductIds = new Map((marketProducts ?? []).map(product => [product.id, product.pos_product_id]));
+  const changed = (cycle.snapshot?.decisions ?? [])
+    .map(decision => ({ ...decision, posProductId: posProductIds.get(decision.productId) }))
     .filter(decision => decision.oldPriceMinor !== decision.newPriceMinor);
   const publishedLines = changed.length
     ? await publishPrices({
@@ -145,31 +158,35 @@ export async function runMarketCycle({ supabase, simulatorUrl, venueSlug, fetchI
       })
     : [];
 
-  await Promise.all(
-    publishedLines.map(line =>
-      update(supabase, "market_products", {
-        current_price_minor: line.newPriceMinor,
-        updated_at: new Date().toISOString(),
-      }, "id", line.productId, "update published market price"),
-    ),
-  );
+  return { importedSales, publishedLines: publishedLines.length, referenceTime, processedRoundEnd: roundEnd, simulatorResetId, status: resetDetected ? "service reset; cloud price cycle published" : "cloud price cycle published" };
+}
 
-  const { error: snapshotError } = await supabase.from("market_price_snapshots").insert({
-    id: `snapshot_${crypto.randomUUID()}`,
-    venue_id: venue.id,
-    reason: "simulator_cycle",
-    status: "published",
-    snapshot: {
-      referenceTime,
-      roundStart,
-      roundEnd,
-      importedSales,
-      decisions,
+async function invokeCloudMarketCycle({ fetchImpl, marketCycleUrl, schedulerSecret, serviceRoleKey, venueSlug, roundEnd }) {
+  const response = await fetchImpl(marketCycleUrl, {
+    method: "POST",
+    headers: {
+      apikey: serviceRoleKey,
+      "content-type": "application/json",
+      "x-night-economy-scheduler-secret": schedulerSecret,
     },
+    body: JSON.stringify({ venueSlug, reason: "simulator_cycle", cycleEnd: roundEnd }),
   });
-  throwIfError(snapshotError, "write market snapshot");
+  if (!response.ok) throw new Error(`Cloud market cycle failed: ${response.status} ${await response.text()}`);
+  const result = await response.json();
+  if (!result.ok || !result.snapshot) throw new Error(result.error ?? "Cloud market cycle did not return a snapshot.");
+  return result;
+}
 
-  return { importedSales, publishedLines: publishedLines.length, referenceTime, processedRoundEnd: roundEnd, simulatorResetId, status: resetDetected ? "service reset; published" : "published" };
+async function resetPausedMarket({ supabase, fetchImpl, posBaseUrl, venueId, connectionId, productMap }) {
+  const { data: products, error } = await supabase.from("market_products").select("id, pos_product_id, base_price_minor, current_price_minor").eq("venue_id", venueId).not("pos_product_id", "is", null);
+  throwIfError(error, "load market prices to pause");
+  const decisions = (products ?? [])
+    .filter(product => product.current_price_minor !== product.base_price_minor)
+    .map(product => ({ productId: product.id, posProductId: product.pos_product_id, oldPriceMinor: product.current_price_minor, newPriceMinor: product.base_price_minor }));
+  if (!decisions.length) return [];
+  const publishedLines = await publishPrices({ supabase, fetchImpl, posBaseUrl, venueId, connectionId, decisions, productMap });
+  await Promise.all(publishedLines.map(line => update(supabase, "market_products", { current_price_minor: line.newPriceMinor, updated_at: new Date().toISOString() }, "id", line.productId, "reset paused market price")));
+  return publishedLines;
 }
 
 async function resetServiceData({ supabase, venueId }) {
@@ -273,7 +290,9 @@ async function importSales({ supabase, fetchImpl, posBaseUrl, venueId, connectio
     .limit(1);
   throwIfError(latestError, "load sales import cursor");
   const latestTime = latest?.[0]?.occurred_at;
-  const since = latestTime ? new Date(Date.parse(latestTime) - 60_000).toISOString() : "2026-07-17T17:59:00.000Z";
+  // The simulator starts at 18:00 London, which is 17:00 UTC during BST.
+  // Start one minute earlier on a fresh service so the opening sales are not skipped.
+  const since = latestTime ? new Date(Date.parse(latestTime) - 60_000).toISOString() : "2026-07-17T16:59:00.000Z";
   const { sales } = await getJson(fetchImpl, `${posBaseUrl}/v1/sales?since=${encodeURIComponent(since)}`);
   const rows = sales
     .filter(sale => productMap.has(sale.productId))

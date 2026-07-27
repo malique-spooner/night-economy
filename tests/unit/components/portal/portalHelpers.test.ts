@@ -8,7 +8,11 @@ import {
   normalizeMarketProductPatch,
   portalAccessMessage,
   prepareMarketProductConfiguration,
+  PRIORITY_DRINKS_PER_CATEGORY_LIMIT,
+  TV_CATEGORY_PAGE_LIMIT,
   venueSettingsAccessMessage,
+  wouldExceedPriorityLimit,
+  wouldNeedAnotherTvPage,
 } from "../../../../src/components/portal/portalHelpers";
 
 const product: MarketProduct = {
@@ -86,7 +90,7 @@ describe("market configuration access", () => {
   });
 
   it("keeps venue settings separate from product settings", () => {
-    expect(applyVenueSettingsPatch({ id: "ven_demo", slug: "demo", name: "Demo", currency: "GBP", timezone: "Europe/London", marketLive: false, crashIntervalMinutes: 30, launchDate: "2026-07-12", launchStartTime: "18:00", launchEndTime: "23:00" }, { marketLive: true })).toMatchObject({ marketLive: true, launchStartTime: "18:00" });
+    expect(applyVenueSettingsPatch({ id: "ven_demo", slug: "demo", name: "Demo", currency: "GBP", timezone: "Europe/London", marketLive: false, marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }], crashIntervalMinutes: 30, launchDate: "2026-07-12", launchStartTime: "18:00", launchEndTime: "23:00" }, { marketLive: true })).toMatchObject({ marketLive: true, launchStartTime: "18:00" });
   });
 
   it("requires a membership to configure live POS-backed products", () => {
@@ -99,5 +103,23 @@ describe("market configuration access", () => {
     expect(portalAccessMessage({ isSignedIn: false, isCheckingAccess: false, role: null, source: "seed" })).toBe("Demo changes stay local");
     expect(portalAccessMessage({ isSignedIn: true, isCheckingAccess: false, role: "owner", source: "supabase" })).toBe("Can configure as owner");
     expect(venueSettingsAccessMessage({ role: "staff", source: "supabase" })).toBe("Owner or admin access required");
+  });
+});
+
+describe("TV category page guidance", () => {
+  it("warns only when activating a thirteenth available drink in the same category", () => {
+    const cocktailPeers = Array.from({ length: TV_CATEGORY_PAGE_LIMIT }, (_, index) => ({ ...product, id: `mp_${index}`, isLive: true }));
+    const inactiveCocktail = { ...product, id: "mp_inactive", isLive: false };
+
+    expect(wouldNeedAnotherTvPage([...cocktailPeers, inactiveCocktail], inactiveCocktail, { isLive: true })).toBe(true);
+    expect(wouldNeedAnotherTvPage([...cocktailPeers.slice(0, -1), inactiveCocktail], inactiveCocktail, { isLive: true })).toBe(false);
+  });
+
+  it("limits each category to three live priority drinks", () => {
+    const priorityPeers = Array.from({ length: PRIORITY_DRINKS_PER_CATEGORY_LIMIT }, (_, index) => ({ ...product, id: `mp_priority_${index}`, priority: true }));
+    const nonPriorityCocktail = { ...product, id: "mp_not_priority", priority: false };
+
+    expect(wouldExceedPriorityLimit([...priorityPeers, nonPriorityCocktail], nonPriorityCocktail, { priority: true })).toBe(true);
+    expect(wouldExceedPriorityLimit([...priorityPeers.slice(0, -1), nonPriorityCocktail], nonPriorityCocktail, { priority: true })).toBe(false);
   });
 });

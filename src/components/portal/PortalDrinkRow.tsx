@@ -43,9 +43,9 @@ export function PortalDrinkRow({ allProducts, history, historyLoading, onChange,
         <span>Price</span>
         <strong>{formatMoney(product.currentPriceMinor)}</strong>
       </div>
-      <label className="portal-priority-toggle" title="Mark as high priority">
+      <label className="portal-priority-toggle" title={product.isLive ? "Show this drink in this category's three TV feature cards" : "Make this drink live before choosing it as a TV priority"}>
         <span>Priority</span>
-        <input checked={product.priority} onChange={event => onChange(product.id, { priority: event.target.checked })} type="checkbox" />
+        <input checked={product.priority} disabled={!product.isLive} onChange={event => onChange(product.id, { priority: event.target.checked })} type="checkbox" />
       </label>
       <PortalMoneyField label="Floor" valueMinor={product.floorPriceMinor} onChange={floorPriceMinor => onChange(product.id, { floorPriceMinor })} />
       <div className="portal-base-price">

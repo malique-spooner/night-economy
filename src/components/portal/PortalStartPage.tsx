@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { SimulatorState } from "../../api/simulator";
 import type { MarketProduct, Venue, VenueMarketSettings } from "../../engine/types";
 import type { MarketPriceHistoryPoint, MarketProductPatch, PosProduct, VenueMarketSettingsPatch } from "../../api/market";
 import { groupProductsByCategory } from "../tv/tvHelpers";
@@ -13,11 +14,16 @@ type Props = {
   onSelectProduct: (productId: string) => void;
   onConfigurePosProduct: (posProduct: PosProduct) => void;
   onVenueSettingsChange: (patch: VenueMarketSettingsPatch) => void;
+  onQuickStart: () => void;
+  onPause: () => void;
+  onResume: () => void;
+  onEnd: () => void;
   products: MarketProduct[];
   priceHistory: MarketPriceHistoryPoint[];
   priceHistoryLoading: boolean;
   posProducts: PosProduct[];
   selectedProductId: string | null;
+  simulatorState: SimulatorState | null;
   venue: Venue;
 };
 
@@ -26,10 +32,15 @@ export function PortalStartPage({
   onProductChange,
   onSelectProduct,
   onVenueSettingsChange,
+  onQuickStart,
+  onPause,
+  onResume,
+  onEnd,
   products,
   priceHistory,
   priceHistoryLoading,
   selectedProductId,
+  simulatorState,
   posProducts,
   venue,
 }: Props) {
@@ -41,6 +52,7 @@ export function PortalStartPage({
   const settings: VenueMarketSettings = {
     marketLive: venue.marketLive,
     crashIntervalMinutes: venue.crashIntervalMinutes,
+    marketSchedule: venue.marketSchedule,
     launchDate: venue.launchDate,
     launchStartTime: venue.launchStartTime,
     launchEndTime: venue.launchEndTime,
@@ -49,7 +61,7 @@ export function PortalStartPage({
   return (
     <section className="portal-start-page">
       <h1 className="portal-page-title">Portal</h1>
-      <PortalLaunchStrip onSettingsChange={onVenueSettingsChange} settings={settings} />
+      <PortalLaunchStrip onEnd={onEnd} onPause={onPause} onQuickStart={onQuickStart} onResume={onResume} onSettingsChange={onVenueSettingsChange} settings={settings} simulatorState={simulatorState} />
       <PortalCategoryFilters activeCategory={activeCategory} categories={categories} onCategoryChange={setSelectedCategory} />
       <div className="portal-drink-list">
         {visibleGroups.map(([category, categoryProducts]) => (

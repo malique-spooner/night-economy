@@ -3,6 +3,9 @@ import type { MarketProductPatch, PosProduct, VenueMarketSettingsPatch } from ".
 import type { VenueMemberRole } from "../../api/memberships";
 import { categoryLabel, groupProductsByCategory } from "../tv/tvHelpers";
 
+export const TV_CATEGORY_PAGE_LIMIT = 12;
+export const PRIORITY_DRINKS_PER_CATEGORY_LIMIT = 3;
+
 export function portalCategories(products: MarketProduct[]) { return groupProductsByCategory(products).map(([category]) => category); }
 export function portalCategoryOptions(products: MarketProduct[], currentCategory: string) { return [...new Set([...portalCategories(products), currentCategory].filter(Boolean))]; }
 export function portalCategoryLabel(category: string) { return categoryLabel(category); }
@@ -22,6 +25,21 @@ export function normalizeMarketProductPatch(product: MarketProduct, patch: Marke
 }
 
 export function applyMarketProductPatch(products: MarketProduct[], productId: string, patch: MarketProductPatch): MarketProduct[] { return products.map(product => (product.id === productId ? { ...product, ...patch } : product)); }
+export function wouldNeedAnotherTvPage(products: MarketProduct[], product: MarketProduct, patch: MarketProductPatch) {
+  const nextCategory = patch.category ?? product.category;
+  const willBeLive = patch.isLive ?? product.isLive;
+  if (!willBeLive || product.isSoldOut) return false;
+  const otherLiveProducts = products.filter(candidate => candidate.id !== product.id && candidate.category === nextCategory && candidate.isLive && !candidate.isSoldOut).length;
+  return otherLiveProducts >= TV_CATEGORY_PAGE_LIMIT;
+}
+export function wouldExceedPriorityLimit(products: MarketProduct[], product: MarketProduct, patch: MarketProductPatch) {
+  const nextCategory = patch.category ?? product.category;
+  const willBePriority = patch.priority ?? product.priority;
+  const willBeLive = patch.isLive ?? product.isLive;
+  if (!willBePriority || !willBeLive || product.isSoldOut) return false;
+  const otherPriorityProducts = products.filter(candidate => candidate.id !== product.id && candidate.category === nextCategory && candidate.priority && candidate.isLive && !candidate.isSoldOut).length;
+  return otherPriorityProducts >= PRIORITY_DRINKS_PER_CATEGORY_LIMIT;
+}
 export function applyVenueSettingsPatch(venue: Venue, patch: VenueMarketSettingsPatch): Venue { return { ...venue, ...patch }; }
 export function canEditMarketProducts({ isSignedIn, role, source }: { isSignedIn: boolean; role: VenueMemberRole | null; source: "seed" | "supabase" }) { return source === "seed" || (isSignedIn && role !== null); }
 export function canManageVenueSettings({ role, source }: { role: VenueMemberRole | null; source: "seed" | "supabase" }) { return source === "seed" || role === "owner" || role === "admin"; }

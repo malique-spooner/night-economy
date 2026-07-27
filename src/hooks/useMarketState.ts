@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getMarketState, type MarketState } from "../api/market";
 import { supabase } from "../api/client";
 
-export function useMarketState(venueSlug: string) {
+export function useMarketState(venueSlug: string, { pollIntervalMs = 0 }: { pollIntervalMs?: number } = {}) {
   const [state, setState] = useState<MarketState | null>(null);
   const [error, setError] = useState<string>("");
 
@@ -19,6 +19,14 @@ export function useMarketState(venueSlug: string) {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  // Realtime is the fast path. Public displays also poll as a dependable
+  // fallback for TVs and phones that have slept or missed a websocket event.
+  useEffect(() => {
+    if (!pollIntervalMs) return undefined;
+    const interval = window.setInterval(() => { void refresh(); }, pollIntervalMs);
+    return () => window.clearInterval(interval);
+  }, [pollIntervalMs, refresh]);
 
   useEffect(() => {
     if (!supabase || state?.source !== "supabase") return undefined;

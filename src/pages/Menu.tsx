@@ -12,12 +12,16 @@ type Props = {
 };
 
 export function Menu({ venueSlug }: Props) {
-  const { error, state } = useMarketState(venueSlug);
+  const { error, state } = useMarketState(venueSlug, { pollIntervalMs: 2_000 });
 
   if (error) return <main className="page">Could not load menu: {error}</main>;
   if (!state) return <main className="page">Loading menu...</main>;
 
-  const groups = groupProductsByCategory(state.products);
+  // The public menu is the live market board, not the venue's full catalogue.
+  // This keeps it aligned with the TV and prevents inactive drinks appearing
+  // with prices that are not currently being managed by the market.
+  const activeProducts = state.products.filter(product => product.isLive);
+  const groups = groupProductsByCategory(activeProducts);
   const categoryLinks = groups.map(([category]) => ({
     id: mobileCategorySectionId(category),
     label: categoryLabel(category),
@@ -30,7 +34,7 @@ export function Menu({ venueSlug }: Props) {
         <div className="mobile-shell">
           <MobileHero />
           <main className="mobile-menu">
-            <MobileMarketBrief products={state.products} venue={state.venue} />
+            <MobileMarketBrief products={activeProducts} venue={state.venue} />
             <MobileCategoryRail categories={categoryLinks} />
             {groups.map(([category, products]) => (
               <MobileMarketSection category={category} products={products} venue={state.venue} key={category} />

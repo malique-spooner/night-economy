@@ -62,6 +62,27 @@ export function groupProductsByCategory(products: MarketProduct[]) {
   );
 }
 
+const tvCategoryOrder = ["Beer", "Cocktails", "Spirits", "Wine", "Other Drinks"];
+
+export function sortTvCategories(groups: Array<[string, MarketProduct[]]>) {
+  return [...groups].sort(([left], [right]) => {
+    const leftIndex = tvCategoryOrder.indexOf(left);
+    const rightIndex = tvCategoryOrder.indexOf(right);
+    const normalizedLeft = leftIndex === -1 ? tvCategoryOrder.length : leftIndex;
+    const normalizedRight = rightIndex === -1 ? tvCategoryOrder.length : rightIndex;
+    return normalizedLeft - normalizedRight || left.localeCompare(right);
+  });
+}
+
+// A TV should lead with the drinks staff and guests most need to notice.
+export function sortTvBoardProducts(products: MarketProduct[]) {
+  return [...products].sort((left, right) => {
+    if (left.priority !== right.priority) return left.priority ? -1 : 1;
+    const movement = Math.abs(productChangePercent(right)) - Math.abs(productChangePercent(left));
+    return movement || left.name.localeCompare(right.name);
+  });
+}
+
 export function categoryChangePercent(products: MarketProduct[]) {
   if (!products.length) return 0;
   return products.reduce((total, product) => total + productChangePercent(product), 0) / products.length;
@@ -75,6 +96,18 @@ export function getFeaturedProducts(products: MarketProduct[]) {
       return Math.abs(productChangePercent(b)) - Math.abs(productChangePercent(a));
     })
     .slice(0, 3);
+}
+
+// Each category owns its three top TV cards. Operator priorities stay fixed;
+// any empty slots rotate through the other live drinks each time that category
+// comes back on screen.
+export function getCategoryFeaturedProducts(products: MarketProduct[], rotation = 0) {
+  const activeProducts = products.filter(product => product.isLive && !product.isSoldOut);
+  const priorities = activeProducts.filter(product => product.priority).slice(0, 3);
+  const availableFillers = activeProducts.filter(product => !product.priority);
+  const fillerOffset = availableFillers.length ? rotation % availableFillers.length : 0;
+  const rotatedFillers = [...availableFillers.slice(fillerOffset), ...availableFillers.slice(0, fillerOffset)];
+  return [...priorities, ...rotatedFillers].slice(0, 3);
 }
 
 export function getStoryProduct(products: MarketProduct[]) {

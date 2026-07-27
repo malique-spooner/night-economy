@@ -11,18 +11,13 @@
       <header>
         <p class="eyebrow">Night Economy development tool</p>
         <h1>Friday Service Simulator</h1>
-        <p class="subtitle">A deterministic POS that runs 18:00–02:00 in fifteen minutes at 32× speed.</p>
+        <p class="subtitle">A deterministic POS that runs 18:00–00:00 in eleven minutes at 32× speed.</p>
+        <div class="sim-clock" aria-live="polite"><span>Simulated time</span><time id="sim-clock">18:00</time></div>
       </header>
       <section class="status-grid" id="status"></section>
       <section class="controls panel">
-        <div class="control-group">
-          <button data-action="start">Start service</button>
-          <button data-action="pause" class="quiet">Pause</button>
-          <button data-action="reset" class="quiet">Reset</button>
-          <button data-action="advance" class="quiet">+1 min</button>
-        </div>
         <label>Speed <select id="speed"><option value="1">1×</option><option value="10">10×</option><option value="32" selected>32×</option><option value="60">60×</option></select></label>
-        <label>Service level <select id="crowd"><option value="quiet">Quiet</option><option value="normal" selected>Normal</option><option value="busy">Busy</option></select></label>
+        <label>Target takings <input id="target-takings" min="0" step="1" type="number" value="10000" /></label>
         <div class="control-group">
           <button data-event="rush">Trigger rush</button>
           <button data-event="slowdown" class="quiet">Trigger slowdown</button>

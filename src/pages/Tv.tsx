@@ -5,6 +5,7 @@ import { TvBackground } from "../components/tv/TvBackground";
 import { TvStoryPanel } from "../components/tv/TvStoryPanel";
 import { TvTopBar } from "../components/tv/TvTopBar";
 import { marketStatusLabel } from "../components/tv/tvHelpers";
+import { getSimulatorState } from "../api/simulator";
 import { useMarketState } from "../hooks/useMarketState";
 import { PageSwitcher } from "./PageSwitcher";
 
@@ -13,12 +14,26 @@ type Props = {
 };
 
 export function Tv({ venueSlug }: Props) {
-  const { error, state } = useMarketState(venueSlug);
+  const { error, state } = useMarketState(venueSlug, { pollIntervalMs: 2_000 });
   const [clock, setClock] = useState(() => formatClock(new Date()));
 
   useEffect(() => {
-    const timer = window.setInterval(() => setClock(formatClock(new Date())), 1000);
-    return () => window.clearInterval(timer);
+    let cancelled = false;
+    async function refreshClock() {
+      try {
+        const simulation = await getSimulatorState();
+        if (!cancelled) setClock(formatClock(new Date(simulation.service.simulatedTime)));
+      } catch {
+        // A deployed venue has no local simulator. Keep a London venue clock.
+        if (!cancelled) setClock(formatClock(new Date()));
+      }
+    }
+    void refreshClock();
+    const timer = window.setInterval(() => { void refreshClock(); }, 1_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
   }, []);
 
   if (error) return <main className="page">Could not load market: {error}</main>;
@@ -50,5 +65,6 @@ function formatClock(date: Date) {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
+    timeZone: "Europe/London",
   });
 }

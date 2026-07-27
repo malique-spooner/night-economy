@@ -13,7 +13,7 @@ describe("local market runner", () => {
     expect(decisions).toMatchObject([{ productId: "espresso", movement: "up" }, { productId: "margarita", movement: "hold" }, { productId: "negroni", movement: "down" }, { productId: "lager", movement: "hold" }]);
   });
 
-  it("imports a POS sale, publishes the market price, and keeps the POS and market price in sync", async () => {
+  it("imports simulator sales and asks the cloud engine to calculate the market price", async () => {
     const database = {
       venues: [{ id: "ven_demo", slug: "demo-venue", market_live: true }],
       pos_connections: [{ id: "pos_sim_demo", venue_id: "ven_demo", provider: "simulator", base_url: "http://simulator", status: "active" }],
@@ -34,19 +34,33 @@ describe("local market runner", () => {
         publications.push(body);
         return json({ publicationId: body.publicationId, status: "published", lines: body.lines.map(line => ({ productId: line.productId, status: "published", oldPriceMinor: 1200, newPriceMinor: line.newPriceMinor })) });
       }
+      if (url === "https://example.supabase.co/functions/v1/market-cycle" && init.method === "POST") {
+        const body = JSON.parse(init.body);
+        expect(init.headers["x-night-economy-scheduler-secret"]).toBe("scheduler-secret");
+        expect(body).toMatchObject({ venueSlug: "demo-venue", reason: "simulator_cycle", cycleEnd: "2026-07-17T22:00:00.000Z" });
+        database.market_price_snapshots.push({ snapshot: { roundEnd: body.cycleEnd } });
+        return json({
+          ok: true,
+          snapshot: {
+            decisions: [{ productId: "mp_cem", oldPriceMinor: 1200, newPriceMinor: 1200, movement: "hold", reason: "No orders were recorded in this category, so the price held." }],
+          },
+        });
+      }
       throw new Error(`Unexpected POS request ${url}`);
     };
 
-    const result = await runMarketCycle({ supabase: new MemorySupabase(database), simulatorUrl: "http://simulator", venueSlug: "demo-venue", fetchImpl });
+    const runnerOptions = { marketCycleUrl: "https://example.supabase.co/functions/v1/market-cycle", schedulerSecret: "scheduler-secret", serviceRoleKey: "sb_secret_test" };
+    const result = await runMarketCycle({ supabase: new MemorySupabase(database), simulatorUrl: "http://simulator", venueSlug: "demo-venue", fetchImpl, ...runnerOptions });
     const duplicate = await runMarketCycle({
       supabase: new MemorySupabase(database),
       simulatorUrl: "http://simulator",
       venueSlug: "demo-venue",
       fetchImpl,
+      ...runnerOptions,
       lastProcessedRoundEnd: result.processedRoundEnd,
     });
 
-    expect(result).toMatchObject({ importedSales: 1, publishedLines: 0, status: "published" });
+    expect(result).toMatchObject({ importedSales: 1, publishedLines: 0, status: "cloud price cycle published" });
     expect(duplicate).toMatchObject({ publishedLines: 0, status: "waiting for next five-minute round" });
     expect(database.pos_sales_events).toHaveLength(1);
     expect(database.market_price_snapshots).toHaveLength(1);

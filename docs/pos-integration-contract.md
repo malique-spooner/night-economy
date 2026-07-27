@@ -90,4 +90,4 @@ Night Economy publishes only mapped market-product prices. The POS applies accep
 
 ## Local development loop
 
-The local POS Simulator runs independently on `http://127.0.0.1:3002`. A local market runner polls this contract, writes imported sales into Supabase, runs the market engine, and posts price publications back to the simulator. A deployed Supabase function will use the same contract against a reachable HTTPS POS endpoint.
+The local POS Simulator runs independently on `http://127.0.0.1:3002`. Its local connector polls this contract, writes imported sales into Supabase, asks the deployed `market-cycle` Edge Function to calculate the price round, and posts those resulting price publications back to the simulator. The pricing engine itself runs only in Supabase; the local connector exists solely because Supabase cannot call a local development URL.

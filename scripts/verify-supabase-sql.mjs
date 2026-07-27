@@ -19,6 +19,12 @@ const expectedMigrations = [
   "014_hide_legacy_demo_catalogue.sql",
   "015_pos_catalogue_grouping.sql",
   "016_configure_wine_market_variants.sql",
+  "20260726084640_add_market_schedule.sql",
+  "20260726084653_normalize_market_schedule_midnight.sql",
+  "20260727062059_curate_live_tv_menu.sql",
+  "20260727062121_clear_curated_priority.sql",
+  "20260727062930_limit_category_tv_priorities.sql",
+  "20260727063247_fill_live_tv_categories.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)

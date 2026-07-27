@@ -5,6 +5,7 @@ import {
   categoryClass,
   categoryLabel,
   formatChangePercent,
+  getCategoryFeaturedProducts,
   getFeaturedProducts,
   getStoryProduct,
   groupProductsByCategory,
@@ -13,6 +14,8 @@ import {
   movementLabel,
   mobilePriceStatusLabel,
   productTrend,
+  sortTvBoardProducts,
+  sortTvCategories,
 } from "../../../../src/components/tv/tvHelpers";
 
 const baseProduct: MarketProduct = {
@@ -65,6 +68,22 @@ describe("tvHelpers", () => {
     expect(groups[0][1].map(item => item.id)).toEqual(["a", "c"]);
   });
 
+  it("orders TV pages by venue category and each page by priority then movement", () => {
+    const groups = sortTvCategories([
+      ["Wine", [product({ id: "wine", category: "Wine" })]],
+      ["Cocktails", [product({ id: "cocktail", category: "Cocktails" })]],
+      ["Beer", [product({ id: "beer", category: "Beer" })]],
+    ]);
+    const boardProducts = sortTvBoardProducts([
+      product({ id: "steady", name: "Zulu", currentPriceMinor: 1000 }),
+      product({ id: "mover", name: "Alpha", currentPriceMinor: 1120 }),
+      product({ id: "priority", name: "Beta", currentPriceMinor: 990, priority: true }),
+    ]);
+
+    expect(groups.map(([category]) => category)).toEqual(["Beer", "Cocktails", "Wine"]);
+    expect(boardProducts.map(item => item.id)).toEqual(["priority", "mover", "steady"]);
+  });
+
   it("averages category movement", () => {
     expect(
       categoryChangePercent([
@@ -86,6 +105,17 @@ describe("tvHelpers", () => {
     ]);
 
     expect(featured.map(item => item.id)).toEqual(["priority", "large-move", "medium-move"]);
+  });
+
+  it("keeps priorities on the TV cards and rotates other drinks into empty slots", () => {
+    const featured = getCategoryFeaturedProducts([
+      product({ id: "first", priority: true }),
+      product({ id: "second", priority: false }),
+      product({ id: "third", priority: false }),
+      product({ id: "fourth", priority: false }),
+    ], 1);
+
+    expect(featured.map(item => item.id)).toEqual(["first", "third", "fourth"]);
   });
 
   it("uses the first featured product as the story product", () => {

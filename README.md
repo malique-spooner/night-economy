@@ -31,15 +31,9 @@ npm run simulator:dev
 
 It provides the Friday-night service GUI and POS API at `http://127.0.0.1:3002`.
 
-When real Supabase credentials and the `008` migration are applied, run the local market runner in a third terminal:
+With real Supabase credentials, the simulator automatically starts its local connector. It polls every 3.75 seconds, imports sales, asks the protected Supabase `market-cycle` function to calculate each five-minute market round, then publishes the resulting prices back to the local POS.
 
-```bash
-npm run simulator:market
-```
-
-It polls the simulator every 3.75 seconds (two simulated service minutes at 32x), imports sales, calculates market prices, and publishes changed prices back to the simulator.
-
-Use Node.js 22 or newer. `.nvmrc` is set to `22` for local shells that use `nvm`.
+`npm run simulator:market` remains available only when you need to run that connector separately. Use Node.js 22 or newer. `.nvmrc` is set to `22` for local shells that use `nvm`.
 
 Open the app:
 

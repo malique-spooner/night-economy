@@ -1,14 +1,16 @@
-export type SimulatorCrowd = "quiet" | "normal" | "busy";
-
 export type SimulatorState = {
   recentPublications: Array<{ publicationId: string; status: string }>;
   service: {
-    crowd: SimulatorCrowd;
     isComplete: boolean;
+    isOpen: boolean;
+    hasStarted: boolean;
+    paused: boolean;
+    ended: boolean;
     minute: number;
     running: boolean;
     simulatedTime: string;
     speed: number;
+    targetRevenueMinor: number;
   };
   totals: {
     revenueMinor: number;
@@ -30,11 +32,11 @@ export async function getSimulatorState(): Promise<SimulatorState> {
   return getJson("/v1/simulation/state");
 }
 
-export async function controlSimulator(action: "start" | "pause" | "reset", options: { crowd?: SimulatorCrowd; speed?: number } = {}) {
+export async function controlSimulator(action: "start" | "quick_start" | "pause" | "resume" | "end" | "reset_prices", options: { speed?: number; targetRevenueMinor?: number } = {}) {
   return postJson("/v1/simulation/control", { action, ...options });
 }
 
-export async function updateSimulatorService(options: { crowd?: SimulatorCrowd; speed?: number }) {
+export async function updateSimulatorService(options: { speed?: number; targetRevenueMinor?: number }) {
   return postJson("/v1/simulation/control", options);
 }
 

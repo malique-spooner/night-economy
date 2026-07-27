@@ -2,6 +2,7 @@ import { createReadStream, existsSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
+import { startMarketRunner } from "./market-runner.mjs";
 import { createFridayNightSimulation } from "./src/fridayNight.mjs";
 
 const port = Number(process.env.POS_SIMULATOR_PORT ?? 3002);
@@ -9,6 +10,7 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 const publicRoot = join(root, "public");
 let simulator = createFridayNightSimulation();
 let previousTick = Date.now();
+let marketRunnerTimer;
 
 setInterval(() => {
   const now = Date.now();
@@ -48,7 +50,17 @@ createServer(async (request, response) => {
   }
 }).listen(port, "127.0.0.1", () => {
   console.log(`POS Simulator running at http://127.0.0.1:${port}`);
+  void startMarketRunner()
+    .then(timer => { marketRunnerTimer = timer; })
+    .catch(error => console.error(`Local price updates are unavailable: ${error instanceof Error ? error.message : "Unknown error"}`));
 });
+
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.once(signal, () => {
+    if (marketRunnerTimer) clearInterval(marketRunnerTimer);
+    process.exit(0);
+  });
+}
 
 function serveStatic(pathname, response) {
   const requestedPath = pathname === "/" ? "/index.html" : pathname;

@@ -11,10 +11,13 @@ import {
   normalizeMarketProductPatch,
   portalAccessMessage,
   venueSettingsAccessMessage,
+  wouldExceedPriorityLimit,
+  wouldNeedAnotherTvPage,
 } from "../components/portal/portalHelpers";
 import { useMarketState } from "../hooks/useMarketState";
 import { supabaseStatus } from "../api/client";
 import { getCurrentSession, onAuthStateChange, signInWithEmail, signOut } from "../api/auth";
+import { controlSimulator, getSimulatorState, type SimulatorState } from "../api/simulator";
 import { getVenueMemberRole, type VenueMemberRole } from "../api/memberships";
 import {
   createMarketProductConfiguration,
@@ -36,7 +39,9 @@ type Props = {
 };
 
 export function Portal({ venueSlug }: Props) {
-  const { error, setState, state } = useMarketState(venueSlug);
+  // Realtime normally delivers changes instantly. Polling keeps the operator
+  // view in sync with the POS if the browser misses a websocket event.
+  const { error, setState, state } = useMarketState(venueSlug, { pollIntervalMs: 2_000 });
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,6 +55,10 @@ export function Portal({ venueSlug }: Props) {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [priceHistory, setPriceHistory] = useState<MarketPriceHistoryPoint[]>([]);
   const [priceHistoryLoading, setPriceHistoryLoading] = useState(false);
+  const [simulatorState, setSimulatorState] = useState<SimulatorState | null>(null);
+  const [isEndConfirmationOpen, setIsEndConfirmationOpen] = useState(false);
+  const [tvPageWarning, setTvPageWarning] = useState<{ category: string; productId: string; patch: MarketProductPatch; options: { persist?: boolean }; productName: string } | null>(null);
+  const [priorityLimitWarning, setPriorityLimitWarning] = useState<string | null>(null);
 
   useEffect(() => {
     void refreshSession();
@@ -97,6 +106,26 @@ export function Portal({ venueSlug }: Props) {
       cancelled = true;
     };
   }, [isSignedIn, state?.source, state?.venue.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshSimulator() {
+      try {
+        const nextState = await getSimulatorState();
+        if (!cancelled) setSimulatorState(nextState);
+      } catch {
+        if (!cancelled) setSimulatorState(null);
+      }
+    }
+
+    void refreshSimulator();
+    const interval = window.setInterval(() => { void refreshSimulator(); }, 1_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     if (!state || !selectedProductId || state.source === "seed") {
@@ -162,14 +191,28 @@ export function Portal({ venueSlug }: Props) {
     productId: string,
     patch: MarketProductPatch,
     options: { persist?: boolean } = {},
+    skipTvPageWarning = false,
   ) {
     if (!state) return;
     const currentProduct = state.products.find(product => product.id === productId);
     if (!currentProduct) return;
-    const normalizedPatch = normalizeMarketProductPatch(currentProduct, patch);
+    const normalizedPatch = {
+      ...normalizeMarketProductPatch(currentProduct, patch),
+      ...(patch.isLive === false ? { priority: false } : {}),
+    };
 
     if (!canPersist) {
       setLastSavedMessage(accessMessage);
+      return;
+    }
+
+    if (wouldExceedPriorityLimit(state.products, currentProduct, normalizedPatch)) {
+      setPriorityLimitWarning(normalizedPatch.category ?? currentProduct.category);
+      return;
+    }
+
+    if (!skipTvPageWarning && wouldNeedAnotherTvPage(state.products, currentProduct, normalizedPatch)) {
+      setTvPageWarning({ category: normalizedPatch.category ?? currentProduct.category, productId, patch: normalizedPatch, options, productName: currentProduct.name });
       return;
     }
 
@@ -239,12 +282,57 @@ export function Portal({ venueSlug }: Props) {
     const nextVenue = applyVenueSettingsPatch(state.venue, patch);
     setState({ ...state, venue: nextVenue });
 
+
     try {
       const result = await updateVenueMarketSettings(state.venue.id, patch);
       setLastSavedMessage(result.persisted ? "Launch settings saved" : "Demo launch settings");
     } catch (error) {
       setState(current => (current ? { ...current, venue: previousVenue } : current));
       setLastSavedMessage(error instanceof Error ? `Not saved: ${error.message}` : "Not saved");
+    }
+  }
+
+  async function handleQuickStart() {
+    try {
+      // The simulator owns pace and target takings. Quick start only rewinds it
+      // to 18:00, preserves those controls, and starts the service.
+      const nextSimulatorState = await controlSimulator("quick_start");
+      setSimulatorState(nextSimulatorState);
+      await handleVenueSettingsChange({ marketLive: true });
+      setLastSavedMessage("Quick-started Friday service at 18:00");
+    } catch (error) {
+      setLastSavedMessage(error instanceof Error ? `Could not quick start: ${error.message}` : "Could not quick start the simulator");
+    }
+  }
+
+  async function handlePause() {
+    try {
+      setSimulatorState(await controlSimulator("pause"));
+      setLastSavedMessage("Market paused and prices reset to base");
+    } catch (error) {
+      setLastSavedMessage(error instanceof Error ? `Could not pause: ${error.message}` : "Could not pause the simulator");
+    }
+  }
+
+  async function handleResume() {
+    try {
+      setSimulatorState(await controlSimulator("resume"));
+      await handleVenueSettingsChange({ marketLive: true });
+      setLastSavedMessage("Market resumed");
+    } catch (error) {
+      setLastSavedMessage(error instanceof Error ? `Could not resume: ${error.message}` : "Could not resume the simulator");
+    }
+  }
+
+  async function handleEnd() {
+    try {
+      setSimulatorState(await controlSimulator("end"));
+      await handleVenueSettingsChange({ marketLive: false });
+      setLastSavedMessage("Market ended and prices reset to base");
+    } catch (error) {
+      setLastSavedMessage(error instanceof Error ? `Could not end: ${error.message}` : "Could not end the simulator");
+    } finally {
+      setIsEndConfirmationOpen(false);
     }
   }
 
@@ -313,11 +401,16 @@ export function Portal({ venueSlug }: Props) {
                     onProductChange={handleProductChange}
                     onSelectProduct={handleToggleProductHistory}
                     onVenueSettingsChange={handleVenueSettingsChange}
+                    onQuickStart={handleQuickStart}
+                    onPause={handlePause}
+                    onResume={handleResume}
+                    onEnd={() => setIsEndConfirmationOpen(true)}
                     products={state.products}
                     priceHistory={priceHistory}
                     priceHistoryLoading={priceHistoryLoading}
                     posProducts={posProducts}
                     selectedProductId={selectedProductId}
+                    simulatorState={simulatorState}
                     venue={state.venue}
                   />
                 ) : (
@@ -331,6 +424,40 @@ export function Portal({ venueSlug }: Props) {
                     venue={state.venue}
                   />
                 )}
+                {isEndConfirmationOpen ? <div className="portal-confirm-backdrop" role="presentation">
+                  <section aria-labelledby="end-market-title" aria-modal="true" className="portal-confirm-dialog" role="dialog">
+                    <span className="portal-start-kicker">End market</span>
+                    <h2 id="end-market-title">End this service early?</h2>
+                    <p>Sales will stop and every market price will return to its base price.</p>
+                    <div>
+                      <button onClick={() => setIsEndConfirmationOpen(false)} type="button">Keep service running</button>
+                      <button className="portal-confirm-end" onClick={handleEnd} type="button">End service</button>
+                    </div>
+                  </section>
+                </div> : null}
+                {tvPageWarning ? <div className="portal-confirm-backdrop" role="presentation">
+                  <section aria-labelledby="tv-page-warning-title" aria-modal="true" className="portal-confirm-dialog" role="dialog">
+                    <span className="portal-start-kicker">TV display</span>
+                    <h2 id="tv-page-warning-title">Add another {tvPageWarning.category} TV page?</h2>
+                    <p>Making {tvPageWarning.productName} live puts more than 13 drinks in {tvPageWarning.category}. The TV will rotate through multiple {tvPageWarning.category} pages and label them, for example “{tvPageWarning.category} · 1 / 2”.</p>
+                    <div>
+                      <button onClick={() => setTvPageWarning(null)} type="button">Keep one page</button>
+                      <button className="portal-confirm-end" onClick={() => {
+                        const pending = tvPageWarning;
+                        setTvPageWarning(null);
+                        void handleProductChange(pending.productId, pending.patch, pending.options, true);
+                      }} type="button">Add drink</button>
+                    </div>
+                  </section>
+                </div> : null}
+                {priorityLimitWarning ? <div className="portal-confirm-backdrop" role="presentation">
+                  <section aria-labelledby="priority-limit-warning-title" aria-modal="true" className="portal-confirm-dialog" role="dialog">
+                    <span className="portal-start-kicker">TV priorities</span>
+                    <h2 id="priority-limit-warning-title">Three priority drinks per category</h2>
+                    <p>{priorityLimitWarning} already has three priority drinks. Turn one off before choosing another TV feature.</p>
+                    <div><button className="portal-confirm-end" onClick={() => setPriorityLimitWarning(null)} type="button">Okay</button></div>
+                  </section>
+                </div> : null}
               </div>
             </main>
           </div>

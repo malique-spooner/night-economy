@@ -22,7 +22,7 @@
 - If a category has **N** live products, each sale gives the sold product **+(N−1) market points**.
 - That same sale gives every other live product in the category **−1 point**.
 - This makes every sale exactly zero-sum: the category’s total points always equal zero.
-- Example: with three live cocktails, one Espresso Martini sale gives Espresso Martini `+1`, and each other cocktail `−0.5`.
+- Example: with three live cocktails, one Espresso Martini sale gives Espresso Martini `+2`, and each other cocktail `−1`.
 - If all products sell equally, their positive and negative points cancel out, so every price holds.
 - A product falls only when its peers collectively earn more points. There is no separate low-sales penalty.
 - A category with one live product does not move: it has nobody to compete with.

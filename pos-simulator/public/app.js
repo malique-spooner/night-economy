@@ -1,13 +1,6 @@
 const money = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" });
 const stateUrl = "/v1/simulation/state";
 
-document.querySelectorAll("[data-action]").forEach(button => {
-  button.addEventListener("click", async () => {
-    await post("/v1/simulation/control", { action: button.dataset.action });
-    await refresh();
-  });
-});
-
 document.querySelectorAll("[data-event]").forEach(button => {
   button.addEventListener("click", async () => {
     await post("/v1/simulation/events", { type: button.dataset.event });
@@ -20,8 +13,8 @@ document.querySelector("#speed").addEventListener("change", async event => {
   await refresh();
 });
 
-document.querySelector("#crowd").addEventListener("change", async event => {
-  await post("/v1/simulation/control", { crowd: event.target.value });
+document.querySelector("#target-takings").addEventListener("change", async event => {
+  await post("/v1/simulation/control", { targetRevenueMinor: Math.round(Number(event.target.value || 0) * 100) });
   await refresh();
 });
 
@@ -34,12 +27,13 @@ async function refresh() {
 function render(state) {
   const { service, products, recentSales, recentPublications, totals } = state;
   document.querySelector("#speed").value = String(service.speed);
-  document.querySelector("#crowd").value = service.crowd;
+  document.querySelector("#target-takings").value = String((service.targetRevenueMinor / 100).toFixed(0));
+  document.querySelector("#sim-clock").textContent = formatTime(service.simulatedTime);
   document.querySelector("#status").innerHTML = [
     ["Simulated time", formatTime(service.simulatedTime)],
     ["Speed", `${service.speed}×`],
-    ["Service level", service.crowd],
-    ["Status", service.isComplete ? "Complete" : service.running ? "Running" : "Paused"],
+    ["Target takings", price(service.targetRevenueMinor)],
+    ["Status", service.isComplete ? "Complete" : service.ended ? "Ended" : service.running ? "Running" : service.paused ? "Paused" : "Not started"],
     ["Sale lines", String(totals.salesCount)],
     ["Units sold", String(totals.unitsSold)],
   ].map(([label, value]) => `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`).join("");
@@ -56,7 +50,7 @@ function render(state) {
 
 function productName(products, id) { return products.find(product => product.id === id)?.name ?? id; }
 function price(minor) { return money.format(minor / 100); }
-function formatTime(value) { return new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(value)); }
+function formatTime(value) { return new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/London" }).format(new Date(value)); }
 function empty(message) { return `<p class="empty">${message}</p>`; }
 async function post(url, body) { const response = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }); if (!response.ok) throw new Error((await response.json()).error); return response.json(); }
 

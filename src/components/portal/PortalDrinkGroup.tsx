@@ -1,6 +1,6 @@
 import type { MarketProduct } from "../../engine/types";
 import type { MarketPriceHistoryPoint, MarketProductPatch } from "../../api/market";
-import { portalCategoryLabel } from "./portalHelpers";
+import { portalCategoryLabel, TV_CATEGORY_PAGE_LIMIT } from "./portalHelpers";
 import { PortalDrinkRow } from "./PortalDrinkRow";
 
 type Props = {
@@ -15,12 +15,13 @@ type Props = {
 };
 
 export function PortalDrinkGroup({ allProducts, category, onProductChange, onSelectProduct, priceHistory, priceHistoryLoading, products, selectedProductId }: Props) {
+  const liveProducts = products.filter(product => product.isLive && !product.isSoldOut).length;
   return (
     <section className="portal-drink-group">
       <div className="portal-drink-sticky-head">
         <div className="portal-drink-group-head">
           <strong>{portalCategoryLabel(category)}</strong>
-          <span>{products.length} drinks</span>
+          <span>{liveProducts} live · {products.length} drinks{liveProducts > TV_CATEGORY_PAGE_LIMIT ? ` · TV pages: ${Math.ceil(liveProducts / TV_CATEGORY_PAGE_LIMIT)}` : ""}</span>
         </div>
         <div className="portal-drink-column-head" aria-hidden="true">
           <span>Logo</span>

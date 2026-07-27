@@ -48,7 +48,11 @@ const menu = [
 ];
 
 const initiallyLiveNames = new Set([
-  "Classic Espresso", "Classic Margarita", "The 75th Peel", "Woodland Bloom", "Classic Negroni", "Aperol Spritz", "Sarti Spritz", "Old Fashioned", "Classic Bloody Mary",
+  // A deliberately short TV market: eight familiar choices per main category.
+  "Guinness Pint", "Camden Hells Pint", "Beavertown Neck Oil Pint", "Brixton Reliance Pale Ale Pint", "Peroni Nastro Azzurro Pint", "Asahi Super Dry Pint", "Lucky Saint 0.5% Bottle", "Guinness 0.0% Can", "Kronenbourg 1664 Pint", "BrewDog Punk IPA Pint", "Camden Pale Ale Pint", "Heineken 0.0% Bottle",
+  "Classic Espresso", "Classic Margarita", "Classic Negroni", "Aperol Spritz", "Sarti Spritz", "Old Fashioned", "Classic Bloody Mary", "Woodland Bloom", "Pink Affair", "The 75th Peel", "Hugo Spritz", "How Spicy? Margarita",
+  "Grey Goose (25ml)", "Bombay Sapphire (25ml)", "Tanqueray (25ml)", "Bacardi (25ml)", "Havana Club Rum Especial (25ml)", "Jack Daniels (25ml)", "Jameson (25ml)", "Espolon Blanc (25ml)", "Hendrick's (25ml)", "Patron Silver (25ml)", "Sailor Jerry (25ml)", "Johnnie Walker Black (25ml)",
+  "Prosecco Terre del Doge (Bottle)", "Laure D'Echarmes Brut NV (Bottle)", "La Brouette Producteurs Plaimont IGP Comte, France (Bottle)", "Pinot Grigio Rose Marajo, Italy (Bottle)", "Merlot El Picador, Chile (Bottle)", "Rioja Marques Concordia, Spain (Bottle)", "Pinot Grigio Ca'Tesore Venize, Italy (Bottle)", "Horgelus Gros Manseng Sauvignon Blanc, France (Bottle)", "Cloud Island Sauvignon Blanc, NZ (Bottle)", "Malbec Chamuyo Mendoza Vineyards, Argentina (Bottle)", "Picpoul de Pinet Cuvee, France (Bottle)", "Whispering Angel Chateau d'Esclans Côtes de Provence (Bottle)",
 ]);
 
 export const tljCatalogue = menu.map(([category, name, price, sourceSku], index) => {

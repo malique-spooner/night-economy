@@ -1,5 +1,5 @@
 import { seedProducts, seedVenue } from "../demo/marketSeed";
-import type { CrashIntervalMinutes, MarketProduct, Venue, VenueMarketSettings } from "../engine/types";
+import type { CrashIntervalMinutes, MarketProduct, Venue, VenueMarketSettings, MarketScheduleEntry } from "../engine/types";
 import { defaultVenueMarketSettings, isCrashIntervalMinutes, normalizeTimeInput } from "../engine/venueSettings";
 import { supabase } from "./client";
 
@@ -55,6 +55,7 @@ export type VenueRow = {
   currency: string;
   timezone: string;
   market_live?: boolean | null;
+  market_schedule?: unknown;
   crash_interval_minutes?: number | null;
   launch_date?: string | null;
   launch_start_time?: string | null;
@@ -114,6 +115,7 @@ export function mapVenueRow(row: VenueRow): Venue {
     currency: row.currency,
     timezone: row.timezone,
     marketLive: row.market_live ?? defaults.marketLive,
+    marketSchedule: Array.isArray(row.market_schedule) ? row.market_schedule as MarketScheduleEntry[] : defaults.marketSchedule,
     crashIntervalMinutes,
     launchDate: row.launch_date ?? defaults.launchDate,
     launchStartTime: normalizeTimeInput(row.launch_start_time, defaults.launchStartTime),
@@ -325,6 +327,7 @@ export function toVenueMarketSettingsRowPatch(patch: VenueMarketSettingsPatch) {
     ...(patch.crashIntervalMinutes !== undefined
       ? { crash_interval_minutes: patch.crashIntervalMinutes as CrashIntervalMinutes }
       : {}),
+    ...(patch.marketSchedule !== undefined ? { market_schedule: patch.marketSchedule } : {}),
     ...(patch.launchDate !== undefined ? { launch_date: patch.launchDate } : {}),
     ...(patch.launchStartTime !== undefined ? { launch_start_time: patch.launchStartTime } : {}),
     ...(patch.launchEndTime !== undefined ? { launch_end_time: patch.launchEndTime } : {}),

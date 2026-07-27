@@ -1,7 +1,5 @@
-const SERVICE_MINUTES = 8 * 60;
-const EVENING_MINUTES = 6 * 60;
+const SERVICE_MINUTES = 6 * 60;
 const FRIDAY_EVENING_REVENUE_TARGET_MINOR = 1_000_000;
-const LATE_SERVICE_REVENUE_TARGET_MINOR = 160_000;
 
 import { tljCatalogue } from "./tljCatalogue.mjs";
 
@@ -18,8 +16,11 @@ export function createFridayNightSimulation({ seed = 20260717 } = {}) {
   let publications = [];
   let minute = 0;
   let running = false;
+  let hasStarted = false;
+  let paused = false;
+  let ended = false;
   let speed = 32;
-  let crowd = "normal";
+  let targetRevenueMinor = FRIDAY_EVENING_REVENUE_TARGET_MINOR;
   let carryMinutes = 0;
   let rushUntilMinute = 0;
   let slowdownUntilMinute = 0;
@@ -29,9 +30,13 @@ export function createFridayNightSimulation({ seed = 20260717 } = {}) {
   function getState() {
     return {
       service: {
-        crowd,
+        targetRevenueMinor,
+        ended,
+        hasStarted,
         isComplete: minute >= SERVICE_MINUTES,
+        isOpen: hasStarted && !ended && minute < SERVICE_MINUTES,
         minute,
+        paused,
         running,
         resetId,
         serviceEnd: serviceTime(SERVICE_MINUTES),
@@ -60,27 +65,68 @@ export function createFridayNightSimulation({ seed = 20260717 } = {}) {
   }
 
   function tick(realElapsedMs) {
-    if (!running || minute >= SERVICE_MINUTES) return 0;
+    if (!hasStarted || ended || minute >= SERVICE_MINUTES) return 0;
     carryMinutes += (realElapsedMs / 60_000) * speed;
     const wholeMinutes = Math.floor(carryMinutes);
     carryMinutes -= wholeMinutes;
-    return advance(wholeMinutes);
+    return advanceMinutes(wholeMinutes, running);
   }
 
   function advance(requestedMinutes) {
+    return advanceMinutes(requestedMinutes, true);
+  }
+
+  function advanceMinutes(requestedMinutes, generateSales) {
     const count = Math.max(0, Math.min(requestedMinutes, SERVICE_MINUTES - minute));
-    for (let index = 0; index < count; index += 1) generateSalesForMinute(minute++);
-    if (minute >= SERVICE_MINUTES) running = false;
+    for (let index = 0; index < count; index += 1) {
+      if (generateSales) generateSalesForMinute(minute);
+      minute += 1;
+    }
+    if (minute >= SERVICE_MINUTES) {
+      running = false;
+      paused = false;
+      ended = true;
+    }
     return count;
   }
 
-  function control({ action, crowd: nextCrowd, speed: nextSpeed } = {}) {
-    if (action === "start") running = minute < SERVICE_MINUTES;
-    if (action === "pause") running = false;
+  function control({ action, speed: nextSpeed, targetRevenueMinor: nextTargetRevenueMinor } = {}) {
+    if (action === "start") {
+      hasStarted = minute < SERVICE_MINUTES;
+      running = hasStarted;
+      paused = false;
+      ended = false;
+    }
     if (action === "reset") reset();
-    if (action === "advance") advance(1);
-    if (["quiet", "normal", "busy"].includes(nextCrowd)) crowd = nextCrowd;
+    if (action === "quick_start") {
+      const currentSpeed = speed;
+      const currentTargetRevenueMinor = targetRevenueMinor;
+      reset();
+      speed = currentSpeed;
+      targetRevenueMinor = currentTargetRevenueMinor;
+      hasStarted = true;
+      running = true;
+    }
+    if (action === "pause" && hasStarted && !ended) {
+      running = false;
+      paused = true;
+      resetPrices();
+    }
+    if (action === "resume" && hasStarted && !ended) {
+      running = true;
+      paused = false;
+    }
+    if (action === "end" && hasStarted && !ended) {
+      running = false;
+      paused = false;
+      ended = true;
+      resetPrices();
+    }
+    if (action === "reset_prices") {
+      resetPrices();
+    }
     if (Number.isFinite(nextSpeed) && nextSpeed > 0 && nextSpeed <= 240) speed = nextSpeed;
+    if (Number.isFinite(nextTargetRevenueMinor) && nextTargetRevenueMinor >= 0) targetRevenueMinor = Math.round(nextTargetRevenueMinor);
     return getState();
   }
 
@@ -128,7 +174,10 @@ export function createFridayNightSimulation({ seed = 20260717 } = {}) {
     publications = [];
     minute = 0;
     running = false;
-    crowd = "normal";
+    hasStarted = false;
+    paused = false;
+    ended = false;
+    targetRevenueMinor = FRIDAY_EVENING_REVENUE_TARGET_MINOR;
     speed = 32;
     carryMinutes = 0;
     rushUntilMinute = 0;
@@ -137,9 +186,16 @@ export function createFridayNightSimulation({ seed = 20260717 } = {}) {
     resetId += 1;
   }
 
+  function resetPrices() {
+    products.forEach(product => {
+      product.currentPriceMinor = product.basePriceMinor;
+      product.updatedAt = serviceTime(minute);
+    });
+  }
+
   function generateSalesForMinute(serviceMinute) {
     const eventMultiplier = serviceMinute < rushUntilMinute ? 2.1 : serviceMinute < slowdownUntilMinute ? 0.38 : 1;
-    plannedRevenueMinor += revenuePlan[serviceMinute] * crowdMultiplier(crowd) * eventMultiplier;
+    plannedRevenueMinor = Math.min(targetRevenueMinor, plannedRevenueMinor + revenuePlan[serviceMinute] * (targetRevenueMinor / FRIDAY_EVENING_REVENUE_TARGET_MINOR) * eventMultiplier);
     let actualRevenueMinor = sales.reduce((total, sale) => total + sale.quantity * sale.unitPriceMinor, 0);
 
     // A real Friday is calibrated by takings first. Products are then chosen from
@@ -204,13 +260,8 @@ function serviceDemand(minute) {
 
 function buildRevenuePlan() {
   const weights = Array.from({ length: SERVICE_MINUTES }, (_, minute) => serviceDemand(minute));
-  const eveningTotal = weights.slice(0, EVENING_MINUTES).reduce((total, value) => total + value, 0);
-  const lateTotal = weights.slice(EVENING_MINUTES).reduce((total, value) => total + value, 0);
-  return weights.map((weight, minute) => {
-    const target = minute < EVENING_MINUTES ? FRIDAY_EVENING_REVENUE_TARGET_MINOR : LATE_SERVICE_REVENUE_TARGET_MINOR;
-    const total = minute < EVENING_MINUTES ? eveningTotal : lateTotal;
-    return target * weight / total;
-  });
+  const total = weights.reduce((sum, value) => sum + value, 0);
+  return weights.map(weight => FRIDAY_EVENING_REVENUE_TARGET_MINOR * weight / total);
 }
 
 function chooseProduct(products, random) {
@@ -240,12 +291,9 @@ function weightedChoice(items, weightOf, random) {
   return items.at(-1) ?? null;
 }
 
-function crowdMultiplier(crowd) {
-  return { quiet: 0.58, normal: 1, busy: 1.55 }[crowd] ?? 1;
-}
-
 function serviceTime(minute) {
-  return new Date(Date.UTC(2026, 6, 17, 18, 0) + minute * 60_000).toISOString();
+  // 17:00 UTC is 18:00 in London during British Summer Time.
+  return new Date(Date.UTC(2026, 6, 17, 17, 0) + minute * 60_000).toISOString();
 }
 
 function createRandom(seed) {

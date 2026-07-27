@@ -5,17 +5,19 @@ export type Venue = {
   currency: string;
   timezone: string;
   marketLive: boolean;
+  marketSchedule: MarketScheduleEntry[];
   crashIntervalMinutes: CrashIntervalMinutes;
   launchDate: string;
   launchStartTime: string;
   launchEndTime: string;
 };
+export type MarketScheduleEntry = { day: string; start: string; end: string; enabled: boolean };
 
 export type CrashIntervalMinutes = 15 | 30 | 60 | 120;
 
 export type VenueMarketSettings = Pick<
   Venue,
-  "marketLive" | "crashIntervalMinutes" | "launchDate" | "launchStartTime" | "launchEndTime"
+  "marketLive" | "crashIntervalMinutes" | "marketSchedule" | "launchDate" | "launchStartTime" | "launchEndTime"
 >;
 
 export type MarketProduct = {

@@ -47,6 +47,7 @@ describe("mapVenueRow", () => {
       currency: "GBP",
       timezone: "Europe/London",
       marketLive: true,
+      marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }],
       crashIntervalMinutes: 60,
       launchDate: "2026-07-08",
       launchStartTime: "20:00",

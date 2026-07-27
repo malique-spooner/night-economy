@@ -1,6 +1,6 @@
 # Friday Service Acceptance Run
 
-Use this run after applying migrations through `009` and configuring a real Supabase project. It proves the POS boundary and the market loop across one accelerated service.
+Use this run after applying all Supabase migrations and configuring a real Supabase project. It proves the POS boundary and the cloud market engine across one accelerated service.
 
 The deterministic simulator/runner integration suite can run without Supabase credentials:
 
@@ -8,12 +8,11 @@ The deterministic simulator/runner integration suite can run without Supabase cr
 npm run simulator:verify
 ```
 
-## Start the three local processes
+## Start the local apps
 
 ```bash
 npm run dev
 npm run simulator:dev
-npm run simulator:market
 ```
 
 Open:
@@ -24,20 +23,20 @@ Night Economy TV:     http://127.0.0.1:5173/tv/demo-venue
 POS Simulator:        http://127.0.0.1:3002
 ```
 
-Set `SUPABASE_SERVICE_ROLE_KEY` only in the terminal that runs `npm run simulator:market`; never expose it to the browser.
+`npm run simulator:dev` starts the local connector automatically. It imports simulated sales, calls the protected Supabase `market-cycle` function for each virtual five-minute round, and applies its returned prices to the simulated POS. Server credentials must remain in `.env` or `.env.local`; never expose them to the browser.
 
 ## Run the service
 
-1. In the POS Simulator, choose `Normal` and `32x`, then start service.
-2. At 20:00 simulated time, trigger a rush. At 00:30, trigger a slowdown. Mark one drink sold out during peak service.
-3. Let the simulator reach 02:00. At 32x the full 8-hour service takes 15 real minutes.
+1. In the POS Simulator, set the pace and start the 18:00–00:00 Friday service.
+2. Optionally trigger a rush, a slowdown, or one sold-out product during service.
+3. Let the simulator reach midnight. At 32x the six-hour service takes about 11 real minutes.
 
 ## Pass criteria
 
 - The POS Simulator owns every product and records all sales.
-- The Portal shows POS name, SKU, and POS price as source data, and only permits market configuration fields to be edited.
+- The Portal shows the live market price and only permits market configuration fields to be edited.
 - Imported rows appear in `pos_sales_events` without duplicate sale IDs.
 - Price publications appear in `price_publications` and `price_publication_lines`.
 - Every published market price matches the simulator's current POS price.
 - No price crosses its configured floor or ceiling.
-- TV and Menu reflect the published Supabase market price after each local market cycle.
+- Portal, TV, and Mobile reflect the published Supabase market price after each cloud market cycle.
