@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PortalAccountPage } from "../components/portal/PortalAccountPage";
 import { PortalRunsPage } from "../components/portal/PortalRunsPage";
 import { PortalSidebar, type PortalTab } from "../components/portal/PortalSidebar";
@@ -41,7 +41,7 @@ type Props = {
 export function Portal({ venueSlug }: Props) {
   // Realtime normally delivers changes instantly. Polling keeps the operator
   // view in sync with the POS if the browser misses a websocket event.
-  const { error, setState, state } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
+  const { error, refresh, setState, state } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isAuthResolved, setIsAuthResolved] = useState(false);
@@ -65,6 +65,9 @@ export function Portal({ venueSlug }: Props) {
   const [isEndConfirmationOpen, setIsEndConfirmationOpen] = useState(false);
   const [tvPageWarning, setTvPageWarning] = useState<{ category: string; productId: string; patch: MarketProductPatch; options: { persist?: boolean }; productName: string } | null>(null);
   const [priorityLimitWarning, setPriorityLimitWarning] = useState<string | null>(null);
+  const [scheduleOverride, setScheduleOverride] = useState<VenueMarketSettingsPatch["marketSchedule"] | null>(null);
+  const scheduleChangeVersion = useRef(0);
+  const venueSettingsSaveQueue = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
     void refreshSession();
@@ -393,16 +396,23 @@ export function Portal({ venueSlug }: Props) {
       return;
     }
 
-    const previousVenue = state.venue;
-    const nextVenue = applyVenueSettingsPatch(state.venue, patch);
-    setState({ ...state, venue: nextVenue });
+    const venueId = state.venue.id;
+    const scheduleVersion = patch.marketSchedule ? ++scheduleChangeVersion.current : null;
+    if (patch.marketSchedule) setScheduleOverride(patch.marketSchedule);
+    setState(current => current ? { ...current, venue: applyVenueSettingsPatch(current.venue, patch) } : current);
 
-
+    const saveRequest = venueSettingsSaveQueue.current.then(async () => {
+      await updateVenueMarketSettings(venueId, patch);
+    });
+    venueSettingsSaveQueue.current = saveRequest.then(() => undefined, () => undefined);
     try {
-      const result = await updateVenueMarketSettings(state.venue.id, patch);
-      setLastSavedMessage(result.persisted ? "Launch settings saved" : "Demo launch settings");
+      await saveRequest;
+      setState(current => current ? { ...current, venue: applyVenueSettingsPatch(current.venue, patch) } : current);
+      if (scheduleVersion !== null && scheduleChangeVersion.current === scheduleVersion) setScheduleOverride(null);
+      setLastSavedMessage("Launch settings saved");
     } catch (error) {
-      setState(current => (current ? { ...current, venue: previousVenue } : current));
+      if (scheduleVersion !== null && scheduleChangeVersion.current === scheduleVersion) setScheduleOverride(null);
+      await refresh();
       setLastSavedMessage(error instanceof Error ? `Not saved: ${error.message}` : "Not saved");
     }
   }
@@ -507,7 +517,7 @@ export function Portal({ venueSlug }: Props) {
                     posProducts={posProducts}
                     selectedProductId={selectedProductId}
                     simulatorState={simulatorState}
-                    venue={state.venue}
+                    venue={scheduleOverride ? { ...state.venue, marketSchedule: scheduleOverride } : state.venue}
                   />
                 ) : activeTab === "runs" ? (
                   <PortalRunsPage currency={state.venue.currency} isLoading={runsLoading} runs={runs} />

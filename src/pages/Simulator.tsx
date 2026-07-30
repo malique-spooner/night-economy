@@ -21,7 +21,7 @@ export function Simulator({ venueSlug }: Props) {
   const [venues, setVenues] = useState<AccessibleVenue[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const { state: marketState } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
+  const { setState: setMarketState, state: marketState } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
 
   useEffect(() => {
     void refreshAccess();
@@ -66,12 +66,15 @@ export function Simulator({ venueSlug }: Props) {
 
   async function saveTarget(day: string, value: number) {
     if (!marketState) return;
+    const previousSchedule = marketState.venue.marketSchedule;
+    const schedule = scheduleFor(previousSchedule).map(entry => entry.day === day ? { ...entry, targetRevenueMinor: Math.max(0, Math.round(value * 100)) } : entry);
     try {
       setBusy(true);
       setMessage("");
-      const schedule = scheduleFor(marketState.venue.marketSchedule).map(entry => entry.day === day ? { ...entry, targetRevenueMinor: Math.max(0, Math.round(value * 100)) } : entry);
+      setMarketState(current => current ? { ...current, venue: { ...current.venue, marketSchedule: schedule } } : current);
       await updateVenueMarketSettings(marketState.venue.id, { marketSchedule: schedule });
     } catch (error) {
+      setMarketState(current => current ? { ...current, venue: { ...current.venue, marketSchedule: previousSchedule } } : current);
       setMessage(error instanceof Error ? error.message : "Could not save the target takings.");
     } finally {
       setBusy(false);
@@ -132,7 +135,7 @@ export function Simulator({ venueSlug }: Props) {
       </section>
       <section className="simulator-targets" aria-label="Scheduled target takings">
         <div className="simulator-targets-head"><div><span>Simulator plan</span><h2>Target takings</h2></div><p>Each scheduled day uses its own target.</p></div>
-        <div className="simulator-target-days">{scheduleFor(marketState?.venue.marketSchedule ?? []).map(entry => <label className={entry.enabled ? "is-enabled" : ""} key={entry.day}><strong>{entry.day.slice(0, 3)}</strong><span>{entry.enabled ? "Scheduled" : "Off"}</span><input aria-label={`${entry.day} target takings`} defaultValue={(entry.targetRevenueMinor ?? 1_000_000) / 100} disabled={busy || !entry.enabled} min="0" onBlur={event => { void saveTarget(entry.day, Number(event.target.value || 0)); }} step="100" type="number" /><b>£</b></label>)}</div>
+        <div className="simulator-target-days">{scheduleFor(marketState?.venue.marketSchedule ?? []).map(entry => <label className={entry.enabled ? "is-enabled" : ""} key={entry.day}><strong>{entry.day.slice(0, 3)}</strong><span>{entry.enabled ? "Scheduled" : "Off"}</span><input aria-label={`${entry.day} target takings`} defaultValue={(entry.targetRevenueMinor ?? 1_000_000) / 100} disabled={busy} min="0" onBlur={event => { void saveTarget(entry.day, Number(event.target.value || 0)); }} step="100" type="number" /><b>£</b></label>)}</div>
         {message && <p className="simulator-error">{message}</p>}
       </section>
       <section className="simulator-live-layout"><ProductCatalogue products={dashboard?.products ?? []} /><SalesFeed products={dashboard?.products ?? []} sales={dashboard?.recentSales ?? []} /></section>

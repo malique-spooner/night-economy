@@ -153,6 +153,11 @@ test("an owner signs in and clicks through scheduling, service controls, history
     await expect(button).toHaveAttribute("aria-pressed", wasPressed === "true" ? "false" : "true");
   }
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/venues" && JSON.stringify(write.body).includes("market_schedule"))).toBe(true);
+  await page.waitForTimeout(250);
+  for (const day of ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]) {
+    const expected = day === "Friday" ? "false" : "true";
+    await expect(page.getByRole("button", { name: new RegExp(`^${day} `) })).toHaveAttribute("aria-pressed", expected);
+  }
 
   const espresso = page.locator(".portal-drink-row").filter({ has: page.locator('input[value="Espresso Martini"]') });
   const floor = espresso.locator('input[type="number"]').nth(0);
@@ -184,7 +189,9 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && (write.body as { priority?: boolean })?.priority === true)).toBe(true);
 
   const chooserPromise = page.waitForEvent("filechooser");
-  await espresso.getByRole("button", { name: "Add logo for Espresso Martini" }).click();
+  const addLogo = espresso.getByRole("button", { name: "Add logo for Espresso Martini" });
+  await expect(addLogo).toHaveText("+");
+  await addLogo.click();
   const chooser = await chooserPromise;
   await chooser.setFiles({ name: "espresso.png", mimeType: "image/png", buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64") });
   await expect(espresso.getByAltText("Espresso Martini logo")).toHaveAttribute("src", /storage\/v1\/object\/public\/market-logos/);
@@ -235,6 +242,11 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect(page).toHaveURL(/\/simulator\/demo-venue$/);
   await expect(page.getByRole("heading", { name: "Simulator" })).toBeVisible();
   await expect(page.getByText("Espresso Martini", { exact: true })).toBeVisible();
+  const mondayTarget = page.getByLabel("Monday target takings");
+  await expect(mondayTarget).toBeEnabled();
+  await mondayTarget.fill("12345");
+  await mondayTarget.blur();
+  await expect.poll(() => writes.some(write => write.path === "/rest/v1/venues" && JSON.stringify(write.body).includes('"day":"Monday"') && JSON.stringify(write.body).includes('"targetRevenueMinor":1234500'))).toBe(true);
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   expect(cloud.authRequests).toContain("logout");
