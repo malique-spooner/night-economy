@@ -11,6 +11,13 @@ export type MarketRun = {
   revenueMinor: number;
 };
 
+export type MarketRunSale = {
+  posProductId: string;
+  quantity: number;
+  unitPriceMinor: number;
+  occurredAt: string;
+};
+
 type MarketRunRow = {
   id: string;
   kind: MarketRun["kind"];
@@ -40,5 +47,38 @@ export async function getMarketRuns(venueId: string): Promise<MarketRun[]> {
     simulatedMinutes: row.simulated_minutes,
     salesCount: row.sales_count,
     revenueMinor: row.revenue_minor,
+  }));
+}
+
+type MarketRunSaleRow = {
+  pos_product_id: string;
+  quantity: number;
+  unit_price_minor: number;
+  occurred_at: string;
+};
+
+export async function getMarketRunSales(runId: string): Promise<MarketRunSale[]> {
+  if (!supabase) return [];
+  const pageSize = 1_000;
+  const rows: MarketRunSaleRow[] = [];
+
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from("pos_sales_events")
+      .select("pos_product_id,quantity,unit_price_minor,occurred_at")
+      .eq("run_id", runId)
+      .order("occurred_at", { ascending: true })
+      .range(from, from + pageSize - 1);
+    if (error) throw error;
+    const page = (data ?? []) as MarketRunSaleRow[];
+    rows.push(...page);
+    if (page.length < pageSize) break;
+  }
+
+  return rows.map(row => ({
+    posProductId: row.pos_product_id,
+    quantity: row.quantity,
+    unitPriceMinor: row.unit_price_minor,
+    occurredAt: row.occurred_at,
   }));
 }

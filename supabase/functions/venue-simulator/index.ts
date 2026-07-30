@@ -91,7 +91,10 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
   const active = products.filter(product => product.is_live && !product.is_sold_out && product.pos_product_id);
   if (!active.length) {
     const status = nextMinute >= SERVICE_MINUTES ? "ended" : "running";
-    if (status === "ended") await finishRun(url, headers, state.active_run_id, "completed", nextMinute);
+    if (status === "ended") {
+      await setMarketLive(url, headers, venueId, false);
+      await finishRun(url, headers, state.active_run_id, "completed", nextMinute);
+    }
     else await syncRunProgress(url, headers, state.active_run_id, nextMinute);
     return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: tickedAt.toISOString(), ...(status === "ended" ? { active_run_id: null } : {}) });
   }
@@ -117,6 +120,7 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
   const status = nextMinute >= SERVICE_MINUTES ? "ended" : "running";
   if (status === "ended") {
     await resetPrices(url, headers, venueId);
+    await setMarketLive(url, headers, venueId, false);
     await finishRun(url, headers, state.active_run_id, "completed", nextMinute);
   } else {
     await syncRunProgress(url, headers, state.active_run_id, nextMinute);

@@ -228,6 +228,14 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await page.getByRole("button", { name: /Run history/ }).click();
   await expect(page.getByRole("heading", { name: "Previous runs" })).toBeVisible();
   await expect(page.getByText("Quick rehearsal", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Open dashboard for Quick rehearsal" }).click();
+  await expect(page.getByRole("heading", { name: "Quick rehearsal dashboard" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Sales through the night" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Top drinks" })).toBeVisible();
+  await expect(page.getByText("Espresso Martini", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("3 sold · Cocktails", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Back to run history" }).click();
+  await expect(page.getByRole("heading", { name: "Previous runs" })).toBeVisible();
 
   await page.getByRole("button", { name: /Account/ }).click();
   await expect(page.getByRole("heading", { name: "Connected venue" })).toBeVisible();
@@ -369,6 +377,11 @@ async function handleRest(route: Route, url: URL, method: string, mockProducts: 
   ]);
   if (table === "market_price_snapshots") return postgrest(route, []);
   if (table === "market_runs") return postgrest(route, [{ id: "run_e2e", kind: "quick", status: "completed", started_at: "2026-07-25T18:00:00.000Z", ended_at: "2026-07-25T18:10:00.000Z", simulated_minutes: 360, sales_count: 124, revenue_minor: 148800 }]);
+  if (table === "pos_sales_events") return postgrest(route, [
+    { pos_product_id: "pos_espresso", quantity: 2, unit_price_minor: 1260, occurred_at: "2026-07-25T18:00:00.000Z" },
+    { pos_product_id: "pos_margarita", quantity: 1, unit_price_minor: 1050, occurred_at: "2026-07-25T18:31:00.000Z" },
+    { pos_product_id: "pos_espresso", quantity: 1, unit_price_minor: 1320, occurred_at: "2026-07-25T20:02:00.000Z" },
+  ]);
   return postgrest(route, []);
 }
 
