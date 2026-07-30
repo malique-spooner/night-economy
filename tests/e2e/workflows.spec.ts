@@ -161,16 +161,34 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect(floor).toHaveValue("9.10");
   await espresso.getByRole("button", { name: "Increase Floor" }).click();
   await expect(floor).toHaveValue("9.60");
+  await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && (write.body as { floor_price_minor?: number })?.floor_price_minor === 960)).toBe(true);
   await espresso.getByRole("button", { name: "Decrease Ceiling" }).click();
   await expect(ceiling).toHaveValue("13.90");
   await espresso.getByRole("button", { name: "Increase Ceiling" }).click();
   await expect(ceiling).toHaveValue("14.40");
+  await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && (write.body as { ceiling_price_minor?: number })?.ceiling_price_minor === 1440)).toBe(true);
   await espresso.getByRole("button", { name: "Show price history for Espresso Martini" }).click();
   await expect(espresso.getByRole("button", { name: "Hide price history for Espresso Martini" })).toBeVisible();
   await espresso.getByRole("button", { name: "Hide price history for Espresso Martini" }).click();
   await espresso.getByRole("button", { name: "Live", exact: true }).click();
   await expect(espresso.getByRole("button", { name: "Off", exact: true })).toBeVisible();
+  await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && (write.body as { is_live?: boolean })?.is_live === false)).toBe(true);
   await espresso.getByRole("button", { name: "Off", exact: true }).click();
+  await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && (write.body as { is_live?: boolean })?.is_live === true)).toBe(true);
+
+  await espresso.getByRole("combobox").selectOption("Wine");
+  await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && (write.body as { category?: string })?.category === "Wine")).toBe(true);
+  await espresso.getByRole("combobox").selectOption("Cocktails");
+  const margarita = page.locator(".portal-drink-row").filter({ has: page.locator('input[value="Margarita"]') });
+  await margarita.getByRole("checkbox").check();
+  await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && (write.body as { priority?: boolean })?.priority === true)).toBe(true);
+
+  const chooserPromise = page.waitForEvent("filechooser");
+  await espresso.getByRole("button", { name: "Add logo for Espresso Martini" }).click();
+  const chooser = await chooserPromise;
+  await chooser.setFiles({ name: "espresso.png", mimeType: "image/png", buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64") });
+  await expect(espresso.getByAltText("Espresso Martini logo")).toHaveAttribute("src", /storage\/v1\/object\/public\/market-logos/);
+  await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && typeof (write.body as { logo_url?: string })?.logo_url === "string")).toBe(true);
 
   await page.getByRole("button", { name: "Configure market" }).click();
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && write.body !== null)).toBe(true);
@@ -178,6 +196,7 @@ test("an owner signs in and clicks through scheduling, service controls, history
 
   await page.getByRole("button", { name: "Quick start · 10 min" }).click();
   await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
+  await expect(page.getByText(/Market open · 18:00/)).toBeVisible();
   expect(cloud.actions).toContain("quick_start");
 
   await page.getByRole("button", { name: "Pause" }).click();
@@ -268,7 +287,7 @@ async function mockSupabase(
   await page.route(/https:\/\/[^/]+\.supabase\.co\/.*/, async route => {
     const request = route.request();
     const url = new URL(request.url());
-    const body = request.postDataJSON?.() ?? null;
+    const body = request.headers()["content-type"]?.includes("application/json") ? request.postDataJSON() : null;
 
     if (url.pathname === "/auth/v1/token") {
       const expiresAt = Math.floor(Date.now() / 1000) + 3600;
@@ -288,14 +307,22 @@ async function mockSupabase(
     }
 
     if (url.pathname === "/functions/v1/venue-simulator") {
-      const action = String(body?.action ?? "tick");
+      const action = String(body?.action ?? "state");
       actions.push(action);
       if (action === "quick_start") service = serviceState("running", 0);
       if (action === "pause") service = serviceState("paused", service.minute);
       if (action === "resume") service = serviceState("running", service.minute);
       if (action === "end") service = serviceState("ended", service.minute);
-      if (action === "tick" && service.running) service = serviceState("running", Math.min(360, service.minute + 1));
       return json(route, action === "summary" ? simulatorSummary(service, mockProducts) : { service });
+    }
+
+    if (url.pathname.startsWith("/storage/v1/object/market-logos/") && request.method() === "POST") {
+      writes.push({ path: "/storage/v1/object/market-logos", body: { uploaded: true } });
+      return json(route, { Key: url.pathname.replace("/storage/v1/object/", "") });
+    }
+
+    if (url.pathname.startsWith("/storage/v1/object/public/market-logos/") && request.method() === "GET") {
+      return route.fulfill({ status: 200, contentType: "image/png", body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64") });
     }
 
     if (url.pathname.startsWith("/rest/v1/")) {
@@ -312,8 +339,13 @@ async function mockSupabase(
 async function handleRest(route: Route, url: URL, method: string, mockProducts: typeof products, requestBody: unknown, memberRole: "owner" | null) {
   const table = url.pathname.split("/").pop();
   if (method === "POST" && table === "market_products") return postgrest(route, requestBody);
+  if (method === "PATCH" && table === "market_products") return postgrest(route, { id: "mp_updated" });
+  if (method === "PATCH" && table === "venues") return postgrest(route, { id: venue.id });
   if (!["GET", "HEAD"].includes(method)) return route.fulfill({ status: 204, body: "" });
-  if (table === "venues") return postgrest(route, url.searchParams.has("slug") ? venue : [venue]);
+  if (table === "venues") {
+    const embeddedVenue = url.searchParams.get("select")?.includes("market_products") ? { ...venue, market_products: mockProducts } : venue;
+    return postgrest(route, url.searchParams.has("slug") ? embeddedVenue : [embeddedVenue]);
+  }
   if (table === "market_products") return postgrest(route, mockProducts);
   if (table === "venue_members") return postgrest(route, url.searchParams.has("venue_id") ? (memberRole ? { role: memberRole } : null) : (memberRole ? [{ venue_id: venue.id, role: memberRole }] : []));
   if (table === "platform_admins") return postgrest(route, { user_id: user.id });

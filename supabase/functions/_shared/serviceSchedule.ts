@@ -32,6 +32,33 @@ export function activeSlot(schedule: ScheduleEntry[], timezone: string, now: Dat
   return null;
 }
 
+/** Returns the UTC instant for the service's local opening time. */
+export function simulationStart(timezone: string, now: Date, scheduledSlotKey?: string | null) {
+  const scheduled = scheduledSlotKey?.match(/^(\d{4})-(\d{2})-(\d{2}):[^:]+:(\d{2}):(\d{2})$/);
+  const local = localDateTime(now, timezone);
+  const parts = scheduled
+    ? { year: Number(scheduled[1]), month: Number(scheduled[2]), day: Number(scheduled[3]), hour: Number(scheduled[4]), minute: Number(scheduled[5]) }
+    : { year: Number(local.date.slice(0, 4)), month: Number(local.date.slice(5, 7)), day: Number(local.date.slice(8, 10)), hour: 18, minute: 0 };
+  return zonedDate(parts, timezone).toISOString();
+}
+
+function zonedDate(parts: { year: number; month: number; day: number; hour: number; minute: number }, timezone: string) {
+  const wallClock = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute);
+  let result = wallClock;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const local = localDateTime(new Date(result), timezone);
+    const rendered = Date.UTC(
+      Number(local.date.slice(0, 4)),
+      Number(local.date.slice(5, 7)) - 1,
+      Number(local.date.slice(8, 10)),
+      Math.floor(local.minutes / 60),
+      local.minutes % 60,
+    );
+    result += wallClock - rendered;
+  }
+  return new Date(result);
+}
+
 function localDateTime(now: Date, timezone: string) {
   const parts = new Intl.DateTimeFormat("en-GB", { timeZone: timezone, weekday: "long", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(now);
   const value = (type: string) => parts.find(part => part.type === type)?.value ?? "";

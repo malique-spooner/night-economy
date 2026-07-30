@@ -41,7 +41,7 @@ type Props = {
 export function Portal({ venueSlug }: Props) {
   // Realtime normally delivers changes instantly. Polling keeps the operator
   // view in sync with the POS if the browser misses a websocket event.
-  const { error, setState, state } = useMarketState(venueSlug, { pollIntervalMs: 2_000 });
+  const { error, setState, state } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isAuthResolved, setIsAuthResolved] = useState(false);
@@ -204,11 +204,15 @@ export function Portal({ venueSlug }: Props) {
       }
     }
 
-    void refreshSimulator();
-    const interval = window.setInterval(() => { void refreshSimulator(); }, 1_000);
+    let timer: number | undefined;
+    const poll = async () => {
+      await refreshSimulator();
+      if (!cancelled) timer = window.setTimeout(() => { void poll(); }, 10_000);
+    };
+    void poll();
     return () => {
       cancelled = true;
-      window.clearInterval(interval);
+      if (timer !== undefined) window.clearTimeout(timer);
     };
   }, [isSignedIn, venueSlug]);
 

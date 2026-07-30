@@ -89,6 +89,10 @@ const simulatorChecks = [
   ["returns the complete venue catalogue to the protected simulator", /simulatorProducts[\s\S]+market_products\?venue_id=eq[\s\S]+isLive/],
   ["publishes calculated prices to the internal POS catalogue", /publishInternalPrices[\s\S]+price_publications[\s\S]+price_publication_lines[\s\S]+pos_products/],
   ["keeps running run-history totals current", /syncRunProgress[\s\S]+sales_count[\s\S]+revenue_minor/],
+  ["keeps public state reads separate from scheduler-owned ticks", /action === "state"[\s\S]+action === "tick" && state\.status === "running"/],
+  ["anchors service simulation time in the venue timezone", /simulationStart\(venue\.timezone/],
+  ["writes each scheduler tick's simulated sales in one batch", /salesRows\.push[\s\S]+JSON\.stringify\(salesRows\)/],
+  ["measures 36x progress between scheduler starts", /const tickedAt = new Date\(\)[\s\S]+last_tick_at: tickedAt\.toISOString\(\)/],
   ["requires signed-in venue administrators before returning simulator data", /authenticatedUserId[\s\S]+venue_members[\s\S]+Only venue owners or admins/],
   ["handles browser CORS preflight requests", /request\.method === "OPTIONS"[\s\S]+corsHeaders/],
 ];

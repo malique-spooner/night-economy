@@ -14,7 +14,7 @@ type Props = {
 };
 
 export function Tv({ venueSlug }: Props) {
-  const { error, state } = useMarketState(venueSlug, { pollIntervalMs: 2_000 });
+  const { error, state } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
   const timezone = state?.venue.timezone ?? "Europe/London";
   const [clock, setClock] = useState(() => formatClock(new Date(), timezone));
 
@@ -28,11 +28,15 @@ export function Tv({ venueSlug }: Props) {
         if (!cancelled) setClock(formatClock(new Date(), timezone));
       }
     }
-    void refreshClock();
-    const timer = window.setInterval(() => { void refreshClock(); }, 1_000);
+    let timer: number | undefined;
+    const poll = async () => {
+      await refreshClock();
+      if (!cancelled) timer = window.setTimeout(() => { void poll(); }, 10_000);
+    };
+    void poll();
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
+      if (timer !== undefined) window.clearTimeout(timer);
     };
   }, [timezone, venueSlug]);
 

@@ -12,7 +12,7 @@ type Props = {
 };
 
 export function Menu({ venueSlug }: Props) {
-  const { error, state } = useMarketState(venueSlug, { pollIntervalMs: 2_000 });
+  const { error, state } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
 
   if (error) return <main className="page">Could not load menu: {error}</main>;
   if (!state) return <main className="page">Loading menu...</main>;

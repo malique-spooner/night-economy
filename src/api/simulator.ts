@@ -41,7 +41,7 @@ export const simulatorStatus = {
 };
 
 export async function getSimulatorState(venueSlug = "demo-venue"): Promise<SimulatorState> {
-  if (usesCloudSimulator(venueSlug)) return cloudSimulator(venueSlug, "tick");
+  if (usesCloudSimulator(venueSlug)) return cloudSimulator(venueSlug, "state");
   return getJson("/v1/simulation/state");
 }
 

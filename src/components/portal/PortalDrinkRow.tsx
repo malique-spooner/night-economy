@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import type { MarketProduct } from "../../engine/types";
 import type { MarketPriceHistoryPoint, MarketProductPatch } from "../../api/market";
 import { formatMoney } from "../format";
@@ -18,12 +19,15 @@ type Props = {
 
 export function PortalDrinkRow({ allProducts, history, historyLoading, onChange, onLogoUpload, onSelect, product, selected }: Props) {
   const categoryOptions = portalCategoryOptions(allProducts, product.category);
+  const logoInput = useRef<HTMLInputElement>(null);
   return (
     <article className={`portal-drink-row ${product.isSoldOut ? "paused" : ""} ${selected ? "selected" : ""}`}>
-      <label className="portal-drink-symbol">
+      <div className="portal-drink-symbol">
         <span>Logo</span>
-        <span className={`portal-logo-picker ${product.logoUrl ? "has-image" : ""}`}>{product.logoUrl ? <img alt={`${product.name} logo`} src={product.logoUrl} /> : <><b>+</b><em>Add image</em></>}<input accept="image/png,image/jpeg,image/webp,image/svg+xml" aria-label={`Upload logo for ${product.name}`} onChange={event => { const file = event.target.files?.[0]; if (file) onLogoUpload(product.id, file); event.currentTarget.value = ""; }} type="file" /></span>
-      </label>
+        <span className={`portal-logo-picker ${product.logoUrl ? "has-image" : ""}`}>{product.logoUrl ? <img alt={`${product.name} logo`} src={product.logoUrl} /> : <b>+</b>}</span>
+        <button aria-label={`${product.logoUrl ? "Replace" : "Add"} logo for ${product.name}`} className="portal-logo-button" type="button" onClick={() => logoInput.current?.click()}>{product.logoUrl ? "Replace" : "Add logo"}</button>
+        <input ref={logoInput} accept="image/png,image/jpeg,image/webp,image/svg+xml" aria-label={`Upload logo for ${product.name}`} hidden onChange={event => { const file = event.target.files?.[0]; if (file) onLogoUpload(product.id, file); event.currentTarget.value = ""; }} type="file" />
+      </div>
       <label className="portal-drink-name">
         <span>Market name</span>
         <input value={product.name} onChange={event => onChange(product.id, { name: event.target.value }, { persist: false })} onBlur={event => onChange(product.id, { name: event.target.value })} />

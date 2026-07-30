@@ -21,7 +21,7 @@ export function Simulator({ venueSlug }: Props) {
   const [venues, setVenues] = useState<AccessibleVenue[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const { state: marketState } = useMarketState(venueSlug, { pollIntervalMs: 10_000 });
+  const { state: marketState } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
 
   useEffect(() => {
     void refreshAccess();
@@ -44,11 +44,15 @@ export function Simulator({ venueSlug }: Props) {
       }
     }
 
-    void refreshState();
-    const interval = window.setInterval(() => { void refreshState(); }, 2_000);
+    let timer: number | undefined;
+    const poll = async () => {
+      await refreshState();
+      if (!cancelled) timer = window.setTimeout(() => { void poll(); }, 15_000);
+    };
+    void poll();
     return () => {
       cancelled = true;
-      window.clearInterval(interval);
+      if (timer !== undefined) window.clearTimeout(timer);
     };
   }, [isPlatformAdmin, isResolved, isSignedIn, venueSlug]);
 

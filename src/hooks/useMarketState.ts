@@ -1,19 +1,27 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getMarketState, type MarketState } from "../api/market";
 import { supabase } from "../api/client";
 
 export function useMarketState(venueSlug: string, { pollIntervalMs = 0 }: { pollIntervalMs?: number } = {}) {
   const [state, setState] = useState<MarketState | null>(null);
   const [error, setError] = useState<string>("");
+  const refreshInFlight = useRef<Promise<void> | null>(null);
 
-  const refresh = useCallback(async () => {
-    try {
-      const nextState = await getMarketState(venueSlug);
-      setState(nextState);
-      setError("");
-    } catch (refreshError) {
-      setError(refreshError instanceof Error ? refreshError.message : "Could not load market state");
-    }
+  const refresh = useCallback(() => {
+    if (refreshInFlight.current) return refreshInFlight.current;
+    const request = getMarketState(venueSlug)
+      .then(nextState => {
+        setState(nextState);
+        setError("");
+      })
+      .catch(refreshError => {
+        setError(refreshError instanceof Error ? refreshError.message : "Could not load market state");
+      })
+      .finally(() => {
+        if (refreshInFlight.current === request) refreshInFlight.current = null;
+      });
+    refreshInFlight.current = request;
+    return request;
   }, [venueSlug]);
 
   useEffect(() => {
@@ -24,8 +32,17 @@ export function useMarketState(venueSlug: string, { pollIntervalMs = 0 }: { poll
   // fallback for TVs and phones that have slept or missed a websocket event.
   useEffect(() => {
     if (!pollIntervalMs) return undefined;
-    const interval = window.setInterval(() => { void refresh(); }, pollIntervalMs);
-    return () => window.clearInterval(interval);
+    let cancelled = false;
+    let timer: number | undefined;
+    const poll = async () => {
+      await refresh();
+      if (!cancelled) timer = window.setTimeout(() => { void poll(); }, pollIntervalMs);
+    };
+    timer = window.setTimeout(() => { void poll(); }, pollIntervalMs);
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
   }, [pollIntervalMs, refresh]);
 
   useEffect(() => {

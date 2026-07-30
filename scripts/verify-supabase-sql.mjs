@@ -38,6 +38,7 @@ const expectedMigrations = [
   "20260729200000_add_platform_admins.sql",
   "20260729210000_add_cloud_simulator_controls.sql",
   "20260729220000_add_market_product_logos.sql",
+  "20260730092640_grant_market_product_logo_updates.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -91,6 +92,11 @@ function checkRequiredPatterns() {
       label: "market logo uploads are restricted to venue admins",
       source: migrationSql["20260729220000_add_market_product_logos.sql"],
       pattern: /create policy "venue admins can upload market logos"[\s\S]+for insert[\s\S]+to authenticated[\s\S]+bucket_id = 'market-logos'[\s\S]+venue_members[\s\S]+role in \('owner', 'admin'\)/i,
+    },
+    {
+      label: "authenticated venue editors can persist market logo URLs",
+      source: migrationSql["20260730092640_grant_market_product_logo_updates.sql"],
+      pattern: /grant update \(logo_url\) on table public\.market_products to authenticated/i,
     },
     {
       label: "site leads RLS enabled",

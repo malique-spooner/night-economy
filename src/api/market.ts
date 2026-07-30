@@ -80,6 +80,10 @@ export type MarketProductRow = {
   priority: boolean;
 };
 
+type VenueMarketStateRow = VenueRow & {
+  market_products?: MarketProductRow[] | null;
+};
+
 type PosProductRow = {
   id: string;
   external_id: string;
@@ -167,7 +171,7 @@ export function throwIfSupabaseQueryError(error: SupabaseQueryError | null | und
   throw new Error(error.message ? `${fallbackMessage}: ${error.message}` : fallbackMessage);
 }
 
-export function requireVenue(row: VenueRow | null): VenueRow {
+export function requireVenue<T extends VenueRow>(row: T | null): T {
   if (!row) throw new Error("This venue is no longer available.");
   return row;
 }
@@ -175,21 +179,20 @@ export function requireVenue(row: VenueRow | null): VenueRow {
 export async function getMarketState(venueSlug: string): Promise<MarketState> {
   if (!supabase) return { venue: seedVenue, products: demoMarketProducts(), source: "seed" };
 
-  const { data: venue, error: venueError } = await supabase.from("venues").select("*").eq("slug", venueSlug).maybeSingle();
+  const { data: venue, error: venueError } = await supabase
+    .from("venues")
+    .select("*, market_products(*)")
+    .eq("slug", venueSlug)
+    .maybeSingle();
   throwIfSupabaseQueryError(venueError, "Could not load venue");
 
-  const existingVenue = requireVenue(venue);
-
-  const { data: products, error: productsError } = await supabase
-    .from("market_products")
-    .select("*")
-    .eq("venue_id", existingVenue.id)
-    .order("display_name");
-  throwIfSupabaseQueryError(productsError, "Could not load market products");
+  const existingVenue = requireVenue(venue as VenueMarketStateRow | null);
+  const products = [...(existingVenue.market_products ?? [])]
+    .sort((left, right) => left.display_name.localeCompare(right.display_name));
 
   return {
     venue: mapVenueRow(existingVenue),
-    products: (products ?? []).map(mapMarketProductRow),
+    products: products.map(mapMarketProductRow),
     source: "supabase",
   };
 }
@@ -246,7 +249,7 @@ export async function updateMarketProduct(productId: string, patch: MarketProduc
   const rowPatch = toMarketProductRowPatch(patch);
   if (!Object.keys(rowPatch).length) return { persisted: true as const };
 
-  const { error } = await supabase.from("market_products").update(rowPatch).eq("id", productId);
+  const { error } = await supabase.from("market_products").update(rowPatch).eq("id", productId).select("id").single();
   if (error) throw error;
 
   return { persisted: true as const };
@@ -283,7 +286,7 @@ export async function updateVenueMarketSettings(venueId: string, patch: VenueMar
   const rowPatch = toVenueMarketSettingsRowPatch(patch);
   if (!Object.keys(rowPatch).length) return { persisted: true as const };
 
-  const { error } = await supabase.from("venues").update(rowPatch).eq("id", venueId);
+  const { error } = await supabase.from("venues").update(rowPatch).eq("id", venueId).select("id").single();
   if (error) throw error;
 
   return { persisted: true as const };

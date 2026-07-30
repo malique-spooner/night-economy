@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeSlot, serviceAction } from "../../../supabase/functions/_shared/serviceSchedule";
+import { activeSlot, serviceAction, simulationStart } from "../../../supabase/functions/_shared/serviceSchedule";
 
 const friday = [{ day: "Friday", start: "18:00", end: "00:00", enabled: true, targetRevenueMinor: 1_200_000 }];
 
@@ -26,5 +26,14 @@ describe("cloud service scheduling", () => {
     const slot = { key: "2026-08-07:Friday:18:00" };
     expect(serviceAction(slot, { status: "ended", scheduled_slot_key: "2026-07-31:Friday:18:00" })).toBe("scheduled_start");
     expect(serviceAction(slot, { status: "running", scheduled_slot_key: slot.key })).toBe("tick");
+  });
+
+  it("anchors quick start to 18:00 in the venue timezone", () => {
+    expect(simulationStart("Europe/London", new Date("2026-07-30T09:30:00.000Z"))).toBe("2026-07-30T17:00:00.000Z");
+    expect(simulationStart("Asia/Bangkok", new Date("2026-07-30T09:30:00.000Z"))).toBe("2026-07-30T11:00:00.000Z");
+  });
+
+  it("anchors scheduled starts to the configured slot", () => {
+    expect(simulationStart("Europe/London", new Date("2026-07-31T18:01:00.000Z"), "2026-07-31:Friday:18:00")).toBe("2026-07-31T17:00:00.000Z");
   });
 });

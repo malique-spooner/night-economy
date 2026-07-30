@@ -1,3 +1,5 @@
+import { simulationStart } from "../_shared/serviceSchedule.ts";
+
 type Service = { venue_id: string; status: "idle" | "running" | "paused" | "ended"; simulated_minute: number; speed: number; target_revenue_minor: number; rush_until_minute: number; slowdown_until_minute: number; last_tick_at: string | null; started_at: string | null; scheduled_slot_key: string | null; active_run_id: string | null };
 type Product = { id: string; display_name: string; category: string; base_price_minor: number; current_price_minor: number; pos_product_id: string | null; is_live: boolean; is_sold_out: boolean };
 type SimulatedSale = { occurred_at: string; quantity: number; unit_price_minor: number };
@@ -17,16 +19,17 @@ Deno.serve(async request => {
 
     const schedulerSecret = Deno.env.get("SCHEDULER_SECRET");
     const isScheduler = Boolean(schedulerSecret) && request.headers.get("x-night-economy-scheduler-secret") === schedulerSecret;
-    const { venueSlug, action = "tick", speed, targetRevenueMinor, eventType, scheduledSlotKey } = await request.json().catch(() => ({}));
-    if (!venueSlug || !["tick", "summary", "quick_start", "pause", "resume", "end", "event", "scheduled_start", "scheduled_end"].includes(action)) return response({ error: "Invalid simulator request" }, 400);
-    const userId = isScheduler ? null : await authenticatedUserId(url, key, request.headers.get("Authorization"));
-    if (!isScheduler && !userId) return response({ error: "Unauthorized" }, 401);
+    const { venueSlug, action = "state", speed, targetRevenueMinor, eventType, scheduledSlotKey } = await request.json().catch(() => ({}));
+    if (!venueSlug || !["state", "tick", "summary", "quick_start", "pause", "resume", "end", "event", "scheduled_start", "scheduled_end"].includes(action)) return response({ error: "Invalid simulator request" }, 400);
+    const isPublicRead = action === "state";
+    const userId = isScheduler || isPublicRead ? null : await authenticatedUserId(url, key, request.headers.get("Authorization"));
+    if (!isScheduler && !isPublicRead && !userId) return response({ error: "Unauthorized" }, 401);
     const headers = { apikey: key, "content-type": "application/json" };
 
-    const venues = await restJson<Array<{ id: string; slug: string }>>(url, `/venues?slug=eq.${encodeURIComponent(venueSlug)}&select=id,slug`, { headers }, "load venue");
+    const venues = await restJson<Array<{ id: string; slug: string; timezone: string }>>(url, `/venues?slug=eq.${encodeURIComponent(venueSlug)}&select=id,slug,timezone`, { headers }, "load venue");
     const venue = venues[0];
     if (!venue) return response({ error: "Venue not found" }, 404);
-    if (!isScheduler) {
+    if (!isScheduler && !isPublicRead) {
       const memberships = await restJson<Array<{ role: string }>>(url, `/venue_members?venue_id=eq.${encodeURIComponent(venue.id)}&user_id=eq.${encodeURIComponent(userId!)}&select=role`, { headers }, "check venue access");
       if (!memberships[0] || !["owner", "admin"].includes(memberships[0].role)) return response({ error: "Only venue owners or admins can run a test service" }, 403);
     }
@@ -40,9 +43,11 @@ Deno.serve(async request => {
     if (action === "quick_start" || action === "scheduled_start") {
       await resetTestService(url, headers, venue.id);
       await setMarketLive(url, headers, venue.id, true);
-      const startedAt = new Date().toISOString();
-      const runId = await createRun(url, headers, venue.id, action === "scheduled_start" ? "scheduled" : "quick", action === "scheduled_start" ? scheduledSlotKey ?? null : null, startedAt);
-      state = await save(url, headers, venue.id, { status: "running", simulated_minute: 0, speed: action === "scheduled_start" ? 1 : (Number.isFinite(speed) ? nextSpeed : QUICK_START_SPEED), target_revenue_minor: nextTargetRevenueMinor, rush_until_minute: 0, slowdown_until_minute: 0, last_tick_at: startedAt, started_at: startedAt, scheduled_slot_key: action === "scheduled_start" ? scheduledSlotKey ?? null : null, active_run_id: runId });
+      const requestedAt = new Date();
+      const runStartedAt = requestedAt.toISOString();
+      const simulatedStartedAt = simulationStart(venue.timezone || "Europe/London", requestedAt, action === "scheduled_start" ? scheduledSlotKey : null);
+      const runId = await createRun(url, headers, venue.id, action === "scheduled_start" ? "scheduled" : "quick", action === "scheduled_start" ? scheduledSlotKey ?? null : null, runStartedAt);
+      state = await save(url, headers, venue.id, { status: "running", simulated_minute: 0, speed: action === "scheduled_start" ? 1 : (Number.isFinite(speed) ? nextSpeed : QUICK_START_SPEED), target_revenue_minor: nextTargetRevenueMinor, rush_until_minute: 0, slowdown_until_minute: 0, last_tick_at: runStartedAt, started_at: simulatedStartedAt, scheduled_slot_key: action === "scheduled_start" ? scheduledSlotKey ?? null : null, active_run_id: runId });
     } else if (action === "event") {
       if (!['rush', 'slowdown'].includes(eventType)) return response({ error: "Unknown simulator event" }, 400);
       state = await save(url, headers, venue.id, eventType === 'rush' ? { rush_until_minute: Math.min(SERVICE_MINUTES, state.simulated_minute + 30) } : { slowdown_until_minute: Math.min(SERVICE_MINUTES, state.simulated_minute + 30) });
@@ -60,7 +65,7 @@ Deno.serve(async request => {
       await setMarketLive(url, headers, venue.id, false);
       await finishRun(url, headers, state.active_run_id, action === "scheduled_end" ? "completed" : "ended", state.simulated_minute);
       state = await save(url, headers, venue.id, { status: "ended", speed: nextSpeed, last_tick_at: new Date().toISOString(), active_run_id: null });
-    } else if (action !== "summary" && state.status === "running") {
+    } else if (action === "tick" && state.status === "running") {
       state = await advance(url, headers, venue.id, venue.slug, state, nextSpeed);
     }
     if (action === "summary") {
@@ -78,7 +83,8 @@ Deno.serve(async request => {
 });
 
 async function advance(url: string, headers: HeadersInit, venueId: string, venueSlug: string, state: Service, speed: number) {
-  const elapsed = Math.floor(((Date.now() - Date.parse(state.last_tick_at ?? new Date().toISOString())) / 60_000) * speed);
+  const tickedAt = new Date();
+  const elapsed = Math.floor(((tickedAt.getTime() - Date.parse(state.last_tick_at ?? tickedAt.toISOString())) / 60_000) * speed);
   const nextMinute = Math.min(SERVICE_MINUTES, state.simulated_minute + Math.max(0, elapsed));
   if (nextMinute === state.simulated_minute) return state;
   const products = await restJson<Product[]>(url, `/market_products?venue_id=eq.${encodeURIComponent(venueId)}&select=id,display_name,category,base_price_minor,current_price_minor,pos_product_id,is_live,is_sold_out`, { headers }, "load venue products");
@@ -87,22 +93,26 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
     const status = nextMinute >= SERVICE_MINUTES ? "ended" : "running";
     if (status === "ended") await finishRun(url, headers, state.active_run_id, "completed", nextMinute);
     else await syncRunProgress(url, headers, state.active_run_id, nextMinute);
-    return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: new Date().toISOString(), ...(status === "ended" ? { active_run_id: null } : {}) });
+    return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: tickedAt.toISOString(), ...(status === "ended" ? { active_run_id: null } : {}) });
   }
   const connectionId = `test_sim_${venueId}`;
+  const salesRows: Array<Record<string, unknown>> = [];
   for (let minute = state.simulated_minute; minute < nextMinute; minute += 1) {
     const eventMultiplier = minute < state.rush_until_minute ? 2.1 : minute < state.slowdown_until_minute ? 0.38 : 1;
     const revenueMultiplier = Math.max(0.2, state.target_revenue_minor / 1_500_000);
     const orders = Math.max(1, Math.round((2 + 8 * Math.sin((minute / SERVICE_MINUTES) * Math.PI)) * eventMultiplier * revenueMultiplier));
-    const sales = Array.from({ length: orders }, (_, index) => {
+    salesRows.push(...Array.from({ length: orders }, (_, index) => {
       const product = active[(minute * 17 + index * 7) % active.length];
       return { id: `test_${venueId}_${state.active_run_id ?? "legacy"}_${minute}_${index}`, venue_id: venueId, pos_connection_id: connectionId, pos_product_id: product.pos_product_id, run_id: state.active_run_id, occurred_at: simulatedTime(minute, state.started_at), quantity: 1, unit_price_minor: product.current_price_minor, currency: "GBP" };
-    });
-    await restRequest(url, "/pos_sales_events?on_conflict=id", { method: "POST", headers: { ...headers, Prefer: "resolution=ignore-duplicates" }, body: JSON.stringify(sales) }, "write simulated sales");
-    if (minute > 0 && minute % 5 === 0) {
-      const decisions = await runMarketCycle(venueSlug, simulatedTime(minute, state.started_at));
-      await publishInternalPrices(url, headers, venueId, connectionId, decisions);
-    }
+    }));
+  }
+  if (salesRows.length) {
+    await restRequest(url, "/pos_sales_events?on_conflict=id", { method: "POST", headers: { ...headers, Prefer: "resolution=ignore-duplicates" }, body: JSON.stringify(salesRows) }, "write simulated sales");
+  }
+  const latestCycleMinute = Math.floor((nextMinute - 1) / 5) * 5;
+  if (latestCycleMinute > state.simulated_minute) {
+    const decisions = await runMarketCycle(venueSlug, simulatedTime(latestCycleMinute, state.started_at));
+    await publishInternalPrices(url, headers, venueId, connectionId, decisions);
   }
   const status = nextMinute >= SERVICE_MINUTES ? "ended" : "running";
   if (status === "ended") {
@@ -111,7 +121,7 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
   } else {
     await syncRunProgress(url, headers, state.active_run_id, nextMinute);
   }
-  return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: new Date().toISOString(), ...(status === "ended" ? { active_run_id: null } : {}) });
+  return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: tickedAt.toISOString(), ...(status === "ended" ? { active_run_id: null } : {}) });
 }
 
 async function runMarketCycle(venueSlug: string, cycleEnd: string) {
