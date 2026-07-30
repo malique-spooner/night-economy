@@ -244,6 +244,13 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect(page.getByRole("heading", { name: "Every price and percentage change" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Every single order" })).toBeVisible();
   await expect(page.getByRole("table", { name: "Five-minute price history" }).getByText("+5.00%")).toBeVisible();
+  const espressoDrilldown = page.getByRole("button", { name: /Espresso Martini 3 sold/ });
+  await espressoDrilldown.click();
+  await expect(page.getByRole("heading", { name: "Espresso Martini: every five-minute price" })).toBeVisible();
+  await expect(page.getByRole("table", { name: "Five-minute price history for Espresso Martini" }).getByRole("row")).toHaveCount(2);
+  await expect(page.getByRole("table", { name: "Five-minute price history for Espresso Martini" })).not.toContainText("Margarita");
+  await espressoDrilldown.click();
+  await expect(page.getByRole("heading", { name: "Every price and percentage change" })).toBeVisible();
   await expect(page.getByRole("table", { name: "Every order" }).getByRole("row")).toHaveCount(4);
   await expect(page.getByText("Espresso Martini", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("3 sold · Cocktails", { exact: true })).toBeVisible();
@@ -400,7 +407,10 @@ async function handleRest(route: Route, url: URL, method: string, mockProducts: 
     created_at: "2026-07-25T18:05:00.000Z",
     snapshot: {
       roundEnd: "2026-07-25T18:05:00.000Z",
-      decisions: [{ productId: "mp_espresso", oldPriceMinor: 1200, newPriceMinor: 1260, movement: "up", reason: "Demand rose against category peers." }],
+      decisions: [
+        { productId: "mp_espresso", oldPriceMinor: 1200, newPriceMinor: 1260, movement: "up", reason: "Demand rose against category peers." },
+        { productId: "mp_margarita", oldPriceMinor: 1100, newPriceMinor: 1078, movement: "down", reason: "Demand softened against category peers." },
+      ],
     },
   }]);
   if (table === "market_runs") return postgrest(route, [{ id: "run_e2e", kind: latestRunKind, status: "completed", started_at: "2026-07-25T18:00:00.000Z", ended_at: "2026-07-25T18:10:00.000Z", simulated_minutes: 360, sales_count: 124, revenue_minor: 148800 }]);

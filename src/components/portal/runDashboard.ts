@@ -58,7 +58,7 @@ export function buildRunDashboard(run: MarketRun, sales: MarketRunSale[], produc
 
     const productName = product?.name ?? "Unlisted product";
     const category = product?.category ?? "Other";
-    addTotal(productTotals, sale.posProductId, productName, category, quantity, revenueMinor);
+    addTotal(productTotals, product?.id ?? sale.posProductId, productName, category, quantity, revenueMinor);
     addTotal(categoryTotals, category, category, category, quantity, revenueMinor);
   }
 

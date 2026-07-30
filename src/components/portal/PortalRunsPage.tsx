@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getMarketRunPriceHistory,
   getMarketRunSales,
@@ -21,8 +21,10 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
   const [selectedRun, setSelectedRun] = useState<MarketRun | null>(null);
   const [sales, setSales] = useState<MarketRunSale[]>([]);
   const [priceHistory, setPriceHistory] = useState<MarketRunPricePoint[]>([]);
+  const [selectedPriceProductId, setSelectedPriceProductId] = useState<string | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState("");
+  const priceLedgerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!selectedRun) return;
@@ -51,6 +53,8 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
 
   const dashboard = useMemo(() => selectedRun ? buildRunDashboard(selectedRun, sales, products) : null, [products, sales, selectedRun]);
   const priceLedger = useMemo(() => buildRunPriceLedger(priceHistory, products), [priceHistory, products]);
+  const selectedPriceProduct = selectedPriceProductId ? products.find(product => product.id === selectedPriceProductId) : null;
+  const visiblePriceLedger = selectedPriceProductId ? priceLedger.filter(point => point.productId === selectedPriceProductId) : priceLedger;
   const money = (minor: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(minor / 100);
   const serviceTime = (value: string, withSeconds = false) => new Intl.DateTimeFormat("en-GB", {
     timeZone: timezone,
@@ -91,7 +95,10 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
           </section>
           <section className="portal-run-panel" aria-labelledby="run-products-title">
             <PanelHeading eyebrow="Menu performance" id="run-products-title" title="Top drinks" />
-            {!dashboard.products.length ? <p>No item-level sales were recorded for this run.</p> : <ol className="portal-run-ranking">{dashboard.products.slice(0, 8).map(product => <li key={product.id}><div><strong>{product.name}</strong><span>{product.quantity} sold · {product.category}</span></div><b>{money(product.revenueMinor)}</b><i style={{ width: `${(product.revenueMinor / maxProductRevenue) * 100}%` }} /></li>)}</ol>}
+            {!dashboard.products.length ? <p>No item-level sales were recorded for this run.</p> : <ol className="portal-run-ranking">{dashboard.products.map(product => <li key={product.id}><button aria-pressed={selectedPriceProductId === product.id} onClick={() => {
+              setSelectedPriceProductId(current => current === product.id ? null : product.id);
+              window.setTimeout(() => priceLedgerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+            }} type="button"><div><strong>{product.name}</strong><span>{product.quantity} sold · {product.category}</span></div><b>{money(product.revenueMinor)}</b><i style={{ width: `${(product.revenueMinor / maxProductRevenue) * 100}%` }} /></button></li>)}</ol>}
           </section>
           <section className="portal-run-panel" aria-labelledby="run-categories-title">
             <PanelHeading eyebrow="Sales mix" id="run-categories-title" title="By category" />
@@ -103,16 +110,16 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
           </section>
         </div>
 
-        <section className="portal-run-panel portal-run-ledger-panel" aria-labelledby="price-ledger-title">
+        <section className="portal-run-panel portal-run-ledger-panel" aria-labelledby="price-ledger-title" ref={priceLedgerRef}>
           <div className="portal-run-section-heading">
-            <PanelHeading eyebrow="Five-minute market tape" id="price-ledger-title" title="Every price and percentage change" />
-            <span>{distinctRounds} rounds · {priceLedger.length} decisions</span>
+            <PanelHeading eyebrow="Five-minute market tape" id="price-ledger-title" title={selectedPriceProduct ? `${selectedPriceProduct.name}: every five-minute price` : "Every price and percentage change"} />
+            <span>{distinctRounds} rounds · {visiblePriceLedger.length} decisions{selectedPriceProduct ? " · click the drink again to show all" : ""}</span>
           </div>
-          {!priceLedger.length ? <p className="portal-run-ledger-empty">No linked price rounds were recorded for this historical run. New runs preserve every five-minute price decision here.</p> :
+          {!visiblePriceLedger.length ? <p className="portal-run-ledger-empty">{selectedPriceProduct ? `No five-minute price rounds were recorded for ${selectedPriceProduct.name}.` : "No linked price rounds were recorded for this historical run. New runs preserve every five-minute price decision here."}</p> :
             <div className="portal-run-table-wrap">
-              <table className="portal-run-table" aria-label="Five-minute price history">
+              <table className="portal-run-table" aria-label={selectedPriceProduct ? `Five-minute price history for ${selectedPriceProduct.name}` : "Five-minute price history"}>
                 <thead><tr><th>Time</th><th>Product</th><th>Previous</th><th>Price</th><th>Change</th><th>Why</th></tr></thead>
-                <tbody>{priceLedger.map((point, index) => {
+                <tbody>{visiblePriceLedger.map((point, index) => {
                   const change = `${point.changePercentage > 0 ? "+" : ""}${point.changePercentage.toFixed(2)}%`;
                   return <tr key={`${point.at}-${point.productId}-${index}`}>
                     <td><time dateTime={point.at}>{serviceTime(point.at)}</time></td>
@@ -158,7 +165,7 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
         <div><strong>{runLabel(run)}</strong><span>{new Date(run.startedAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: timezone })}</span></div>
         <span className={`portal-run-status ${run.status}`}>{run.status}</span>
         <dl><div><dt>Service time</dt><dd>{run.simulatedMinutes} min</dd></div><div><dt>Drinks sold</dt><dd>{run.salesCount}</dd></div><div><dt>Sales</dt><dd>{money(run.revenueMinor)}</dd></div></dl>
-        <button aria-label={`Open dashboard for ${runLabel(run)}`} className="portal-run-open" onClick={() => setSelectedRun(run)} type="button">View night dashboard →</button>
+        <button aria-label={`Open dashboard for ${runLabel(run)}`} className="portal-run-open" onClick={() => { setSelectedPriceProductId(null); setSelectedRun(run); }} type="button">View night dashboard →</button>
       </article>)}
     </div>}
   </section>;

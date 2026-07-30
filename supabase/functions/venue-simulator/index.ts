@@ -1,5 +1,5 @@
 import { simulationStart } from "../_shared/serviceSchedule.ts";
-import { buildInstantSimulation } from "../_shared/instantSimulation.ts";
+import { buildInstantSimulation, selectPubOrderProduct } from "../_shared/instantSimulation.ts";
 import { marketCycleMinutes, simulationProgress } from "../_shared/simulationClock.ts";
 
 type Service = { venue_id: string; status: "idle" | "running" | "paused" | "ended"; simulated_minute: number; speed: number; target_revenue_minor: number; rush_until_minute: number; slowdown_until_minute: number; last_tick_at: string | null; started_at: string | null; scheduled_slot_key: string | null; active_run_id: string | null };
@@ -119,7 +119,7 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
     const revenueMultiplier = Math.max(0.2, state.target_revenue_minor / 1_500_000);
     const orders = Math.max(1, Math.round((2 + 8 * Math.sin((minute / SERVICE_MINUTES) * Math.PI)) * eventMultiplier * revenueMultiplier));
     salesRows.push(...Array.from({ length: orders }, (_, index) => {
-      const product = active[(minute * 17 + index * 7) % active.length];
+      const product = selectPubOrderProduct(active, minute, index);
       return { id: `test_${venueId}_${state.active_run_id ?? "legacy"}_${minute}_${index}`, venue_id: venueId, pos_connection_id: connectionId, pos_product_id: product.pos_product_id, run_id: state.active_run_id, occurred_at: simulatedTime(minute, state.started_at), quantity: 1, unit_price_minor: product.current_price_minor, currency: "GBP" };
     }));
   }

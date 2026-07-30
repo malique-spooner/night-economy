@@ -52,7 +52,7 @@ export function buildInstantSimulation(
     const revenueMultiplier = Math.max(0.2, targetRevenueMinor / 1_500_000);
     const orders = Math.max(1, Math.round((2 + 8 * Math.sin((minute / serviceMinutes) * Math.PI)) * revenueMultiplier));
     for (let sequence = 0; sequence < orders; sequence += 1) {
-      const product = active[(minute * 17 + sequence * 7) % active.length];
+      const product = selectPubOrderProduct(active, minute, sequence);
       sales.push({ minute, sequence, posProductId: product.pos_product_id!, quantity: 1, unitPriceMinor: product.current_price_minor });
       roundSales.set(product.id, (roundSales.get(product.id) ?? 0) + 1);
       roundLineCount += 1;
@@ -103,4 +103,55 @@ function priceMarket(products: InstantSimulationProduct[], sold: Map<string, num
 
 function hold(product: InstantSimulationProduct, reason: string): InstantPriceDecision {
   return { productId: product.id, oldPriceMinor: product.current_price_minor, newPriceMinor: product.current_price_minor, movement: "hold", reason };
+}
+
+// Defra Family Food FYE 2024, UK alcohol purchased outside the home. Cider is
+// included with Beer because that is how this venue's catalogue is organised.
+// Wine is sold by the bottle here, so spend share is converted to order share
+// using the average menu price for each live category.
+const UK_PUB_SPEND_WEIGHTS: Record<string, number> = {
+  beer: 0.80,
+  wine: 0.103,
+  cocktails: 0.045,
+  spirits: 0.04,
+};
+
+export function pubCategoryOrderShares<T extends Pick<InstantSimulationProduct, "category" | "base_price_minor">>(products: T[]) {
+  const groups = groupByCategory(products);
+  const demandWeights = [...groups.entries()].map(([category, categoryProducts]) => {
+    const averagePriceMinor = categoryProducts.reduce((total, product) => total + Math.max(1, product.base_price_minor), 0) / categoryProducts.length;
+    const spendWeight = UK_PUB_SPEND_WEIGHTS[category.toLowerCase()] ?? 0.02;
+    return { category, share: spendWeight / averagePriceMinor };
+  });
+  const total = demandWeights.reduce((sum, item) => sum + item.share, 0);
+  return demandWeights.map(item => ({ ...item, share: total ? item.share / total : 0 }));
+}
+
+export function selectPubOrderProduct<T extends Pick<InstantSimulationProduct, "category" | "base_price_minor">>(products: T[], minute: number, sequence: number): T {
+  const groups = groupByCategory(products);
+  const shares = pubCategoryOrderShares(products);
+  const draw = deterministicDraw(minute, sequence);
+  let cumulative = 0;
+  let selectedCategory = shares.at(-1)?.category ?? products[0].category;
+  for (const item of shares) {
+    cumulative += item.share;
+    if (draw < cumulative) {
+      selectedCategory = item.category;
+      break;
+    }
+  }
+  const categoryProducts = groups.get(selectedCategory) ?? products;
+  return categoryProducts[(minute * 13 + sequence * 7) % categoryProducts.length];
+}
+
+function groupByCategory<T extends Pick<InstantSimulationProduct, "category" | "base_price_minor">>(products: T[]) {
+  const groups = new Map<string, T[]>();
+  for (const product of products) groups.set(product.category, [...(groups.get(product.category) ?? []), product]);
+  return groups;
+}
+
+function deterministicDraw(minute: number, sequence: number) {
+  let value = Math.imul(minute + 1, 0x9e3779b1) ^ Math.imul(sequence + 1, 0x85ebca6b);
+  value ^= value >>> 16;
+  return (value >>> 0) / 4_294_967_296;
 }
