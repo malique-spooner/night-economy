@@ -33,6 +33,49 @@ export type InstantSimulationRound = {
 };
 
 const MARKET_INTENSITY = 1.25;
+const REFERENCE_SERVICE_MINUTES = 360;
+const REFERENCE_NIGHT_ORDERS = 2_560;
+
+// London Friday prior for 18:00–00:00. Public evidence does not expose
+// product-level till data by hour, so these shares combine the GLA's 3-hour
+// night-time pattern with CGA/Zonal's stronger 18:00–20:00 trading window.
+// Keep this as a prior until a venue has enough of its own Friday POS history.
+export const LONDON_FRIDAY_HOURLY_ORDER_SHARES = [0.16, 0.19, 0.19, 0.18, 0.17, 0.11] as const;
+
+export function buildLondonFridayOrderPlan(
+  targetRevenueMinor: number,
+  serviceMinutes = REFERENCE_SERVICE_MINUTES,
+): number[] {
+  if (serviceMinutes <= 0) return [];
+  const revenueMultiplier = Math.max(0.2, targetRevenueMinor / 1_500_000);
+  const targetOrders = Math.max(1, Math.round(REFERENCE_NIGHT_ORDERS * (serviceMinutes / REFERENCE_SERVICE_MINUTES) * revenueMultiplier));
+  const minuteShares = Array.from({ length: serviceMinutes }, () => 0);
+
+  for (let hour = 0; hour < LONDON_FRIDAY_HOURLY_ORDER_SHARES.length; hour += 1) {
+    const start = Math.floor((hour * serviceMinutes) / LONDON_FRIDAY_HOURLY_ORDER_SHARES.length);
+    const end = Math.floor(((hour + 1) * serviceMinutes) / LONDON_FRIDAY_HOURLY_ORDER_SHARES.length);
+    const pulses = Array.from({ length: end - start }, (_, offset) => {
+      const minute = start + offset;
+      // Two overlapping rhythms avoid an implausibly flat number of orders per
+      // minute while remaining deterministic for repeatable run histories.
+      return 1 + 0.13 * Math.sin(((minute + 3) * 2 * Math.PI) / 17) + 0.07 * Math.sin(((minute + 1) * 2 * Math.PI) / 7);
+    });
+    const pulseTotal = pulses.reduce((total, pulse) => total + pulse, 0);
+    for (let offset = 0; offset < pulses.length; offset += 1) {
+      minuteShares[start + offset] = LONDON_FRIDAY_HOURLY_ORDER_SHARES[hour] * pulses[offset] / pulseTotal;
+    }
+  }
+
+  let allocated = 0;
+  let cumulativeShare = 0;
+  return minuteShares.map((share, minute) => {
+    cumulativeShare += share;
+    const cumulativeOrders = minute === serviceMinutes - 1 ? targetOrders : Math.round(cumulativeShare * targetOrders);
+    const orders = cumulativeOrders - allocated;
+    allocated = cumulativeOrders;
+    return orders;
+  });
+}
 
 export function buildInstantSimulation(
   sourceProducts: InstantSimulationProduct[],
@@ -46,11 +89,11 @@ export function buildInstantSimulation(
   const sales: InstantSimulationSale[] = [];
   const rounds: InstantSimulationRound[] = [];
   const roundSales = new Map<string, number>();
+  const orderPlan = buildLondonFridayOrderPlan(targetRevenueMinor, serviceMinutes);
   let roundLineCount = 0;
 
   for (let minute = 0; minute < serviceMinutes; minute += 1) {
-    const revenueMultiplier = Math.max(0.2, targetRevenueMinor / 1_500_000);
-    const orders = Math.max(1, Math.round((2 + 8 * Math.sin((minute / serviceMinutes) * Math.PI)) * revenueMultiplier));
+    const orders = orderPlan[minute];
     for (let sequence = 0; sequence < orders; sequence += 1) {
       const product = selectPubOrderProduct(active, minute, sequence);
       sales.push({ minute, sequence, posProductId: product.pos_product_id!, quantity: 1, unitPriceMinor: product.current_price_minor });
