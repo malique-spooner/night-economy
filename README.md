@@ -15,6 +15,17 @@ The visible app now runs through the React/Vite/TypeScript entrypoint at `index.
 See [docs/deployment.md](docs/deployment.md) for the ordered Supabase and Cloudflare deployment checklist.
 See [docs/pos-integration-contract.md](docs/pos-integration-contract.md) for the boundary between a POS and Night Economy.
 See [docs/friday-service-acceptance.md](docs/friday-service-acceptance.md) for the accelerated local POS acceptance run.
+See [docs/testing.md](docs/testing.md) for the required Chromium button-testing contract and test commands.
+
+## Repository Map
+
+- `src/` — the Cloudflare Pages React app, grouped into API access, reusable components, market logic, and route-level pages.
+- `pos-simulator/` — the standalone Friday-service POS simulator and its local browser UI.
+- `supabase/functions/` — deployed scheduler, simulator, and pricing Edge Functions; shared scheduler logic lives in `_shared/`.
+- `supabase/migrations/` — immutable database history in application order. Do not squash migrations already applied to a project.
+- `scripts/` — local verification, setup, and operational commands exposed through `package.json`.
+- `tests/unit/` and `tests/integration/` — deterministic logic and service-contract coverage.
+- `tests/e2e/` — Chromium user workflows for the site, portal, market surfaces, and local POS simulator.
 
 ## Run Locally
 

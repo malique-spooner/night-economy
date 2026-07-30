@@ -25,6 +25,19 @@ const expectedMigrations = [
   "20260727062121_clear_curated_priority.sql",
   "20260727062930_limit_category_tv_priorities.sql",
   "20260727063247_fill_live_tv_categories.sql",
+  "20260728090000_add_venue_test_services.sql",
+  "20260728100000_add_internal_venue_simulator_setup.sql",
+  "20260729090000_add_cloud_service_scheduler.sql",
+  "20260729110000_add_night_economy_dev_venue.sql",
+  "20260729120000_add_market_run_history.sql",
+  "20260729121000_grant_service_role_market_run_access.sql",
+  "20260729130000_reset_stale_market_live_flags.sql",
+  "20260729170000_add_platform_admin_memberships.sql",
+  "20260729180000_remove_development_venue.sql",
+  "20260729190000_rename_demo_venue.sql",
+  "20260729200000_add_platform_admins.sql",
+  "20260729210000_add_cloud_simulator_controls.sql",
+  "20260729220000_add_market_product_logos.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -60,6 +73,11 @@ function checkMigrationOrder() {
 function checkRequiredPatterns() {
   const required = [
     {
+      label: "platform admin access is private to the signed-in admin",
+      source: migrationSql["20260729200000_add_platform_admins.sql"],
+      pattern: /alter table public\.platform_admins enable row level security[\s\S]+grant select on public\.platform_admins to authenticated[\s\S]+for select[\s\S]+to authenticated[\s\S]+using \(\(select auth\.uid\(\)\) = user_id\)/i,
+    },
+    {
       label: "venues RLS enabled",
       source: migrationSql["001_initial.sql"],
       pattern: /alter table public\.venues enable row level security/i,
@@ -68,6 +86,11 @@ function checkRequiredPatterns() {
       label: "market products RLS enabled",
       source: migrationSql["001_initial.sql"],
       pattern: /alter table public\.market_products enable row level security/i,
+    },
+    {
+      label: "market logo uploads are restricted to venue admins",
+      source: migrationSql["20260729220000_add_market_product_logos.sql"],
+      pattern: /create policy "venue admins can upload market logos"[\s\S]+for insert[\s\S]+to authenticated[\s\S]+bucket_id = 'market-logos'[\s\S]+venue_members[\s\S]+role in \('owner', 'admin'\)/i,
     },
     {
       label: "site leads RLS enabled",

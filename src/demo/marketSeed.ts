@@ -4,7 +4,7 @@ import { defaultVenueMarketSettings } from "../engine/venueSettings";
 export const seedVenue: Venue = {
   id: "ven_demo",
   slug: "demo-venue",
-  name: "Demo Venue",
+  name: "The Last Judgment",
   currency: "GBP",
   timezone: "Europe/London",
   ...defaultVenueMarketSettings(),

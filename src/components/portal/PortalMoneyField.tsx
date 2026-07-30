@@ -13,7 +13,7 @@ export function PortalMoneyField({ label, onChange, valueMinor }: Props) {
     <label className="portal-money-field">
       <span>{label}</span>
       <div>
-        <button type="button" onClick={() => onChange(Math.max(0, valueMinor - stepMinor))}>−</button>
+        <button aria-label={`Decrease ${label}`} type="button" onClick={() => onChange(Math.max(0, valueMinor - stepMinor))}>−</button>
         <input
           type="number"
           step="0.01"
@@ -21,7 +21,7 @@ export function PortalMoneyField({ label, onChange, valueMinor }: Props) {
           onChange={event => onChange(Math.round(Number(event.target.value || 0) * 100), { persist: false })}
           onBlur={event => onChange(Math.round(Number(event.target.value || 0) * 100))}
         />
-        <button type="button" onClick={() => onChange(valueMinor + stepMinor)}>+</button>
+        <button aria-label={`Increase ${label}`} type="button" onClick={() => onChange(valueMinor + stepMinor)}>+</button>
       </div>
     </label>
   );

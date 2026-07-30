@@ -2,10 +2,10 @@ import { MobileCategoryRail } from "../components/mobile/MobileCategoryRail";
 import { MobileHero } from "../components/mobile/MobileHero";
 import { MobileMarketBrief } from "../components/mobile/MobileMarketBrief";
 import { MobileMarketSection } from "../components/mobile/MobileMarketSection";
+import { MarketClosedExperience } from "../components/market/MarketClosedExperience";
 import { mobileCategorySectionId } from "../components/mobile/mobileHelpers";
 import { categoryLabel, groupProductsByCategory } from "../components/tv/tvHelpers";
 import { useMarketState } from "../hooks/useMarketState";
-import { PageSwitcher } from "./PageSwitcher";
 
 type Props = {
   venueSlug: string;
@@ -16,6 +16,12 @@ export function Menu({ venueSlug }: Props) {
 
   if (error) return <main className="page">Could not load menu: {error}</main>;
   if (!state) return <main className="page">Loading menu...</main>;
+
+  if (!state.venue.marketLive) {
+    return <>
+      <MarketClosedExperience surface="mobile" venue={state.venue} />
+    </>;
+  }
 
   // The public menu is the live market board, not the venue's full catalogue.
   // This keeps it aligned with the TV and prevents inactive drinks appearing
@@ -29,10 +35,9 @@ export function Menu({ venueSlug }: Props) {
 
   return (
     <>
-      <PageSwitcher active="mobile" venueSlug={venueSlug} />
       <section id="mobileView" className="alt-view mobile-view active">
         <div className="mobile-shell">
-          <MobileHero />
+          <MobileHero venueName={state.venue.name} />
           <main className="mobile-menu">
             <MobileMarketBrief products={activeProducts} venue={state.venue} />
             <MobileCategoryRail categories={categoryLinks} />

@@ -13,6 +13,7 @@ describe("resolveAppRoute", () => {
     expect(resolveAppRoute("/tv/soho-house")).toEqual({ surface: "tv", slug: "soho-house" });
     expect(resolveAppRoute("/menu/soho-house")).toEqual({ surface: "menu", slug: "soho-house" });
     expect(resolveAppRoute("/app/soho-house")).toEqual({ surface: "app", slug: "soho-house" });
+    expect(resolveAppRoute("/simulator/soho-house")).toEqual({ surface: "simulator", slug: "soho-house" });
     expect(resolveAppRoute("/sign-in/soho-house")).toEqual({ surface: "sign-in", slug: "soho-house" });
     expect(resolveAppRoute("/venue/soho-house")).toEqual({ surface: "venue", slug: "soho-house" });
   });

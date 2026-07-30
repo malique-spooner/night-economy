@@ -4,6 +4,7 @@ const stateUrl = "/v1/simulation/state";
 document.querySelectorAll("[data-event]").forEach(button => {
   button.addEventListener("click", async () => {
     await post("/v1/simulation/events", { type: button.dataset.event });
+    document.querySelector("#event-status").textContent = button.dataset.event === "rush" ? "Rush triggered." : "Slowdown triggered.";
     await refresh();
   });
 });
@@ -41,6 +42,7 @@ function render(state) {
   document.querySelector("#products").innerHTML = `<table><thead><tr><th>Product</th><th>SKU</th><th>Base</th><th>Current</th><th>Availability</th><th></th></tr></thead><tbody>${products.map(product => `<tr><td>${product.name}</td><td>${product.sku}</td><td>${price(product.basePriceMinor)}</td><td>${price(product.currentPriceMinor)}</td><td><span class="pill ${product.isAvailable ? "available" : "sold-out"}">${product.isAvailable ? "Available" : "Sold out"}</span></td><td>${product.isAvailable ? `<button class="sold-out-button" data-sold-out="${product.id}">Sell out</button>` : ""}</td></tr>`).join("")}</tbody></table>`;
   document.querySelectorAll("[data-sold-out]").forEach(button => button.addEventListener("click", async () => {
     await post("/v1/simulation/events", { type: "sold_out", productId: button.dataset.soldOut });
+    document.querySelector("#event-status").textContent = "Product marked sold out.";
     await refresh();
   }));
 

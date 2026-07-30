@@ -91,6 +91,19 @@ async function handleRequest(request: Request) {
   const cycleEnd = requestedCycleEnd ? new Date(requestedCycleEnd) : new Date();
   if (Number.isNaN(cycleEnd.getTime())) return json({ error: "cycleEnd must be a valid ISO timestamp" }, 400);
   const cycleStart = new Date(cycleEnd.getTime() - MARKET_CYCLE_MS);
+  const latestSnapshots = await restJson<Array<{ snapshot: { roundEnd?: string } | null }>>(
+    `${supabaseUrl}/rest/v1/market_price_snapshots?venue_id=eq.${encodeURIComponent(venue.id)}&select=snapshot&order=created_at.desc&limit=1`,
+    { headers },
+    "load latest market snapshot",
+  );
+  if (latestSnapshots[0]?.snapshot?.roundEnd === cycleEnd.toISOString()) {
+    return json({
+      ok: true,
+      engine: "night-economy-v2",
+      duplicate: true,
+      snapshot: latestSnapshots[0].snapshot,
+    });
+  }
   const sales = await restJson<PosSaleEvent[]>(
     `${supabaseUrl}/rest/v1/pos_sales_events?venue_id=eq.${encodeURIComponent(venue.id)}&occurred_at=gte.${encodeURIComponent(cycleStart.toISOString())}&occurred_at=lte.${encodeURIComponent(cycleEnd.toISOString())}&select=pos_product_id,quantity`,
     { headers },

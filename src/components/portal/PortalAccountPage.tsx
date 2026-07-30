@@ -12,7 +12,7 @@ type Props = {
 };
 
 export function PortalAccountPage({ email, isSignedIn, liveCount, role, source, totalCount, venue }: Props) {
-  const access = source === "seed" ? "Demo access" : role ? "Shared venue operator" : "No venue access";
+  const access = source === "seed" ? "Demo access" : role ? `${role[0].toUpperCase()}${role.slice(1)} access` : "No venue access";
 
   return (
     <section className="portal-page-grid">

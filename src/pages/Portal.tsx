@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { PortalAccountPage } from "../components/portal/PortalAccountPage";
-import { PortalAuthPanel } from "../components/portal/PortalAuthPanel";
+import { PortalRunsPage } from "../components/portal/PortalRunsPage";
 import { PortalSidebar, type PortalTab } from "../components/portal/PortalSidebar";
 import { PortalStartPage } from "../components/portal/PortalStartPage";
 import {
@@ -15,15 +15,16 @@ import {
   wouldNeedAnotherTvPage,
 } from "../components/portal/portalHelpers";
 import { useMarketState } from "../hooks/useMarketState";
-import { supabaseStatus } from "../api/client";
-import { getCurrentSession, onAuthStateChange, signInWithEmail, signOut } from "../api/auth";
+import { getCurrentSession, onAuthStateChange, signOut } from "../api/auth";
 import { controlSimulator, getSimulatorState, type SimulatorState } from "../api/simulator";
-import { getVenueMemberRole, type VenueMemberRole } from "../api/memberships";
+import { getMyAccessibleVenues, getMyPlatformAdminAccess, getVenueMemberRole, type AccessibleVenue, type VenueMemberRole } from "../api/memberships";
+import { getMarketRuns, type MarketRun } from "../api/runs";
 import {
   createMarketProductConfiguration,
   getMarketProductPriceHistory,
   getPosProducts,
   updateMarketProduct,
+  uploadMarketProductLogo,
   updateVenueMarketSettings,
   type MarketProductConfiguration,
   type MarketPriceHistoryPoint,
@@ -32,7 +33,6 @@ import {
   type VenueMarketSettingsPatch,
 } from "../api/market";
 import { prepareMarketProductConfiguration } from "../components/portal/portalHelpers";
-import { PageSwitcher } from "./PageSwitcher";
 
 type Props = {
   venueSlug: string;
@@ -43,19 +43,25 @@ export function Portal({ venueSlug }: Props) {
   // view in sync with the POS if the browser misses a websocket event.
   const { error, setState, state } = useMarketState(venueSlug, { pollIntervalMs: 2_000 });
   const [isSignedIn, setIsSignedIn] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isAuthResolved, setIsAuthResolved] = useState(false);
   const [authError, setAuthError] = useState("");
   const [, setLastSavedMessage] = useState("");
   const [memberRole, setMemberRole] = useState<VenueMemberRole | null>(null);
-  const [isCheckingAccess, setIsCheckingAccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<PortalTab>("start");
+  const [accessibleVenues, setAccessibleVenues] = useState<AccessibleVenue[]>([]);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true);
+  const [hasCheckedVenueAccess, setHasCheckedVenueAccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<PortalTab>(() => new URLSearchParams(window.location.search).get("tab") === "runs" ? "runs" : "start");
+  const [isNavPinned, setIsNavPinned] = useState(false);
   const [signedInEmail, setSignedInEmail] = useState("");
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [posProducts, setPosProducts] = useState<PosProduct[]>([]);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [priceHistory, setPriceHistory] = useState<MarketPriceHistoryPoint[]>([]);
   const [priceHistoryLoading, setPriceHistoryLoading] = useState(false);
   const [simulatorState, setSimulatorState] = useState<SimulatorState | null>(null);
+  const [runs, setRuns] = useState<MarketRun[]>([]);
+  const [runsLoading, setRunsLoading] = useState(false);
   const [isEndConfirmationOpen, setIsEndConfirmationOpen] = useState(false);
   const [tvPageWarning, setTvPageWarning] = useState<{ category: string; productId: string; patch: MarketProductPatch; options: { persist?: boolean }; productName: string } | null>(null);
   const [priorityLimitWarning, setPriorityLimitWarning] = useState<string | null>(null);
@@ -68,15 +74,23 @@ export function Portal({ venueSlug }: Props) {
   }, []);
 
   useEffect(() => {
+    if (!isAuthResolved || isSignedIn || isSigningOut) return;
+    window.location.replace(`/sign-in/${encodeURIComponent(venueSlug)}`);
+  }, [isAuthResolved, isSignedIn, isSigningOut, venueSlug]);
+
+  useEffect(() => {
     if (!state) return;
     const { source, venue } = state;
 
     let cancelled = false;
 
     async function refreshVenueAccess() {
+      setHasCheckedVenueAccess(false);
+
       if (source === "seed") {
         setMemberRole(null);
         setIsCheckingAccess(false);
+        setHasCheckedVenueAccess(true);
         return;
       }
 
@@ -96,7 +110,10 @@ export function Portal({ venueSlug }: Props) {
           setAuthError(error instanceof Error ? error.message : "Could not check venue access");
         }
       } finally {
-        if (!cancelled) setIsCheckingAccess(false);
+        if (!cancelled) {
+          setIsCheckingAccess(false);
+          setHasCheckedVenueAccess(true);
+        }
       }
     }
 
@@ -108,11 +125,79 @@ export function Portal({ venueSlug }: Props) {
   }, [isSignedIn, state?.source, state?.venue.id]);
 
   useEffect(() => {
+    if (!isSignedIn || state?.source !== "supabase") {
+      setAccessibleVenues([]);
+      return;
+    }
+
+    let cancelled = false;
+    void getMyAccessibleVenues()
+      .then(venues => { if (!cancelled) setAccessibleVenues(venues); })
+      .catch(() => { if (!cancelled) setAccessibleVenues([]); });
+    return () => { cancelled = true; };
+  }, [isSignedIn, state?.source]);
+
+  useEffect(() => {
+    if (!isSignedIn || !error.includes("no longer available")) return;
+
+    let cancelled = false;
+    void getMyAccessibleVenues().then(venues => {
+      const destination = venues[0];
+      if (!cancelled && destination) window.location.replace(`/app/${encodeURIComponent(destination.slug)}`);
+    }).catch(() => {
+      // The error screen remains visible when the session has no venue access.
+    });
+    return () => { cancelled = true; };
+  }, [error, isSignedIn]);
+
+  useEffect(() => {
+    if (!state || !isSignedIn || state.source !== "supabase") return;
+    let cancelled = false;
+    const venueId = state.venue.id;
+    async function refreshRuns() {
+      try {
+        setRunsLoading(true);
+        const nextRuns = await getMarketRuns(venueId);
+        if (!cancelled) setRuns(nextRuns);
+      } catch {
+        if (!cancelled) setRuns([]);
+      } finally {
+        if (!cancelled) setRunsLoading(false);
+      }
+    }
+    void refreshRuns();
+    const interval = activeTab === "runs"
+      ? window.setInterval(() => { void refreshRuns(); }, 5_000)
+      : undefined;
+    return () => {
+      cancelled = true;
+      if (interval !== undefined) window.clearInterval(interval);
+    };
+  }, [activeTab, isSignedIn, state?.source, state?.venue.id]);
+
+  useEffect(() => {
+    if (!state || state.source !== "supabase" || !isSignedIn || !hasCheckedVenueAccess || isCheckingAccess || memberRole !== null) return;
+
+    let cancelled = false;
+    void getMyAccessibleVenues().then(venues => {
+      const destination = venues.find(venue => venue.slug !== venueSlug) ?? venues[0];
+      if (!cancelled && destination && destination.slug !== venueSlug) {
+        window.location.replace(`/app/${encodeURIComponent(destination.slug)}`);
+      }
+    }).catch(() => {
+      // Keep the access message if the account genuinely has no venue access.
+    });
+
+    return () => { cancelled = true; };
+  }, [hasCheckedVenueAccess, isCheckingAccess, isSignedIn, memberRole, state?.source, venueSlug]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function refreshSimulator() {
       try {
-        const nextState = await getSimulatorState();
+        if (!isSignedIn) return;
+        const nextState = await getSimulatorState(venueSlug);
         if (!cancelled) setSimulatorState(nextState);
       } catch {
         if (!cancelled) setSimulatorState(null);
@@ -125,7 +210,7 @@ export function Portal({ venueSlug }: Props) {
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, []);
+  }, [isSignedIn, venueSlug]);
 
   useEffect(() => {
     if (!state || !selectedProductId || state.source === "seed") {
@@ -170,13 +255,29 @@ export function Portal({ venueSlug }: Props) {
       }
     }
     void refreshPosProducts();
-    return () => { cancelled = true; };
+    const interval = window.setInterval(() => { void refreshPosProducts(); }, 5_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
   }, [isSignedIn, state?.source, state?.venue.id]);
 
-  if (error) return <main className="page">Could not load portal: {error}</main>;
+  if (isSigningOut) return <main className="page">Signing out...</main>;
+  if (!isAuthResolved || !isSignedIn) return <main className="page">Checking secure portal access...</main>;
+  if (error) return <main className="page">{error.includes("no longer available") ? "That venue has been removed. Taking you to a venue you can access…" : `Could not load portal: ${error}`}</main>;
   if (!state) return <main className="page">Loading portal...</main>;
 
+  if (state.source === "supabase" && (!hasCheckedVenueAccess || isCheckingAccess || memberRole === null)) {
+    return (
+      <main className="page">
+        <h1>{!hasCheckedVenueAccess || isCheckingAccess ? "Checking venue access..." : "This account cannot access this venue."}</h1>
+        {hasCheckedVenueAccess && !isCheckingAccess && <button type="button" onClick={() => { void handleSignOut(); }}>Sign out and use another venue account</button>}
+      </main>
+    );
+  }
+
   const liveCount = state.products.filter(product => !product.isSoldOut && product.isLive).length;
+  const simulatorHref = isPlatformAdmin ? `/simulator/${encodeURIComponent(venueSlug)}` : null;
   const canPersist = canEditMarketProducts({ isSignedIn, role: memberRole, source: state.source });
   const canManageSettings = canManageVenueSettings({ role: memberRole, source: state.source });
   const accessMessage = portalAccessMessage({
@@ -246,6 +347,16 @@ export function Portal({ venueSlug }: Props) {
     setSelectedProductId(currentProductId => currentProductId === productId ? null : productId);
   }
 
+  async function handleLogoUpload(productId: string, file: File) {
+    if (!state) return;
+    try {
+      const logoUrl = await uploadMarketProductLogo(state.venue.id, productId, file);
+      await handleProductChange(productId, { logoUrl });
+    } catch (uploadError) {
+      setAuthError(uploadError instanceof Error ? uploadError.message : "Could not upload logo.");
+    }
+  }
+
   async function handleConfigurePosProduct(posProduct: PosProduct) {
     if (!state) return false;
 
@@ -294,12 +405,11 @@ export function Portal({ venueSlug }: Props) {
 
   async function handleQuickStart() {
     try {
-      // The simulator owns pace and target takings. Quick start only rewinds it
-      // to 18:00, preserves those controls, and starts the service.
-      const nextSimulatorState = await controlSimulator("quick_start");
+      // A rehearsal always compresses the six-hour service into ten minutes.
+      const nextSimulatorState = await controlSimulator(venueSlug, "quick_start");
       setSimulatorState(nextSimulatorState);
       await handleVenueSettingsChange({ marketLive: true });
-      setLastSavedMessage("Quick-started Friday service at 18:00");
+      setLastSavedMessage("Quick-started a 10-minute rehearsal");
     } catch (error) {
       setLastSavedMessage(error instanceof Error ? `Could not quick start: ${error.message}` : "Could not quick start the simulator");
     }
@@ -307,7 +417,7 @@ export function Portal({ venueSlug }: Props) {
 
   async function handlePause() {
     try {
-      setSimulatorState(await controlSimulator("pause"));
+      setSimulatorState(await controlSimulator(venueSlug, "pause"));
       setLastSavedMessage("Market paused and prices reset to base");
     } catch (error) {
       setLastSavedMessage(error instanceof Error ? `Could not pause: ${error.message}` : "Could not pause the simulator");
@@ -316,7 +426,7 @@ export function Portal({ venueSlug }: Props) {
 
   async function handleResume() {
     try {
-      setSimulatorState(await controlSimulator("resume"));
+      setSimulatorState(await controlSimulator(venueSlug, "resume"));
       await handleVenueSettingsChange({ marketLive: true });
       setLastSavedMessage("Market resumed");
     } catch (error) {
@@ -326,7 +436,7 @@ export function Portal({ venueSlug }: Props) {
 
   async function handleEnd() {
     try {
-      setSimulatorState(await controlSimulator("end"));
+      setSimulatorState(await controlSimulator(venueSlug, "end"));
       await handleVenueSettingsChange({ marketLive: false });
       setLastSavedMessage("Market ended and prices reset to base");
     } catch (error) {
@@ -340,58 +450,39 @@ export function Portal({ venueSlug }: Props) {
     const session = await getCurrentSession();
     setIsSignedIn(Boolean(session));
     setSignedInEmail(session?.user.email ?? "");
-  }
-
-  async function handleSignIn() {
-    try {
-      setAuthError("");
-      await signInWithEmail(email, password);
-      setPassword("");
-      await refreshSession();
-      setLastSavedMessage("Checking venue access");
-    } catch (error) {
-      setAuthError(error instanceof Error ? error.message : "Could not sign in");
-    }
+    setIsPlatformAdmin(session ? await getMyPlatformAdminAccess() : false);
+    setIsAuthResolved(true);
   }
 
   async function handleSignOut() {
     try {
       setAuthError("");
+      setIsSigningOut(true);
       await signOut();
-      await refreshSession();
-      setMemberRole(null);
-      setLastSavedMessage("Signed out");
+      window.location.assign("/");
     } catch (error) {
+      setIsSigningOut(false);
       setAuthError(error instanceof Error ? error.message : "Could not sign out");
     }
   }
 
   return (
     <>
-      <PageSwitcher active="portal" venueSlug={venueSlug} />
       <section id="portalView" className="alt-view portal-view active">
         <div className="portal-shell">
-          <div className="portal-layout">
+          <div className={`portal-layout ${isNavPinned ? "nav-expanded" : ""}`}>
             <PortalSidebar
               activeTab={activeTab}
-              authSlot={
-                <PortalAuthPanel
-                  email={email}
-                  error={authError}
-                  isConfigured={supabaseStatus.ready}
-                  isSignedIn={isSignedIn}
-                  onEmailChange={setEmail}
-                  onPasswordChange={setPassword}
-                  onSignIn={handleSignIn}
-                  onSignOut={handleSignOut}
-                  password={password}
-                  statusMessage={accessMessage}
-                />
-              }
+              accessibleVenues={accessibleVenues}
+              isPinned={isNavPinned}
               liveCount={liveCount}
               onTabChange={setActiveTab}
+              onTogglePinned={() => setIsNavPinned(current => !current)}
               onSignOut={handleSignOut}
+              simulatorHref={simulatorHref}
               totalCount={state.products.length}
+              venueName={state.venue.name}
+              venueSlug={venueSlug}
             />
             <main className="portal-main">
               <div className="portal-workspace">
@@ -399,6 +490,7 @@ export function Portal({ venueSlug }: Props) {
                   <PortalStartPage
                     onConfigurePosProduct={handleConfigurePosProduct}
                     onProductChange={handleProductChange}
+                    onLogoUpload={handleLogoUpload}
                     onSelectProduct={handleToggleProductHistory}
                     onVenueSettingsChange={handleVenueSettingsChange}
                     onQuickStart={handleQuickStart}
@@ -413,6 +505,8 @@ export function Portal({ venueSlug }: Props) {
                     simulatorState={simulatorState}
                     venue={state.venue}
                   />
+                ) : activeTab === "runs" ? (
+                  <PortalRunsPage currency={state.venue.currency} isLoading={runsLoading} runs={runs} />
                 ) : (
                   <PortalAccountPage
                     email={signedInEmail}

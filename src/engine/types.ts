@@ -11,7 +11,7 @@ export type Venue = {
   launchStartTime: string;
   launchEndTime: string;
 };
-export type MarketScheduleEntry = { day: string; start: string; end: string; enabled: boolean };
+export type MarketScheduleEntry = { day: string; start: string; end: string; enabled: boolean; targetRevenueMinor?: number };
 
 export type CrashIntervalMinutes = 15 | 30 | 60 | 120;
 
@@ -24,6 +24,7 @@ export type MarketProduct = {
   id: string;
   posProductId?: string;
   symbol: string;
+  logoUrl?: string;
   name: string;
   category: string;
   basePriceMinor: number;

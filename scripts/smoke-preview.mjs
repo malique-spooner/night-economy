@@ -13,6 +13,7 @@ const directRoutes = [
   "/tv/demo-venue",
   "/menu/demo-venue",
   "/app/demo-venue",
+  "/simulator/demo-venue",
   "/venue/demo-venue",
 ];
 
@@ -118,6 +119,7 @@ async function assertCloudflareRedirects() {
     "/tv/demo-venue": "/index.html",
     "/menu/demo-venue": "/index.html",
     "/app/demo-venue": "/index.html",
+    "/simulator/demo-venue": "/index.html",
     "/venue/demo-venue": "/index.html",
     "/not-a-real-route": "/index.html",
   };

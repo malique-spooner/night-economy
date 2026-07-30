@@ -3,6 +3,7 @@ import {
   mapMarketProductRow,
   mapMarketPriceSnapshotRow,
   mapVenueRow,
+  requireVenue,
   throwIfSupabaseQueryError,
   toMarketProductRowPatch,
   toVenueMarketSettingsRowPatch,
@@ -136,6 +137,16 @@ describe("throwIfSupabaseQueryError", () => {
 
   it("uses the fallback message when Supabase does not provide detail", () => {
     expect(() => throwIfSupabaseQueryError({}, "Could not load venue")).toThrow("Could not load venue");
+  });
+});
+
+describe("requireVenue", () => {
+  it("keeps a real venue row", () => {
+    expect(requireVenue(venueRow)).toBe(venueRow);
+  });
+
+  it("does not turn an unknown venue URL into the fake demo venue", () => {
+    expect(() => requireVenue(null)).toThrow("This venue is no longer available.");
   });
 });
 

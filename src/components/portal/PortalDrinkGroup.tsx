@@ -7,6 +7,7 @@ type Props = {
   allProducts: MarketProduct[];
   category: string;
   onProductChange: (productId: string, patch: MarketProductPatch, options?: { persist?: boolean }) => void;
+  onLogoUpload: (productId: string, file: File) => void;
   onSelectProduct: (productId: string) => void;
   priceHistory: MarketPriceHistoryPoint[];
   priceHistoryLoading: boolean;
@@ -14,7 +15,7 @@ type Props = {
   selectedProductId: string | null;
 };
 
-export function PortalDrinkGroup({ allProducts, category, onProductChange, onSelectProduct, priceHistory, priceHistoryLoading, products, selectedProductId }: Props) {
+export function PortalDrinkGroup({ allProducts, category, onLogoUpload, onProductChange, onSelectProduct, priceHistory, priceHistoryLoading, products, selectedProductId }: Props) {
   const liveProducts = products.filter(product => product.isLive && !product.isSoldOut).length;
   return (
     <section className="portal-drink-group">
@@ -37,7 +38,7 @@ export function PortalDrinkGroup({ allProducts, category, onProductChange, onSel
         </div>
       </div>
       {products.map(product => (
-        <PortalDrinkRow allProducts={allProducts} history={priceHistory} historyLoading={priceHistoryLoading} onChange={onProductChange} onSelect={onSelectProduct} product={product} selected={product.id === selectedProductId} key={product.id} />
+        <PortalDrinkRow allProducts={allProducts} history={priceHistory} historyLoading={priceHistoryLoading} onChange={onProductChange} onLogoUpload={onLogoUpload} onSelect={onSelectProduct} product={product} selected={product.id === selectedProductId} key={product.id} />
       ))}
     </section>
   );

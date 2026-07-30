@@ -10,18 +10,19 @@ type Props = {
   history: MarketPriceHistoryPoint[];
   historyLoading: boolean;
   onChange: (productId: string, patch: MarketProductPatch, options?: { persist?: boolean }) => void;
+  onLogoUpload: (productId: string, file: File) => void;
   onSelect: (productId: string) => void;
   product: MarketProduct;
   selected: boolean;
 };
 
-export function PortalDrinkRow({ allProducts, history, historyLoading, onChange, onSelect, product, selected }: Props) {
+export function PortalDrinkRow({ allProducts, history, historyLoading, onChange, onLogoUpload, onSelect, product, selected }: Props) {
   const categoryOptions = portalCategoryOptions(allProducts, product.category);
   return (
     <article className={`portal-drink-row ${product.isSoldOut ? "paused" : ""} ${selected ? "selected" : ""}`}>
       <label className="portal-drink-symbol">
         <span>Logo</span>
-        <input value={product.symbol} maxLength={4} onChange={event => onChange(product.id, { symbol: event.target.value.toUpperCase() }, { persist: false })} onBlur={event => onChange(product.id, { symbol: event.target.value.toUpperCase() })} />
+        <span className={`portal-logo-picker ${product.logoUrl ? "has-image" : ""}`}>{product.logoUrl ? <img alt={`${product.name} logo`} src={product.logoUrl} /> : <><b>+</b><em>Add image</em></>}<input accept="image/png,image/jpeg,image/webp,image/svg+xml" aria-label={`Upload logo for ${product.name}`} onChange={event => { const file = event.target.files?.[0]; if (file) onLogoUpload(product.id, file); event.currentTarget.value = ""; }} type="file" /></span>
       </label>
       <label className="portal-drink-name">
         <span>Market name</span>

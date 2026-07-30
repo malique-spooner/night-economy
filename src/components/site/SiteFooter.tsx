@@ -14,7 +14,7 @@ export function SiteFooter({ venueSlug }: Props) {
           <span>Product</span>
           <a href="#site-why">Why it works</a>
           <a href="#site-decks">Product moments</a>
-          <a href="#site-subscribe">Operator portal</a>
+          <a href="#site-subscribe">Book a pilot</a>
         </div>
         <div>
           <span>Surfaces</span>

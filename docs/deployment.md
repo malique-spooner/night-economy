@@ -66,6 +66,19 @@ Apply the output in the Supabase SQL editor for the target project. The bundle i
 20260727062121_clear_curated_priority.sql
 20260727062930_limit_category_tv_priorities.sql
 20260727063247_fill_live_tv_categories.sql
+20260728090000_add_venue_test_services.sql
+20260728100000_add_internal_venue_simulator_setup.sql
+20260729090000_add_cloud_service_scheduler.sql
+20260729110000_add_night_economy_dev_venue.sql
+20260729120000_add_market_run_history.sql
+20260729121000_grant_service_role_market_run_access.sql
+20260729130000_reset_stale_market_live_flags.sql
+20260729170000_add_platform_admin_memberships.sql
+20260729180000_remove_development_venue.sql
+20260729190000_rename_demo_venue.sql
+20260729200000_add_platform_admins.sql
+20260729210000_add_cloud_simulator_controls.sql
+20260729220000_add_market_product_logos.sql
 ```
 
 After applying SQL, create a Supabase Auth operator user and print the venue access grant:
@@ -91,13 +104,24 @@ SUPABASE_SERVICE_ROLE_KEY
 SCHEDULER_SECRET
 ```
 
-Deploy the market job from an environment with the Supabase CLI and Deno available:
+Deploy the cloud jobs:
 
 ```bash
 supabase functions deploy market-cycle
+supabase functions deploy venue-simulator
+supabase functions deploy service-scheduler
 ```
 
-Schedule the deployed function every **5 minutes**. Each run updates every live category from the previous five minutes of POS sales.
+`service-scheduler` runs every minute in Supabase Cron. It reads every prepared
+venue's own weekly schedule in its configured timezone, starts/stops its cloud
+simulator, and triggers the pricing engine every five minutes while open. It
+continues running when no Portal, TV, or venue computer is open.
+
+After importing each venue menu, prepare its default cloud simulator once:
+
+```bash
+NIGHT_ECONOMY_VENUE_SLUG=your-venue-slug npm run supabase:prepare-test-service
+```
 
 Invoke it only with the scheduler header:
 
@@ -143,3 +167,10 @@ Check:
 ```
 
 Then test one real signup lead and one portal product edit against Supabase.
+
+Finally verify that the deployed scheduler, simulator state, run history, and
+mapped POS prices all use the same cloud data:
+
+```bash
+npm run supabase:verify-cloud-sync
+```

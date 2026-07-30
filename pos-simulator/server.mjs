@@ -50,6 +50,7 @@ createServer(async (request, response) => {
   }
 }).listen(port, "127.0.0.1", () => {
   console.log(`POS Simulator running at http://127.0.0.1:${port}`);
+  if (process.env.POS_SIMULATOR_DISABLE_MARKET_RUNNER === "1") return;
   void startMarketRunner()
     .then(timer => { marketRunnerTimer = timer; })
     .catch(error => console.error(`Local price updates are unavailable: ${error instanceof Error ? error.message : "Unknown error"}`));

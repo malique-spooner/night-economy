@@ -42,6 +42,10 @@ const checks = [
     label: "respects venue market live state",
     pattern: /market_live[\s\S]+Market is paused for this venue/,
   },
+  {
+    label: "deduplicates repeated five-minute rounds",
+    pattern: /latestSnapshots[\s\S]+snapshot\?\.roundEnd === cycleEnd\.toISOString\(\)[\s\S]+duplicate: true/,
+  },
 ];
 
 const forbiddenPatterns = [
@@ -71,6 +75,51 @@ for (const file of functionFiles) {
     failures.forEach(failure => console.error(`- ${failure}`));
     process.exit(1);
   }
+}
+
+const simulatorSource = readFileSync("supabase/functions/venue-simulator/index.ts", "utf8");
+const simulatorChecks = [
+  ["keeps service state per venue", /venue_test_services\?venue_id=eq/],
+  ["writes sales with the venue ID", /venue_id: venueId/],
+  ["runs the protected market engine", /functions\/v1\/market-cycle/],
+  ["resets each venue's prices through the server-only RPC", /reset_venue_test_prices/],
+  ["resets prices when a venue is paused", /action === "pause"[\s\S]+resetPrices/],
+  ["uses direct server-key REST calls rather than a browser-style client", /apikey: key/],
+  ["returns per-run sales graph data", /action === "summary"[\s\S]+salesGraph[\s\S]+pos_sales_events\?run_id=eq/],
+  ["returns the complete venue catalogue to the protected simulator", /simulatorProducts[\s\S]+market_products\?venue_id=eq[\s\S]+isLive/],
+  ["publishes calculated prices to the internal POS catalogue", /publishInternalPrices[\s\S]+price_publications[\s\S]+price_publication_lines[\s\S]+pos_products/],
+  ["keeps running run-history totals current", /syncRunProgress[\s\S]+sales_count[\s\S]+revenue_minor/],
+  ["requires signed-in venue administrators before returning simulator data", /authenticatedUserId[\s\S]+venue_members[\s\S]+Only venue owners or admins/],
+  ["handles browser CORS preflight requests", /request\.method === "OPTIONS"[\s\S]+corsHeaders/],
+];
+const simulatorFailures = simulatorChecks
+  .filter(([, pattern]) => !pattern.test(simulatorSource))
+  .map(([label]) => `supabase/functions/venue-simulator/index.ts: missing ${label}`);
+
+if (simulatorFailures.length) {
+  console.error("Supabase function verification failed:");
+  simulatorFailures.forEach(failure => console.error(`- ${failure}`));
+  process.exit(1);
+}
+
+const schedulerSource = readFileSync("supabase/functions/service-scheduler/index.ts", "utf8");
+const schedulerChecks = [
+  ["requires the scheduler secret", /x-night-economy-scheduler-secret/],
+  ["loads every venue schedule", /\/venues\?select=id,slug,timezone,market_schedule/],
+  ["uses each venue's timezone", /activeSlot\(venue\.market_schedule.*venue\.timezone/],
+  ["starts a scheduled service", /action: "scheduled_start"/],
+  ["ticks running services", /action: "tick"/],
+  ["ends services outside their schedule", /action: "scheduled_end"/],
+  ["ticks quick-start services without an open Portal", /serviceAction\(slot, service\)[\s\S]+action === "tick"[\s\S]+action: "tick"/],
+];
+const schedulerFailures = schedulerChecks
+  .filter(([, pattern]) => !pattern.test(schedulerSource))
+  .map(([label]) => `supabase/functions/service-scheduler/index.ts: missing ${label}`);
+
+if (schedulerFailures.length) {
+  console.error("Supabase function verification failed:");
+  schedulerFailures.forEach(failure => console.error(`- ${failure}`));
+  process.exit(1);
 }
 
 console.log("Supabase function verification passed.");

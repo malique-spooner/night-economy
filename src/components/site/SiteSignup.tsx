@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { defaultSitePlanId, sitePlans } from "../../content/siteContent";
+import { defaultSitePlanId, siteBuyingAnswers } from "../../content/siteContent";
 import { prepareSiteLead } from "../../api/leadForm";
 import { createSiteLead, type SiteLeadPlan } from "../../api/leads";
 
@@ -11,7 +11,7 @@ const initialForm = {
 
 export function SiteSignup() {
   const [form, setForm] = useState(initialForm);
-  const [selectedPlan, setSelectedPlan] = useState<SiteLeadPlan>(defaultSitePlanId);
+  const selectedPlan: SiteLeadPlan = defaultSitePlanId;
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
@@ -36,7 +36,6 @@ export function SiteSignup() {
           : "Request ready locally. Connect Supabase to save live leads.",
       );
       setForm(initialForm);
-      setSelectedPlan(defaultSitePlanId);
     } catch {
       setStatus("error");
       setMessage("We could not save that request. Please try again.");
@@ -46,29 +45,20 @@ export function SiteSignup() {
   return (
     <section id="site-subscribe" className="site-section site-subscribe">
       <div className="site-subscribe-copy">
-        <div className="site-kicker">Get started</div>
-        <h2>Start your first venue.</h2>
-        <p>Pick a plan, create the venue, and open the operator portal.</p>
+        <div className="site-kicker">Start with proof</div>
+        <h2>Prove it in one venue.</h2>
+        <p>Use a short discovery call to define the service, integration path, guardrails, and measurement plan.</p>
+        <ul className="site-pilot-includes">
+          <li><span>01</span>Baseline and success measures</li>
+          <li><span>02</span>Menu and integration discovery</li>
+          <li><span>03</span>Operator training and launch support</li>
+          <li><span>04</span>Post-service performance review</li>
+        </ul>
       </div>
       <div className="site-signup-panel">
-        <div className="site-pricing-minimal">
-          {sitePlans.map(plan => (
-            <article
-              className={`site-price-pill ${plan.id === selectedPlan ? "active" : ""}`}
-              key={plan.id}
-              onClick={() => setSelectedPlan(plan.id)}
-              onKeyDown={event => {
-                if (event.key !== "Enter" && event.key !== " ") return;
-                event.preventDefault();
-                setSelectedPlan(plan.id);
-              }}
-              role="button"
-              tabIndex={0}
-            >
-              <strong>{plan.name}</strong>
-              <span>{plan.copy}</span>
-            </article>
-          ))}
+        <div className="site-signup-head">
+          <div><span>15-minute discovery</span><strong>Tell us where to start.</strong></div>
+          <p>No payment details. We will scope the pilot before proposing a price.</p>
         </div>
         <form className="site-signup-form" onSubmit={handleSubmit}>
           <label>
@@ -82,7 +72,7 @@ export function SiteSignup() {
             />
           </label>
           <label>
-            <span>Owner name</span>
+            <span>Your name</span>
             <input
               type="text"
               placeholder="Alex Morgan"
@@ -101,25 +91,25 @@ export function SiteSignup() {
               required
             />
           </label>
-          <label>
-            <span>Plan</span>
-            <select value={selectedPlan} onChange={event => setSelectedPlan(event.target.value as SiteLeadPlan)}>
-              {sitePlans.map(plan => (
-                <option value={plan.id} key={plan.id}>
-                  {plan.name}
-                </option>
-              ))}
-            </select>
-          </label>
           {message ? (
             <p className={`site-signup-message ${status === "error" ? "error" : ""}`} aria-live="polite">
               {message}
             </p>
           ) : null}
           <button className="site-primary" type="submit" disabled={status === "submitting"}>
-            {status === "submitting" ? "Submitting" : "Buy Now"}
+            {status === "submitting" ? "Sending request…" : "Book the discovery call"}
           </button>
+          <small className="site-form-privacy">We only use these details to respond about Night Economy. No mailing list.</small>
         </form>
+        <div className="site-buying-answers">
+          <div className="site-kicker">Before you ask</div>
+          {siteBuyingAnswers.map(item => (
+            <details key={item.question}>
+              <summary>{item.question}<span aria-hidden="true">+</span></summary>
+              <p>{item.answer}</p>
+            </details>
+          ))}
+        </div>
       </div>
     </section>
   );

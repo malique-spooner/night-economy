@@ -14,6 +14,7 @@ export type MarketProductPatch = Partial<
     MarketProduct,
     | "name"
     | "symbol"
+    | "logoUrl"
     | "category"
     | "floorPriceMinor"
     | "ceilingPriceMinor"
@@ -66,6 +67,7 @@ export type MarketProductRow = {
   id: string;
   pos_product_id?: string | null;
   market_symbol: string;
+  logo_url?: string | null;
   display_name: string;
   category: string;
   base_price_minor: number;
@@ -128,6 +130,7 @@ export function mapMarketProductRow(row: MarketProductRow): MarketProduct {
     id: row.id,
     ...(row.pos_product_id ? { posProductId: row.pos_product_id } : {}),
     symbol: row.market_symbol,
+    ...(row.logo_url ? { logoUrl: row.logo_url } : {}),
     name: row.display_name,
     category: row.category,
     basePriceMinor: row.base_price_minor,
@@ -164,23 +167,28 @@ export function throwIfSupabaseQueryError(error: SupabaseQueryError | null | und
   throw new Error(error.message ? `${fallbackMessage}: ${error.message}` : fallbackMessage);
 }
 
+export function requireVenue(row: VenueRow | null): VenueRow {
+  if (!row) throw new Error("This venue is no longer available.");
+  return row;
+}
+
 export async function getMarketState(venueSlug: string): Promise<MarketState> {
   if (!supabase) return { venue: seedVenue, products: demoMarketProducts(), source: "seed" };
 
   const { data: venue, error: venueError } = await supabase.from("venues").select("*").eq("slug", venueSlug).maybeSingle();
   throwIfSupabaseQueryError(venueError, "Could not load venue");
 
-  if (!venue) return { venue: seedVenue, products: demoMarketProducts(), source: "seed" };
+  const existingVenue = requireVenue(venue);
 
   const { data: products, error: productsError } = await supabase
     .from("market_products")
     .select("*")
-    .eq("venue_id", venue.id)
+    .eq("venue_id", existingVenue.id)
     .order("display_name");
   throwIfSupabaseQueryError(productsError, "Could not load market products");
 
   return {
-    venue: mapVenueRow(venue),
+    venue: mapVenueRow(existingVenue),
     products: (products ?? []).map(mapMarketProductRow),
     source: "supabase",
   };
@@ -244,6 +252,18 @@ export async function updateMarketProduct(productId: string, patch: MarketProduc
   return { persisted: true as const };
 }
 
+export async function uploadMarketProductLogo(venueId: string, productId: string, file: File) {
+  if (!supabase) throw new Error("Image uploads need Supabase to be connected.");
+  if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.");
+  if (file.size > 5 * 1024 * 1024) throw new Error("Images must be 5 MB or smaller.");
+
+  const extension = file.name.split(".").pop()?.replace(/[^a-z0-9]/gi, "") || "image";
+  const path = `${venueId}/${productId}/${crypto.randomUUID()}.${extension}`;
+  const { error } = await supabase.storage.from("market-logos").upload(path, file, { cacheControl: "31536000", contentType: file.type, upsert: false });
+  if (error) throw error;
+  return supabase.storage.from("market-logos").getPublicUrl(path).data.publicUrl;
+}
+
 export async function createMarketProductConfiguration(venueId: string, product: MarketProductConfiguration) {
   if (!supabase) return { persisted: false as const, product };
 
@@ -273,6 +293,7 @@ export function toMarketProductRowPatch(patch: MarketProductPatch) {
   const rowPatch = {
     ...(patch.name !== undefined ? { display_name: patch.name } : {}),
     ...(patch.symbol !== undefined ? { market_symbol: patch.symbol } : {}),
+    ...(patch.logoUrl !== undefined ? { logo_url: patch.logoUrl } : {}),
     ...(patch.category !== undefined ? { category: patch.category } : {}),
     ...(patch.floorPriceMinor !== undefined ? { floor_price_minor: patch.floorPriceMinor } : {}),
     ...(patch.ceilingPriceMinor !== undefined ? { ceiling_price_minor: patch.ceilingPriceMinor } : {}),

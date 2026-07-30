@@ -20,7 +20,7 @@ const { data: venue, error: venueError } = await supabase
   .select("id, name")
   .eq("slug", venueSlug)
   .single();
-throwIfError(venueError, "load demo venue");
+throwIfError(venueError, "load venue");
 
 const venueId = venue.id;
 const [{ data: publications, error: publicationsError }, { data: marketProducts, error: marketError }, { data: posProducts, error: posError }] = await Promise.all([

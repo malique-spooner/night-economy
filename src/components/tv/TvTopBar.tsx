@@ -2,12 +2,13 @@ type Props = {
   clock: string;
   marketStatusLabel: string;
   sourceLabel: string;
+  venueName: string;
 };
 
-export function TvTopBar({ clock, marketStatusLabel, sourceLabel }: Props) {
+export function TvTopBar({ clock, marketStatusLabel, sourceLabel, venueName }: Props) {
   return (
     <div className="topbar">
-      <div className="brand">Night Economy</div>
+      <div className="brand"><span>Night Economy</span><b aria-hidden="true">×</b><strong>{venueName}</strong></div>
       <div className="live-pill">
         <div className="live-dot"></div>
         <span>{marketStatusLabel}</span>
