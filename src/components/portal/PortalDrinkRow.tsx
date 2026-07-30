@@ -23,9 +23,7 @@ export function PortalDrinkRow({ allProducts, history, historyLoading, onChange,
   return (
     <article className={`portal-drink-row ${product.isSoldOut ? "paused" : ""} ${selected ? "selected" : ""}`}>
       <div className="portal-drink-symbol">
-        <span>Logo</span>
-        <span className={`portal-logo-picker ${product.logoUrl ? "has-image" : ""}`}>{product.logoUrl ? <img alt={`${product.name} logo`} src={product.logoUrl} /> : <b>+</b>}</span>
-        <button aria-label={`${product.logoUrl ? "Replace" : "Add"} logo for ${product.name}`} className="portal-logo-button" type="button" onClick={() => logoInput.current?.click()}>{product.logoUrl ? "Replace" : "Add logo"}</button>
+        <button aria-label={`${product.logoUrl ? "Replace" : "Add"} logo for ${product.name}`} className={`portal-logo-picker ${product.logoUrl ? "has-image" : ""}`} title={`${product.logoUrl ? "Replace" : "Add"} logo`} type="button" onClick={() => logoInput.current?.click()}>{product.logoUrl ? <img alt={`${product.name} logo`} src={product.logoUrl} /> : <b aria-hidden="true">+</b>}</button>
         <input ref={logoInput} accept="image/png,image/jpeg,image/webp,image/svg+xml" aria-label={`Upload logo for ${product.name}`} hidden onChange={event => { const file = event.target.files?.[0]; if (file) onLogoUpload(product.id, file); event.currentTarget.value = ""; }} type="file" />
       </div>
       <label className="portal-drink-name">

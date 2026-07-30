@@ -188,6 +188,8 @@ test("an owner signs in and clicks through scheduling, service controls, history
   const chooser = await chooserPromise;
   await chooser.setFiles({ name: "espresso.png", mimeType: "image/png", buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64") });
   await expect(espresso.getByAltText("Espresso Martini logo")).toHaveAttribute("src", /storage\/v1\/object\/public\/market-logos/);
+  await expect(espresso.getByRole("button", { name: "Replace logo for Espresso Martini" })).toBeVisible();
+  await expect(espresso).not.toContainText("Replace");
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && typeof (write.body as { logo_url?: string })?.logo_url === "string")).toBe(true);
 
   await page.getByRole("button", { name: "Configure market" }).click();
