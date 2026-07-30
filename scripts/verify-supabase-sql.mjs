@@ -39,6 +39,7 @@ const expectedMigrations = [
   "20260729210000_add_cloud_simulator_controls.sql",
   "20260729220000_add_market_product_logos.sql",
   "20260730092640_grant_market_product_logo_updates.sql",
+  "20260730100120_grant_market_schedule_updates.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -97,6 +98,11 @@ function checkRequiredPatterns() {
       label: "authenticated venue editors can persist market logo URLs",
       source: migrationSql["20260730092640_grant_market_product_logo_updates.sql"],
       pattern: /grant update \(logo_url\) on table public\.market_products to authenticated/i,
+    },
+    {
+      label: "authenticated venue editors can persist market schedules and target takings",
+      source: migrationSql["20260730100120_grant_market_schedule_updates.sql"],
+      pattern: /grant update \(market_schedule\) on table public\.venues to authenticated/i,
     },
     {
       label: "site leads RLS enabled",
