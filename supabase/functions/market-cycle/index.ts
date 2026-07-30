@@ -58,7 +58,7 @@ async function handleRequest(request: Request) {
   const serviceRoleKey = getServerKey();
   if (!supabaseUrl || !serviceRoleKey) return json({ error: "Supabase function secrets are missing" }, 500);
 
-  const { venueSlug = "demo-venue", reason = "manual_cycle", cycleEnd: requestedCycleEnd } = await request.json().catch(() => ({}));
+  const { venueSlug = "demo-venue", reason = "manual_cycle", cycleEnd: requestedCycleEnd, runId = null } = await request.json().catch(() => ({}));
   const headers = {
     apikey: serviceRoleKey,
     "content-type": "application/json",
@@ -92,7 +92,7 @@ async function handleRequest(request: Request) {
   if (Number.isNaN(cycleEnd.getTime())) return json({ error: "cycleEnd must be a valid ISO timestamp" }, 400);
   const cycleStart = new Date(cycleEnd.getTime() - MARKET_CYCLE_MS);
   const latestSnapshots = await restJson<Array<{ snapshot: { roundEnd?: string } | null }>>(
-    `${supabaseUrl}/rest/v1/market_price_snapshots?venue_id=eq.${encodeURIComponent(venue.id)}&select=snapshot&order=created_at.desc&limit=1`,
+    `${supabaseUrl}/rest/v1/market_price_snapshots?venue_id=eq.${encodeURIComponent(venue.id)}&run_id=${runId ? `eq.${encodeURIComponent(runId)}` : "is.null"}&select=snapshot&order=created_at.desc&limit=1`,
     { headers },
     "load latest market snapshot",
   );
@@ -105,7 +105,7 @@ async function handleRequest(request: Request) {
     });
   }
   const sales = await restJson<PosSaleEvent[]>(
-    `${supabaseUrl}/rest/v1/pos_sales_events?venue_id=eq.${encodeURIComponent(venue.id)}&occurred_at=gte.${encodeURIComponent(cycleStart.toISOString())}&occurred_at=lte.${encodeURIComponent(cycleEnd.toISOString())}&select=pos_product_id,quantity`,
+    `${supabaseUrl}/rest/v1/pos_sales_events?venue_id=eq.${encodeURIComponent(venue.id)}&occurred_at=gte.${encodeURIComponent(cycleStart.toISOString())}&occurred_at=lt.${encodeURIComponent(cycleEnd.toISOString())}&select=pos_product_id,quantity`,
     { headers },
     "load recent POS sales",
   );
@@ -125,6 +125,7 @@ async function handleRequest(request: Request) {
   const snapshot = {
     venueId: venue.id,
     venueSlug,
+    runId,
     reason,
     salesWindow: { start: cycleStart.toISOString(), end: cycleEnd.toISOString(), importedLines: sales.length },
     roundStart: cycleStart.toISOString(),
@@ -138,6 +139,7 @@ async function handleRequest(request: Request) {
     body: JSON.stringify({
       id: crypto.randomUUID(),
       venue_id: venue.id,
+      run_id: runId,
       reason,
       status: "published",
       snapshot,

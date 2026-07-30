@@ -234,6 +234,10 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect(page.getByRole("heading", { name: "Quick rehearsal dashboard" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Sales through the night" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Top drinks" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Every price and percentage change" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Every single order" })).toBeVisible();
+  await expect(page.getByRole("table", { name: "Five-minute price history" }).getByText("+5.00%")).toBeVisible();
+  await expect(page.getByRole("table", { name: "Every order" }).getByRole("row")).toHaveCount(4);
   await expect(page.getByText("Espresso Martini", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("3 sold · Cocktails", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Back to run history" }).click();
@@ -377,12 +381,18 @@ async function handleRest(route: Route, url: URL, method: string, mockProducts: 
     ...mockProducts.map(product => ({ id: product.pos_product_id, external_id: product.pos_product_id, sku: product.market_symbol, source_name: product.display_name, base_price_minor: product.base_price_minor, current_price_minor: product.current_price_minor, currency: "GBP", is_available: true, category: product.category, subcategory: "" })),
     { id: "pos_unmatched", external_id: "unmatched", sku: "NEW", source_name: "New POS Drink", base_price_minor: 1000, current_price_minor: 1000, currency: "GBP", is_available: true, category: "Cocktails", subcategory: "" },
   ]);
-  if (table === "market_price_snapshots") return postgrest(route, []);
+  if (table === "market_price_snapshots") return postgrest(route, [{
+    created_at: "2026-07-25T18:05:00.000Z",
+    snapshot: {
+      roundEnd: "2026-07-25T18:05:00.000Z",
+      decisions: [{ productId: "mp_espresso", oldPriceMinor: 1200, newPriceMinor: 1260, movement: "up", reason: "Demand rose against category peers." }],
+    },
+  }]);
   if (table === "market_runs") return postgrest(route, [{ id: "run_e2e", kind: "quick", status: "completed", started_at: "2026-07-25T18:00:00.000Z", ended_at: "2026-07-25T18:10:00.000Z", simulated_minutes: 360, sales_count: 124, revenue_minor: 148800 }]);
   if (table === "pos_sales_events") return postgrest(route, [
-    { pos_product_id: "pos_espresso", quantity: 2, unit_price_minor: 1260, occurred_at: "2026-07-25T18:00:00.000Z" },
-    { pos_product_id: "pos_margarita", quantity: 1, unit_price_minor: 1050, occurred_at: "2026-07-25T18:31:00.000Z" },
-    { pos_product_id: "pos_espresso", quantity: 1, unit_price_minor: 1320, occurred_at: "2026-07-25T20:02:00.000Z" },
+    { id: "sale_1", pos_product_id: "pos_espresso", quantity: 2, unit_price_minor: 1260, currency: "GBP", occurred_at: "2026-07-25T18:00:00.000Z" },
+    { id: "sale_2", pos_product_id: "pos_margarita", quantity: 1, unit_price_minor: 1050, currency: "GBP", occurred_at: "2026-07-25T18:31:00.000Z" },
+    { id: "sale_3", pos_product_id: "pos_espresso", quantity: 1, unit_price_minor: 1320, currency: "GBP", occurred_at: "2026-07-25T20:02:00.000Z" },
   ]);
   return postgrest(route, []);
 }

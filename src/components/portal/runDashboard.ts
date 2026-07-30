@@ -1,4 +1,4 @@
-import type { MarketRun, MarketRunSale } from "../../api/runs";
+import type { MarketRun, MarketRunPricePoint, MarketRunSale } from "../../api/runs";
 import type { MarketProduct } from "../../engine/types";
 
 export type RunDashboardProduct = {
@@ -24,7 +24,13 @@ export type RunDashboard = {
   timeline: RunDashboardPoint[];
   products: RunDashboardProduct[];
   categories: RunDashboardProduct[];
-  recentSales: Array<MarketRunSale & { productName: string }>;
+  orders: Array<MarketRunSale & { productName: string; totalMinor: number }>;
+};
+
+export type RunPriceLedgerRow = MarketRunPricePoint & {
+  productName: string;
+  symbol: string;
+  changePercentage: number;
 };
 
 export function buildRunDashboard(run: MarketRun, sales: MarketRunSale[], products: MarketProduct[]): RunDashboard {
@@ -69,8 +75,29 @@ export function buildRunDashboard(run: MarketRun, sales: MarketRunSale[], produc
     timeline,
     products: [...productTotals.values()].sort((a, b) => b.revenueMinor - a.revenueMinor),
     categories: [...categoryTotals.values()].sort((a, b) => b.revenueMinor - a.revenueMinor),
-    recentSales: sales.slice(-8).reverse().map(sale => ({ ...sale, productName: productLookup.get(sale.posProductId)?.name ?? "Unlisted product" })),
+    orders: sales.map(sale => ({
+      ...sale,
+      productName: productLookup.get(sale.posProductId)?.name ?? "Unlisted product",
+      totalMinor: Math.max(0, sale.quantity) * Math.max(0, sale.unitPriceMinor),
+    })),
   };
+}
+
+export function buildRunPriceLedger(history: MarketRunPricePoint[], products: MarketProduct[]): RunPriceLedgerRow[] {
+  const productsById = new Map(products.map(product => [product.id, product]));
+  const latestDecisionByRound = new Map<string, MarketRunPricePoint>();
+  for (const point of history) latestDecisionByRound.set(`${point.at}:${point.productId}`, point);
+  return [...latestDecisionByRound.values()]
+    .map(point => {
+      const product = productsById.get(point.productId);
+      return {
+        ...point,
+        productName: product?.name ?? "Unlisted product",
+        symbol: product?.symbol ?? "—",
+        changePercentage: point.oldPriceMinor ? ((point.priceMinor - point.oldPriceMinor) / point.oldPriceMinor) * 100 : 0,
+      };
+    })
+    .sort((a, b) => Date.parse(a.at) - Date.parse(b.at) || a.productName.localeCompare(b.productName));
 }
 
 function addTotal(target: Map<string, RunDashboardProduct>, id: string, name: string, category: string, quantity: number, revenueMinor: number) {

@@ -113,9 +113,9 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
   if (salesRows.length) {
     await restRequest(url, "/pos_sales_events?on_conflict=id", { method: "POST", headers: { ...headers, Prefer: "resolution=ignore-duplicates" }, body: JSON.stringify(salesRows) }, "write simulated sales");
   }
-  const latestCycleMinute = Math.floor((nextMinute - 1) / 5) * 5;
-  if (latestCycleMinute > state.simulated_minute) {
-    const decisions = await runMarketCycle(venueSlug, simulatedTime(latestCycleMinute, state.started_at));
+  const firstCycleMinute = (Math.floor(state.simulated_minute / 5) + 1) * 5;
+  for (let cycleMinute = firstCycleMinute; cycleMinute <= nextMinute; cycleMinute += 5) {
+    const decisions = await runMarketCycle(venueSlug, simulatedTime(cycleMinute, state.started_at), state.active_run_id);
     await publishInternalPrices(url, headers, venueId, connectionId, decisions);
   }
   const status = nextMinute >= SERVICE_MINUTES ? "ended" : "running";
@@ -129,9 +129,9 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
   return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
 }
 
-async function runMarketCycle(venueSlug: string, cycleEnd: string) {
+async function runMarketCycle(venueSlug: string, cycleEnd: string, runId: string | null) {
   const url = Deno.env.get("SUPABASE_URL")!;
-  const res = await fetch(`${url}/functions/v1/market-cycle`, { method: "POST", headers: { apikey: serverKey()!, "content-type": "application/json", "x-night-economy-scheduler-secret": Deno.env.get("SCHEDULER_SECRET") ?? "" }, body: JSON.stringify({ venueSlug, reason: "venue_test_service", cycleEnd }) });
+  const res = await fetch(`${url}/functions/v1/market-cycle`, { method: "POST", headers: { apikey: serverKey()!, "content-type": "application/json", "x-night-economy-scheduler-secret": Deno.env.get("SCHEDULER_SECRET") ?? "" }, body: JSON.stringify({ venueSlug, reason: "venue_test_service", cycleEnd, runId }) });
   if (!res.ok) throw new Error(`Market cycle failed: ${await res.text()}`);
   const result = await res.json() as { snapshot?: { decisions?: Array<{ productId: string; oldPriceMinor: number; newPriceMinor: number }> } };
   return result.snapshot?.decisions ?? [];

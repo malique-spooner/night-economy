@@ -520,7 +520,7 @@ export function Portal({ venueSlug }: Props) {
                     venue={scheduleOverride ? { ...state.venue, marketSchedule: scheduleOverride } : state.venue}
                   />
                 ) : activeTab === "runs" ? (
-                  <PortalRunsPage currency={state.venue.currency} isLoading={runsLoading} products={state.products} runs={runs} />
+                  <PortalRunsPage currency={state.venue.currency} isLoading={runsLoading} products={state.products} runs={runs} timezone={state.venue.timezone} />
                 ) : (
                   <PortalAccountPage
                     email={signedInEmail}

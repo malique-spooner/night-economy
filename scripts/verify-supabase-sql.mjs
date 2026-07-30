@@ -43,6 +43,7 @@ const expectedMigrations = [
   "20260730101346_authenticate_service_scheduler_cron.sql",
   "20260730102448_expose_run_sales_to_venue_members.sql",
   "20260730134436_pace_quick_start_ticks.sql",
+  "20260730135157_link_run_price_history.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -116,6 +117,11 @@ function checkRequiredPatterns() {
       label: "quick-start scheduler advances in ten-second slices",
       source: migrationSql["20260730134436_pace_quick_start_ticks.sql"],
       pattern: /cron\.alter_job[\s\S]+schedule := '10 seconds'/i,
+    },
+    {
+      label: "market price rounds are linked to their owning run",
+      source: migrationSql["20260730135157_link_run_price_history.sql"],
+      pattern: /market_price_snapshots[\s\S]+run_id text references public\.market_runs[\s\S]+market_price_snapshots_run_created_at_idx/i,
     },
     {
       label: "run sales are readable only by authenticated members of the matching venue",
