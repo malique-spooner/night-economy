@@ -1,8 +1,9 @@
 import { simulationStart } from "../_shared/serviceSchedule.ts";
-import { marketCycleMinutes, simulationProgress, simulationTargetMinute } from "../_shared/simulationClock.ts";
+import { buildInstantSimulation } from "../_shared/instantSimulation.ts";
+import { marketCycleMinutes, simulationProgress } from "../_shared/simulationClock.ts";
 
 type Service = { venue_id: string; status: "idle" | "running" | "paused" | "ended"; simulated_minute: number; speed: number; target_revenue_minor: number; rush_until_minute: number; slowdown_until_minute: number; last_tick_at: string | null; started_at: string | null; scheduled_slot_key: string | null; active_run_id: string | null };
-type Product = { id: string; display_name: string; category: string; base_price_minor: number; current_price_minor: number; pos_product_id: string | null; is_live: boolean; is_sold_out: boolean };
+type Product = { id: string; display_name: string; category: string; base_price_minor: number; current_price_minor: number; floor_price_minor: number; ceiling_price_minor: number; pos_product_id: string | null; is_live: boolean; is_sold_out: boolean };
 type SimulatedSale = { occurred_at: string; quantity: number; unit_price_minor: number };
 
 const SERVICE_MINUTES = 360;
@@ -27,7 +28,7 @@ Deno.serve(async request => {
     if (!isScheduler && !isPublicRead && !userId) return response({ error: "Unauthorized" }, 401);
     const headers = { apikey: key, "content-type": "application/json" };
 
-    const venues = await restJson<Array<{ id: string; slug: string; timezone: string }>>(url, `/venues?slug=eq.${encodeURIComponent(venueSlug)}&select=id,slug,timezone`, { headers }, "load venue");
+    const venues = await restJson<Array<{ id: string; slug: string; timezone: string; currency: string }>>(url, `/venues?slug=eq.${encodeURIComponent(venueSlug)}&select=id,slug,timezone,currency`, { headers }, "load venue");
     const venue = venues[0];
     if (!venue) return response({ error: "Venue not found" }, 404);
     if (!isScheduler && !isPublicRead) {
@@ -49,8 +50,18 @@ Deno.serve(async request => {
       const simulatedStartedAt = simulationStart(venue.timezone || "Europe/London", requestedAt, action === "scheduled_start" ? scheduledSlotKey : null);
       const runKind = action === "scheduled_start" ? "scheduled" : action === "instant_run" ? "instant" : "quick";
       const runId = await createRun(url, headers, venue.id, runKind, action === "scheduled_start" ? scheduledSlotKey ?? null : null, runStartedAt);
-      state = await save(url, headers, venue.id, { status: "running", simulated_minute: 0, speed: action === "scheduled_start" ? 1 : (Number.isFinite(speed) ? nextSpeed : QUICK_START_SPEED), target_revenue_minor: nextTargetRevenueMinor, rush_until_minute: 0, slowdown_until_minute: 0, last_tick_at: runStartedAt, started_at: simulatedStartedAt, scheduled_slot_key: action === "scheduled_start" ? scheduledSlotKey ?? null : null, active_run_id: runId });
-      if (action === "instant_run") state = await advance(url, headers, venue.id, venue.slug, state, state.speed, true);
+      state = await save(url, headers, venue.id, { status: action === "instant_run" ? "paused" : "running", simulated_minute: 0, speed: action === "scheduled_start" ? 1 : (Number.isFinite(speed) ? nextSpeed : QUICK_START_SPEED), target_revenue_minor: nextTargetRevenueMinor, rush_until_minute: 0, slowdown_until_minute: 0, last_tick_at: runStartedAt, started_at: simulatedStartedAt, scheduled_slot_key: action === "scheduled_start" ? scheduledSlotKey ?? null : null, active_run_id: runId });
+      if (action === "instant_run") {
+        try {
+          state = await completeInstantRun(url, headers, venue.id, venue.currency || "GBP", state);
+        } catch (error) {
+          await resetPrices(url, headers, venue.id).catch(() => undefined);
+          await setMarketLive(url, headers, venue.id, false).catch(() => undefined);
+          await finishRun(url, headers, state.active_run_id, "ended", 0).catch(() => undefined);
+          await save(url, headers, venue.id, { status: "ended", simulated_minute: 0, last_tick_at: new Date().toISOString(), active_run_id: null }).catch(() => undefined);
+          throw error;
+        }
+      }
     } else if (action === "event") {
       if (!['rush', 'slowdown'].includes(eventType)) return response({ error: "Unknown simulator event" }, 400);
       state = await save(url, headers, venue.id, eventType === 'rush' ? { rush_until_minute: Math.min(SERVICE_MINUTES, state.simulated_minute + 30) } : { slowdown_until_minute: Math.min(SERVICE_MINUTES, state.simulated_minute + 30) });
@@ -85,10 +96,10 @@ Deno.serve(async request => {
   }
 });
 
-async function advance(url: string, headers: HeadersInit, venueId: string, venueSlug: string, state: Service, speed: number, completeImmediately = false) {
+async function advance(url: string, headers: HeadersInit, venueId: string, venueSlug: string, state: Service, speed: number) {
   const tickedAt = new Date();
   const progress = simulationProgress(state.simulated_minute, state.last_tick_at, tickedAt, speed, SERVICE_MINUTES, state.scheduled_slot_key === null);
-  const nextMinute = simulationTargetMinute(progress.minute, SERVICE_MINUTES, completeImmediately);
+  const nextMinute = progress.minute;
   if (nextMinute === state.simulated_minute) return state;
   const products = await restJson<Product[]>(url, `/market_products?venue_id=eq.${encodeURIComponent(venueId)}&select=id,display_name,category,base_price_minor,current_price_minor,pos_product_id,is_live,is_sold_out`, { headers }, "load venue products");
   const active = products.filter(product => product.is_live && !product.is_sold_out && product.pos_product_id);
@@ -99,7 +110,7 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
       await finishRun(url, headers, state.active_run_id, "completed", nextMinute);
     }
     else await syncRunProgress(url, headers, state.active_run_id, nextMinute);
-    return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: completeImmediately ? tickedAt.toISOString() : progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
+    return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
   }
   const connectionId = `test_sim_${venueId}`;
   const salesRows: Array<Record<string, unknown>> = [];
@@ -127,7 +138,47 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
   } else {
     await syncRunProgress(url, headers, state.active_run_id, nextMinute);
   }
-  return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: completeImmediately ? tickedAt.toISOString() : progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
+  return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
+}
+
+async function completeInstantRun(url: string, headers: HeadersInit, venueId: string, currency: string, state: Service) {
+  const products = await restJson<Product[]>(url, `/market_products?venue_id=eq.${encodeURIComponent(venueId)}&select=id,display_name,category,base_price_minor,current_price_minor,floor_price_minor,ceiling_price_minor,pos_product_id,is_live,is_sold_out`, { headers }, "load instant-run products");
+  const plan = buildInstantSimulation(products, state.target_revenue_minor, SERVICE_MINUTES);
+  const runId = state.active_run_id;
+  const connectionId = `test_sim_${venueId}`;
+  const salesRows = plan.sales.map(sale => ({
+    id: `test_${venueId}_${runId ?? "legacy"}_${sale.minute}_${sale.sequence}`,
+    venue_id: venueId,
+    pos_connection_id: connectionId,
+    pos_product_id: sale.posProductId,
+    run_id: runId,
+    occurred_at: simulatedTime(sale.minute, state.started_at),
+    quantity: sale.quantity,
+    unit_price_minor: sale.unitPriceMinor,
+    currency,
+  }));
+  await writeRowsInChunks(url, headers, "/pos_sales_events?on_conflict=id", salesRows, "write instant-run sales", 1_000, { Prefer: "resolution=ignore-duplicates" });
+
+  const snapshotRows = plan.rounds.map(round => {
+    const roundEnd = simulatedTime(round.minute, state.started_at);
+    const roundStart = simulatedTime(round.minute - 5, state.started_at);
+    return {
+      id: crypto.randomUUID(),
+      venue_id: venueId,
+      run_id: runId,
+      reason: "venue_test_service",
+      status: "published",
+      snapshot: { venueId, reason: "venue_test_service", runId, salesWindow: { start: roundStart, end: roundEnd, importedLines: round.importedLines }, roundStart, roundEnd, decisions: round.decisions },
+    };
+  });
+  await writeRowsInChunks(url, headers, "/market_price_snapshots", snapshotRows, "write instant-run price rounds", 100);
+
+  const salesCount = salesRows.reduce((total, sale) => total + sale.quantity, 0);
+  const revenueMinor = salesRows.reduce((total, sale) => total + sale.quantity * sale.unit_price_minor, 0);
+  await resetPrices(url, headers, venueId);
+  await setMarketLive(url, headers, venueId, false);
+  await updateRun(url, headers, runId, { status: "completed", simulated_minutes: SERVICE_MINUTES, sales_count: salesCount, revenue_minor: revenueMinor, ended_at: new Date().toISOString() });
+  return save(url, headers, venueId, { status: "ended", simulated_minute: SERVICE_MINUTES, last_tick_at: new Date().toISOString(), active_run_id: null });
 }
 
 async function runMarketCycle(venueSlug: string, cycleEnd: string, runId: string | null) {
@@ -197,7 +248,7 @@ async function updateRun(url: string, headers: HeadersInit, runId: string | null
 
 async function finishRun(url: string, headers: HeadersInit, runId: string | null, status: "ended" | "completed", simulatedMinutes: number) {
   if (!runId) return;
-  const sales = await restJson<Array<{ quantity: number; unit_price_minor: number }>>(url, `/pos_sales_events?run_id=eq.${encodeURIComponent(runId)}&select=quantity,unit_price_minor`, { headers }, "summarize market run");
+  const sales = await loadRunSales(url, headers, runId, "summarize market run");
   const salesCount = sales.reduce((total, sale) => total + sale.quantity, 0);
   const revenueMinor = sales.reduce((total, sale) => total + sale.quantity * sale.unit_price_minor, 0);
   await updateRun(url, headers, runId, { status, simulated_minutes: simulatedMinutes, sales_count: salesCount, revenue_minor: revenueMinor, ended_at: new Date().toISOString() });
@@ -205,7 +256,7 @@ async function finishRun(url: string, headers: HeadersInit, runId: string | null
 
 async function syncRunProgress(url: string, headers: HeadersInit, runId: string | null, simulatedMinutes: number) {
   if (!runId) return;
-  const sales = await restJson<Array<{ quantity: number; unit_price_minor: number }>>(url, `/pos_sales_events?run_id=eq.${encodeURIComponent(runId)}&select=quantity,unit_price_minor`, { headers }, "summarize running market run");
+  const sales = await loadRunSales(url, headers, runId, "summarize running market run");
   const salesCount = sales.reduce((total, sale) => total + sale.quantity, 0);
   const revenueMinor = sales.reduce((total, sale) => total + sale.quantity * sale.unit_price_minor, 0);
   await updateRun(url, headers, runId, { status: "running", simulated_minutes: simulatedMinutes, sales_count: salesCount, revenue_minor: revenueMinor });
@@ -267,6 +318,30 @@ async function save(url: string, headers: HeadersInit, venueId: string, patch: R
   const rows = await restJson<Service[]>(url, `/venue_test_services?venue_id=eq.${encodeURIComponent(venueId)}`, { method: "PATCH", headers: { ...headers, Prefer: "return=representation" }, body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() }) }, "save test service");
   if (!rows[0]) throw new Error("Could not save test service");
   return rows[0];
+}
+
+async function loadRunSales(url: string, headers: HeadersInit, runId: string, action: string) {
+  const pageSize = 1_000;
+  const sales: Array<{ quantity: number; unit_price_minor: number }> = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const page = await restJson<Array<{ quantity: number; unit_price_minor: number }>>(url, `/pos_sales_events?run_id=eq.${encodeURIComponent(runId)}&select=quantity,unit_price_minor&limit=${pageSize}&offset=${offset}`, { headers }, action);
+    sales.push(...page);
+    if (page.length < pageSize) return sales;
+  }
+}
+
+async function writeRowsInChunks(
+  url: string,
+  headers: HeadersInit,
+  path: string,
+  rows: Array<Record<string, unknown>>,
+  action: string,
+  chunkSize: number,
+  extraHeaders: Record<string, string> = {},
+) {
+  for (let offset = 0; offset < rows.length; offset += chunkSize) {
+    await restRequest(url, path, { method: "POST", headers: { ...headers, ...extraHeaders }, body: JSON.stringify(rows.slice(offset, offset + chunkSize)) }, action);
+  }
 }
 
 async function restJson<T>(url: string, path: string, init: RequestInit, action: string): Promise<T> { return (await restRequest(url, path, init, action)).json() as Promise<T>; }

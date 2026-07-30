@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { marketCycleMinutes, simulationProgress, simulationTargetMinute } from "../../../supabase/functions/_shared/simulationClock";
+import { marketCycleMinutes, simulationProgress } from "../../../supabase/functions/_shared/simulationClock";
 
 describe("simulationProgress", () => {
   const startedAt = "2026-07-30T18:00:00.000Z";
@@ -23,7 +23,6 @@ describe("simulationProgress", () => {
   });
 
   it("completes an instant run and includes all 72 five-minute rounds", () => {
-    expect(simulationTargetMinute(0, 360, true)).toBe(360);
     const cycles = marketCycleMinutes(0, 360);
     expect(cycles).toHaveLength(72);
     expect(cycles[0]).toBe(5);
