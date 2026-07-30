@@ -104,6 +104,16 @@ SUPABASE_SERVICE_ROLE_KEY
 SCHEDULER_SECRET
 ```
 
+Before applying the SQL bundle, store the scheduler's private header secret and
+the project's legacy anonymous JWT in Supabase Vault. The anonymous JWT only
+passes the Edge Function gateway; `service-scheduler` still requires the
+separate private scheduler secret.
+
+```sql
+select vault.create_secret('<SCHEDULER_SECRET>', 'night_economy_scheduler_secret');
+select vault.create_secret('<legacy anon JWT from Project Settings -> API>', 'night_economy_scheduler_anon_key');
+```
+
 Deploy the cloud jobs:
 
 ```bash

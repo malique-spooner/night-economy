@@ -40,6 +40,7 @@ const expectedMigrations = [
   "20260729220000_add_market_product_logos.sql",
   "20260730092640_grant_market_product_logo_updates.sql",
   "20260730100120_grant_market_schedule_updates.sql",
+  "20260730101346_authenticate_service_scheduler_cron.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -103,6 +104,11 @@ function checkRequiredPatterns() {
       label: "authenticated venue editors can persist market schedules and target takings",
       source: migrationSql["20260730100120_grant_market_schedule_updates.sql"],
       pattern: /grant update \(market_schedule\) on table public\.venues to authenticated/i,
+    },
+    {
+      label: "scheduler cron passes the Edge Function gateway and private scheduler authentication",
+      source: migrationSql["20260730101346_authenticate_service_scheduler_cron.sql"],
+      pattern: /night_economy_scheduler_anon_key[\s\S]+'apikey'[\s\S]+'Authorization'[\s\S]+'Bearer '[\s\S]+'x-night-economy-scheduler-secret'[\s\S]+night_economy_scheduler_secret/i,
     },
     {
       label: "site leads RLS enabled",

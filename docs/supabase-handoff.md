@@ -35,6 +35,14 @@ npm run launch:readiness
 
 ## 2. Database Setup
 
+Create the two scheduler Vault entries first. Use the legacy anonymous JWT for
+the gateway credential, never a service-role key:
+
+```sql
+select vault.create_secret('<SCHEDULER_SECRET>', 'night_economy_scheduler_secret');
+select vault.create_secret('<legacy anon JWT from Project Settings -> API>', 'night_economy_scheduler_anon_key');
+```
+
 Print the reviewed SQL bundle:
 
 ```bash
