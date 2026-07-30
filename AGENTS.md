@@ -24,7 +24,7 @@ npm run check
 When the change will be deployed to Cloudflare Pages, also run the relevant workflow against the deployed site:
 
 ```bash
-E2E_BASE_URL=https://night-econemy.pages.dev npx playwright test
+E2E_BASE_URL=https://night-economy.pages.dev npx playwright test
 ```
 
 Do not weaken selectors or assertions merely to make a failing workflow pass. Treat a failure as a product or test-fixture defect and identify the actual cause.

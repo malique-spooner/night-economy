@@ -33,7 +33,7 @@ npm run check
 To validate the deployed Cloudflare Pages build without mutating production Supabase data:
 
 ```bash
-E2E_BASE_URL=https://night-econemy.pages.dev npx playwright test
+E2E_BASE_URL=https://night-economy.pages.dev npx playwright test
 ```
 
 The Playwright suite mocks write boundaries deterministically. Real cloud state is checked separately with:
