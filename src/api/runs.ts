@@ -2,7 +2,7 @@ import { supabase } from "./client";
 
 export type MarketRun = {
   id: string;
-  kind: "quick" | "scheduled";
+  kind: "quick" | "instant" | "scheduled";
   status: "running" | "paused" | "ended" | "completed";
   startedAt: string;
   endedAt: string | null;

@@ -203,11 +203,18 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && write.body !== null)).toBe(true);
   await expect(page.getByText("New POS Drink", { exact: true })).not.toBeVisible();
 
-  await page.getByRole("button", { name: "Quick start · 10 min" }).click();
+  await page.getByRole("button", { name: "Quick start · instant" }).click();
+  await expect(page.getByRole("heading", { name: "Previous runs" })).toBeVisible();
+  await expect(page.getByText("Instant simulation", { exact: true })).toBeVisible();
+  expect(cloud.actions).toContain("instant_run");
+
+  await page.getByRole("button", { name: /Start/ }).click();
+  await expect(page.getByRole("button", { name: "Quick start · instant" })).toBeVisible();
+  await page.getByRole("button", { name: "Quick start · 10 min live" }).click();
   await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
   await expect(page.getByText(/Market open · 18:00/)).toBeVisible();
   await expect(page.getByText(/Market open · 00:00/)).not.toBeVisible();
-  await expect(page.getByRole("button", { name: "Quick start · 10 min" })).not.toBeVisible();
+  await expect(page.getByRole("button", { name: "Quick start · 10 min live" })).not.toBeVisible();
   expect(cloud.actions).toContain("quick_start");
 
   await page.getByRole("button", { name: "Pause" }).click();
@@ -224,14 +231,14 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect(page.getByRole("dialog", { name: "End this service early?" })).not.toBeVisible();
   await page.getByRole("button", { name: "End", exact: true }).click();
   await page.getByRole("button", { name: "End service" }).click();
-  await expect(page.getByRole("button", { name: "Quick start · 10 min" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Quick start · 10 min live" })).toBeVisible();
   expect(cloud.actions).toContain("end");
 
   await page.getByRole("button", { name: /Run history/ }).click();
   await expect(page.getByRole("heading", { name: "Previous runs" })).toBeVisible();
-  await expect(page.getByText("Quick rehearsal", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Open dashboard for Quick rehearsal" }).click();
-  await expect(page.getByRole("heading", { name: "Quick rehearsal dashboard" })).toBeVisible();
+  await expect(page.getByText("10-minute live rehearsal", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Open dashboard for 10-minute live rehearsal" }).click();
+  await expect(page.getByRole("heading", { name: "10-minute live rehearsal dashboard" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Sales through the night" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Top drinks" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Every price and percentage change" })).toBeVisible();
@@ -311,6 +318,7 @@ async function mockSupabase(
   const mockProducts = options.products ?? products;
   const memberRole: "owner" | null = options.memberRole === null ? null : "owner";
   let service = serviceState("idle", 0);
+  let latestRunKind: "quick" | "instant" = "quick";
 
   await page.route(/https:\/\/[^/]+\.supabase\.co\/.*/, async route => {
     const request = route.request();
@@ -337,7 +345,14 @@ async function mockSupabase(
     if (url.pathname === "/functions/v1/venue-simulator") {
       const action = String(body?.action ?? "state");
       actions.push(action);
-      if (action === "quick_start") service = serviceState("running", 0);
+      if (action === "quick_start") {
+        latestRunKind = "quick";
+        service = serviceState("running", 0);
+      }
+      if (action === "instant_run") {
+        latestRunKind = "instant";
+        service = serviceState("ended", 360);
+      }
       if (action === "pause") service = serviceState("paused", service.minute);
       if (action === "resume") service = serviceState("running", service.minute);
       if (action === "end") service = serviceState("ended", service.minute);
@@ -355,7 +370,7 @@ async function mockSupabase(
 
     if (url.pathname.startsWith("/rest/v1/")) {
       if (!["GET", "HEAD"].includes(request.method())) writes.push({ path: url.pathname, body });
-      return handleRest(route, url, request.method(), mockProducts, body, memberRole);
+      return handleRest(route, url, request.method(), mockProducts, body, memberRole, latestRunKind);
     }
 
     return json(route, {});
@@ -364,7 +379,7 @@ async function mockSupabase(
   return { actions, authRequests };
 }
 
-async function handleRest(route: Route, url: URL, method: string, mockProducts: typeof products, requestBody: unknown, memberRole: "owner" | null) {
+async function handleRest(route: Route, url: URL, method: string, mockProducts: typeof products, requestBody: unknown, memberRole: "owner" | null, latestRunKind: "quick" | "instant") {
   const table = url.pathname.split("/").pop();
   if (method === "POST" && table === "market_products") return postgrest(route, requestBody);
   if (method === "PATCH" && table === "market_products") return postgrest(route, { id: "mp_updated" });
@@ -388,7 +403,7 @@ async function handleRest(route: Route, url: URL, method: string, mockProducts: 
       decisions: [{ productId: "mp_espresso", oldPriceMinor: 1200, newPriceMinor: 1260, movement: "up", reason: "Demand rose against category peers." }],
     },
   }]);
-  if (table === "market_runs") return postgrest(route, [{ id: "run_e2e", kind: "quick", status: "completed", started_at: "2026-07-25T18:00:00.000Z", ended_at: "2026-07-25T18:10:00.000Z", simulated_minutes: 360, sales_count: 124, revenue_minor: 148800 }]);
+  if (table === "market_runs") return postgrest(route, [{ id: "run_e2e", kind: latestRunKind, status: "completed", started_at: "2026-07-25T18:00:00.000Z", ended_at: "2026-07-25T18:10:00.000Z", simulated_minutes: 360, sales_count: 124, revenue_minor: 148800 }]);
   if (table === "pos_sales_events") return postgrest(route, [
     { id: "sale_1", pos_product_id: "pos_espresso", quantity: 2, unit_price_minor: 1260, currency: "GBP", occurred_at: "2026-07-25T18:00:00.000Z" },
     { id: "sale_2", pos_product_id: "pos_margarita", quantity: 1, unit_price_minor: 1050, currency: "GBP", occurred_at: "2026-07-25T18:31:00.000Z" },

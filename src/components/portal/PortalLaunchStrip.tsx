@@ -4,6 +4,8 @@ import type { MarketScheduleEntry, VenueMarketSettings } from "../../engine/type
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 type Props = {
+  instantRunPending: boolean;
+  onInstantRun: () => void;
   onQuickStart: () => void;
   onPause: () => void;
   onResume: () => void;
@@ -30,7 +32,7 @@ export function updateScheduleDay(schedule: MarketScheduleEntry[], day: string, 
   return schedule.map(entry => entry.day === day ? { ...entry, ...patch } : entry);
 }
 
-export function PortalLaunchStrip({ onEnd, onPause, onQuickStart, onResume, onSettingsChange, settings, simulatorState, timezone }: Props) {
+export function PortalLaunchStrip({ instantRunPending, onEnd, onInstantRun, onPause, onQuickStart, onResume, onSettingsChange, settings, simulatorState, timezone }: Props) {
   const schedule = days.map(day => settings.marketSchedule.find(entry => entry.day === day) ?? { day, start: "18:00", end: "00:00", enabled: false });
   const next = getNextService(schedule, timezone);
   const save = (nextSchedule: MarketScheduleEntry[]) => onSettingsChange({ marketSchedule: nextSchedule });
@@ -49,7 +51,10 @@ export function PortalLaunchStrip({ onEnd, onPause, onQuickStart, onResume, onSe
         <p>{marketStatus}</p>
       </div>
       <div className="portal-service-actions">
-        {!serviceIsOpen ? <button className="portal-quick-start" onClick={onQuickStart} type="button">Quick start · 10 min</button> : null}
+        {!serviceIsOpen ? <>
+          <button className="portal-instant-run" disabled={instantRunPending} onClick={onInstantRun} type="button">{instantRunPending ? "Simulating full night…" : "Quick start · instant"}</button>
+          <button className="portal-quick-start" disabled={instantRunPending} onClick={onQuickStart} type="button">Quick start · 10 min live</button>
+        </> : null}
         {service?.running ? <button className="portal-quick-start is-live" onClick={onPause} type="button">Pause</button> : null}
         {serviceIsOpen && service?.paused ? <button className="portal-quick-start" onClick={onResume} type="button">Resume</button> : null}
         {serviceIsOpen ? <button className="portal-end-service" onClick={onEnd} type="button">End</button> : null}

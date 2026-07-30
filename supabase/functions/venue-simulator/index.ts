@@ -1,5 +1,5 @@
 import { simulationStart } from "../_shared/serviceSchedule.ts";
-import { simulationProgress } from "../_shared/simulationClock.ts";
+import { marketCycleMinutes, simulationProgress, simulationTargetMinute } from "../_shared/simulationClock.ts";
 
 type Service = { venue_id: string; status: "idle" | "running" | "paused" | "ended"; simulated_minute: number; speed: number; target_revenue_minor: number; rush_until_minute: number; slowdown_until_minute: number; last_tick_at: string | null; started_at: string | null; scheduled_slot_key: string | null; active_run_id: string | null };
 type Product = { id: string; display_name: string; category: string; base_price_minor: number; current_price_minor: number; pos_product_id: string | null; is_live: boolean; is_sold_out: boolean };
@@ -21,7 +21,7 @@ Deno.serve(async request => {
     const schedulerSecret = Deno.env.get("SCHEDULER_SECRET");
     const isScheduler = Boolean(schedulerSecret) && request.headers.get("x-night-economy-scheduler-secret") === schedulerSecret;
     const { venueSlug, action = "state", speed, targetRevenueMinor, eventType, scheduledSlotKey } = await request.json().catch(() => ({}));
-    if (!venueSlug || !["state", "tick", "summary", "quick_start", "pause", "resume", "end", "event", "scheduled_start", "scheduled_end"].includes(action)) return response({ error: "Invalid simulator request" }, 400);
+    if (!venueSlug || !["state", "tick", "summary", "quick_start", "instant_run", "pause", "resume", "end", "event", "scheduled_start", "scheduled_end"].includes(action)) return response({ error: "Invalid simulator request" }, 400);
     const isPublicRead = action === "state";
     const userId = isScheduler || isPublicRead ? null : await authenticatedUserId(url, key, request.headers.get("Authorization"));
     if (!isScheduler && !isPublicRead && !userId) return response({ error: "Unauthorized" }, 401);
@@ -41,14 +41,16 @@ Deno.serve(async request => {
     const nextSpeed = Number.isFinite(speed) ? Math.max(1, Math.min(120, Math.round(speed))) : state.speed;
     const nextTargetRevenueMinor = Number.isFinite(targetRevenueMinor) ? Math.max(0, Math.min(5_000_000, Math.round(targetRevenueMinor))) : state.target_revenue_minor;
 
-    if (action === "quick_start" || action === "scheduled_start") {
+    if (action === "quick_start" || action === "instant_run" || action === "scheduled_start") {
       await resetTestService(url, headers, venue.id);
       await setMarketLive(url, headers, venue.id, true);
       const requestedAt = new Date();
       const runStartedAt = requestedAt.toISOString();
       const simulatedStartedAt = simulationStart(venue.timezone || "Europe/London", requestedAt, action === "scheduled_start" ? scheduledSlotKey : null);
-      const runId = await createRun(url, headers, venue.id, action === "scheduled_start" ? "scheduled" : "quick", action === "scheduled_start" ? scheduledSlotKey ?? null : null, runStartedAt);
+      const runKind = action === "scheduled_start" ? "scheduled" : action === "instant_run" ? "instant" : "quick";
+      const runId = await createRun(url, headers, venue.id, runKind, action === "scheduled_start" ? scheduledSlotKey ?? null : null, runStartedAt);
       state = await save(url, headers, venue.id, { status: "running", simulated_minute: 0, speed: action === "scheduled_start" ? 1 : (Number.isFinite(speed) ? nextSpeed : QUICK_START_SPEED), target_revenue_minor: nextTargetRevenueMinor, rush_until_minute: 0, slowdown_until_minute: 0, last_tick_at: runStartedAt, started_at: simulatedStartedAt, scheduled_slot_key: action === "scheduled_start" ? scheduledSlotKey ?? null : null, active_run_id: runId });
+      if (action === "instant_run") state = await advance(url, headers, venue.id, venue.slug, state, state.speed, true);
     } else if (action === "event") {
       if (!['rush', 'slowdown'].includes(eventType)) return response({ error: "Unknown simulator event" }, 400);
       state = await save(url, headers, venue.id, eventType === 'rush' ? { rush_until_minute: Math.min(SERVICE_MINUTES, state.simulated_minute + 30) } : { slowdown_until_minute: Math.min(SERVICE_MINUTES, state.simulated_minute + 30) });
@@ -83,10 +85,10 @@ Deno.serve(async request => {
   }
 });
 
-async function advance(url: string, headers: HeadersInit, venueId: string, venueSlug: string, state: Service, speed: number) {
+async function advance(url: string, headers: HeadersInit, venueId: string, venueSlug: string, state: Service, speed: number, completeImmediately = false) {
   const tickedAt = new Date();
   const progress = simulationProgress(state.simulated_minute, state.last_tick_at, tickedAt, speed, SERVICE_MINUTES, state.scheduled_slot_key === null);
-  const nextMinute = progress.minute;
+  const nextMinute = simulationTargetMinute(progress.minute, SERVICE_MINUTES, completeImmediately);
   if (nextMinute === state.simulated_minute) return state;
   const products = await restJson<Product[]>(url, `/market_products?venue_id=eq.${encodeURIComponent(venueId)}&select=id,display_name,category,base_price_minor,current_price_minor,pos_product_id,is_live,is_sold_out`, { headers }, "load venue products");
   const active = products.filter(product => product.is_live && !product.is_sold_out && product.pos_product_id);
@@ -97,7 +99,7 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
       await finishRun(url, headers, state.active_run_id, "completed", nextMinute);
     }
     else await syncRunProgress(url, headers, state.active_run_id, nextMinute);
-    return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
+    return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: completeImmediately ? tickedAt.toISOString() : progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
   }
   const connectionId = `test_sim_${venueId}`;
   const salesRows: Array<Record<string, unknown>> = [];
@@ -113,8 +115,7 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
   if (salesRows.length) {
     await restRequest(url, "/pos_sales_events?on_conflict=id", { method: "POST", headers: { ...headers, Prefer: "resolution=ignore-duplicates" }, body: JSON.stringify(salesRows) }, "write simulated sales");
   }
-  const firstCycleMinute = (Math.floor(state.simulated_minute / 5) + 1) * 5;
-  for (let cycleMinute = firstCycleMinute; cycleMinute <= nextMinute; cycleMinute += 5) {
+  for (const cycleMinute of marketCycleMinutes(state.simulated_minute, nextMinute)) {
     const decisions = await runMarketCycle(venueSlug, simulatedTime(cycleMinute, state.started_at), state.active_run_id);
     await publishInternalPrices(url, headers, venueId, connectionId, decisions);
   }
@@ -126,7 +127,7 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
   } else {
     await syncRunProgress(url, headers, state.active_run_id, nextMinute);
   }
-  return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
+  return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: completeImmediately ? tickedAt.toISOString() : progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
 }
 
 async function runMarketCycle(venueSlug: string, cycleEnd: string, runId: string | null) {
@@ -183,7 +184,7 @@ async function resetTestService(url: string, headers: HeadersInit, venueId: stri
   await resetPrices(url, headers, venueId);
 }
 
-async function createRun(url: string, headers: HeadersInit, venueId: string, kind: "quick" | "scheduled", scheduledSlotKey: string | null, startedAt: string) {
+async function createRun(url: string, headers: HeadersInit, venueId: string, kind: "quick" | "instant" | "scheduled", scheduledSlotKey: string | null, startedAt: string) {
   const rows = await restJson<Array<{ id: string }>>(url, "/market_runs", { method: "POST", headers: { ...headers, Prefer: "return=representation" }, body: JSON.stringify({ id: `run_${crypto.randomUUID()}`, venue_id: venueId, kind, status: "running", scheduled_slot_key: scheduledSlotKey, started_at: startedAt }) }, "create market run");
   if (!rows[0]) throw new Error("Could not create market run");
   return rows[0].id;

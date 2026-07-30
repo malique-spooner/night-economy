@@ -54,7 +54,7 @@ export async function getSimulatorDashboard(venueSlug: string): Promise<Simulato
   return { ...state, salesGraph: Array.isArray(data?.salesGraph) ? data.salesGraph : [], products: Array.isArray(data?.products) ? data.products : [], recentSales: Array.isArray(data?.recentSales) ? data.recentSales : [] };
 }
 
-export async function controlSimulator(venueSlug: string, action: "start" | "quick_start" | "pause" | "resume" | "end" | "reset_prices" | "event", options: { speed?: number; targetRevenueMinor?: number; eventType?: "rush" | "slowdown" } = {}) {
+export async function controlSimulator(venueSlug: string, action: "start" | "quick_start" | "instant_run" | "pause" | "resume" | "end" | "reset_prices" | "event", options: { speed?: number; targetRevenueMinor?: number; eventType?: "rush" | "slowdown" } = {}) {
   if (usesCloudSimulator(venueSlug)) return cloudSimulator(venueSlug, action, options);
   return postJson("/v1/simulation/control", { action, ...options });
 }

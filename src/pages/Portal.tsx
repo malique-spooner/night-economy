@@ -62,6 +62,7 @@ export function Portal({ venueSlug }: Props) {
   const [simulatorState, setSimulatorState] = useState<SimulatorState | null>(null);
   const [runs, setRuns] = useState<MarketRun[]>([]);
   const [runsLoading, setRunsLoading] = useState(false);
+  const [instantRunPending, setInstantRunPending] = useState(false);
   const [isEndConfirmationOpen, setIsEndConfirmationOpen] = useState(false);
   const [tvPageWarning, setTvPageWarning] = useState<{ category: string; productId: string; patch: MarketProductPatch; options: { persist?: boolean }; productName: string } | null>(null);
   const [priorityLimitWarning, setPriorityLimitWarning] = useState<string | null>(null);
@@ -429,6 +430,21 @@ export function Portal({ venueSlug }: Props) {
     }
   }
 
+  async function handleInstantRun() {
+    try {
+      setInstantRunPending(true);
+      const nextSimulatorState = await controlSimulator(venueSlug, "instant_run");
+      setSimulatorState(nextSimulatorState);
+      await handleVenueSettingsChange({ marketLive: false });
+      setLastSavedMessage("Instant full-night simulation completed");
+      setActiveTab("runs");
+    } catch (error) {
+      setLastSavedMessage(error instanceof Error ? `Could not run instant simulation: ${error.message}` : "Could not run the instant simulation");
+    } finally {
+      setInstantRunPending(false);
+    }
+  }
+
   async function handlePause() {
     try {
       setSimulatorState(await controlSimulator(venueSlug, "pause"));
@@ -502,11 +518,13 @@ export function Portal({ venueSlug }: Props) {
               <div className="portal-workspace">
                 {activeTab === "start" ? (
                   <PortalStartPage
+                    instantRunPending={instantRunPending}
                     onConfigurePosProduct={handleConfigurePosProduct}
                     onProductChange={handleProductChange}
                     onLogoUpload={handleLogoUpload}
                     onSelectProduct={handleToggleProductHistory}
                     onVenueSettingsChange={handleVenueSettingsChange}
+                    onInstantRun={handleInstantRun}
                     onQuickStart={handleQuickStart}
                     onPause={handlePause}
                     onResume={handleResume}

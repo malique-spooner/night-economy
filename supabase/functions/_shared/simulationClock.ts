@@ -32,3 +32,14 @@ export function simulationProgress(
     lastTickAt: new Date(Math.min(tickedAtMs, lastTickAtMs + consumedMilliseconds)).toISOString(),
   };
 }
+
+export function simulationTargetMinute(progressMinute: number, serviceMinutes: number, completeImmediately: boolean) {
+  return completeImmediately ? serviceMinutes : progressMinute;
+}
+
+export function marketCycleMinutes(currentMinute: number, nextMinute: number, intervalMinutes = 5) {
+  const firstCycleMinute = (Math.floor(currentMinute / intervalMinutes) + 1) * intervalMinutes;
+  const cycles: number[] = [];
+  for (let minute = firstCycleMinute; minute <= nextMinute; minute += intervalMinutes) cycles.push(minute);
+  return cycles;
+}

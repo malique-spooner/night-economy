@@ -68,7 +68,7 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
       <header className="portal-run-hero">
         <div>
           <span className="portal-start-kicker">Night intelligence</span>
-          <h1 className="portal-page-title">{selectedRun.kind === "quick" ? "Quick rehearsal" : "Scheduled service"} dashboard</h1>
+          <h1 className="portal-page-title">{runLabel(selectedRun)} dashboard</h1>
           <p>{new Date(selectedRun.startedAt).toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short", timeZone: timezone })} · {selectedRun.simulatedMinutes} simulated minutes</p>
         </div>
         <span className={`portal-run-status ${selectedRun.status}`}>{selectedRun.status}</span>
@@ -155,10 +155,10 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
     <div className="portal-runs-heading"><div><span className="portal-start-kicker">Service archive</span><h1 className="portal-page-title">Previous runs</h1><p>Every quick rehearsal and scheduled service is kept here with its sales, five-minute prices and complete order ledger.</p></div><span>{runs.length} recorded</span></div>
     {isLoading ? <p className="portal-runs-empty">Loading run history…</p> : !runs.length ? <p className="portal-runs-empty">Your next completed service will appear here. Earlier runs were not recorded individually.</p> : <div className="portal-runs-list">
       {runs.map(run => <article className="portal-run-card" key={run.id}>
-        <div><strong>{run.kind === "quick" ? "Quick rehearsal" : "Scheduled service"}</strong><span>{new Date(run.startedAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: timezone })}</span></div>
+        <div><strong>{runLabel(run)}</strong><span>{new Date(run.startedAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: timezone })}</span></div>
         <span className={`portal-run-status ${run.status}`}>{run.status}</span>
         <dl><div><dt>Service time</dt><dd>{run.simulatedMinutes} min</dd></div><div><dt>Drinks sold</dt><dd>{run.salesCount}</dd></div><div><dt>Sales</dt><dd>{money(run.revenueMinor)}</dd></div></dl>
-        <button aria-label={`Open dashboard for ${run.kind === "quick" ? "Quick rehearsal" : "Scheduled service"}`} className="portal-run-open" onClick={() => setSelectedRun(run)} type="button">View night dashboard →</button>
+        <button aria-label={`Open dashboard for ${runLabel(run)}`} className="portal-run-open" onClick={() => setSelectedRun(run)} type="button">View night dashboard →</button>
       </article>)}
     </div>}
   </section>;
@@ -170,4 +170,8 @@ function RunKpi({ label, value }: { label: string; value: string }) {
 
 function PanelHeading({ eyebrow, id, title }: { eyebrow: string; id: string; title: string }) {
   return <div><span>{eyebrow}</span><h2 id={id}>{title}</h2></div>;
+}
+
+function runLabel(run: MarketRun) {
+  return run.kind === "instant" ? "Instant simulation" : run.kind === "quick" ? "10-minute live rehearsal" : "Scheduled service";
 }

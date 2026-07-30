@@ -15,6 +15,8 @@ type Props = {
   onSelectProduct: (productId: string) => void;
   onConfigurePosProduct: (posProduct: PosProduct) => void;
   onVenueSettingsChange: (patch: VenueMarketSettingsPatch) => void;
+  instantRunPending: boolean;
+  onInstantRun: () => void;
   onQuickStart: () => void;
   onPause: () => void;
   onResume: () => void;
@@ -34,6 +36,8 @@ export function PortalStartPage({
   onLogoUpload,
   onSelectProduct,
   onVenueSettingsChange,
+  instantRunPending,
+  onInstantRun,
   onQuickStart,
   onPause,
   onResume,
@@ -63,7 +67,7 @@ export function PortalStartPage({
   return (
     <section className="portal-start-page">
       <h1 className="portal-page-title">Portal</h1>
-      <PortalLaunchStrip onEnd={onEnd} onPause={onPause} onQuickStart={onQuickStart} onResume={onResume} onSettingsChange={onVenueSettingsChange} settings={settings} simulatorState={simulatorState} timezone={venue.timezone} />
+      <PortalLaunchStrip instantRunPending={instantRunPending} onEnd={onEnd} onInstantRun={onInstantRun} onPause={onPause} onQuickStart={onQuickStart} onResume={onResume} onSettingsChange={onVenueSettingsChange} settings={settings} simulatorState={simulatorState} timezone={venue.timezone} />
       <PortalCategoryFilters activeCategory={activeCategory} categories={categories} onCategoryChange={setSelectedCategory} />
       <div className="portal-drink-list">
         {visibleGroups.map(([category, categoryProducts]) => (

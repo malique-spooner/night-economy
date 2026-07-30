@@ -44,6 +44,7 @@ const expectedMigrations = [
   "20260730102448_expose_run_sales_to_venue_members.sql",
   "20260730134436_pace_quick_start_ticks.sql",
   "20260730135157_link_run_price_history.sql",
+  "20260730140326_add_instant_market_runs.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -122,6 +123,11 @@ function checkRequiredPatterns() {
       label: "market price rounds are linked to their owning run",
       source: migrationSql["20260730135157_link_run_price_history.sql"],
       pattern: /market_price_snapshots[\s\S]+run_id text references public\.market_runs[\s\S]+market_price_snapshots_run_created_at_idx/i,
+    },
+    {
+      label: "instant simulations are distinguished in run history",
+      source: migrationSql["20260730140326_add_instant_market_runs.sql"],
+      pattern: /market_runs_kind_check[\s\S]+kind in \('quick', 'instant', 'scheduled'\)/i,
     },
     {
       label: "run sales are readable only by authenticated members of the matching venue",
