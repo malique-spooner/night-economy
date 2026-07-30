@@ -1,4 +1,5 @@
 import { simulationStart } from "../_shared/serviceSchedule.ts";
+import { simulationProgress } from "../_shared/simulationClock.ts";
 
 type Service = { venue_id: string; status: "idle" | "running" | "paused" | "ended"; simulated_minute: number; speed: number; target_revenue_minor: number; rush_until_minute: number; slowdown_until_minute: number; last_tick_at: string | null; started_at: string | null; scheduled_slot_key: string | null; active_run_id: string | null };
 type Product = { id: string; display_name: string; category: string; base_price_minor: number; current_price_minor: number; pos_product_id: string | null; is_live: boolean; is_sold_out: boolean };
@@ -84,8 +85,8 @@ Deno.serve(async request => {
 
 async function advance(url: string, headers: HeadersInit, venueId: string, venueSlug: string, state: Service, speed: number) {
   const tickedAt = new Date();
-  const elapsed = Math.floor(((tickedAt.getTime() - Date.parse(state.last_tick_at ?? tickedAt.toISOString())) / 60_000) * speed);
-  const nextMinute = Math.min(SERVICE_MINUTES, state.simulated_minute + Math.max(0, elapsed));
+  const progress = simulationProgress(state.simulated_minute, state.last_tick_at, tickedAt, speed, SERVICE_MINUTES, state.scheduled_slot_key === null);
+  const nextMinute = progress.minute;
   if (nextMinute === state.simulated_minute) return state;
   const products = await restJson<Product[]>(url, `/market_products?venue_id=eq.${encodeURIComponent(venueId)}&select=id,display_name,category,base_price_minor,current_price_minor,pos_product_id,is_live,is_sold_out`, { headers }, "load venue products");
   const active = products.filter(product => product.is_live && !product.is_sold_out && product.pos_product_id);
@@ -96,7 +97,7 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
       await finishRun(url, headers, state.active_run_id, "completed", nextMinute);
     }
     else await syncRunProgress(url, headers, state.active_run_id, nextMinute);
-    return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: tickedAt.toISOString(), ...(status === "ended" ? { active_run_id: null } : {}) });
+    return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
   }
   const connectionId = `test_sim_${venueId}`;
   const salesRows: Array<Record<string, unknown>> = [];
@@ -125,7 +126,7 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
   } else {
     await syncRunProgress(url, headers, state.active_run_id, nextMinute);
   }
-  return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: tickedAt.toISOString(), ...(status === "ended" ? { active_run_id: null } : {}) });
+  return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
 }
 
 async function runMarketCycle(venueSlug: string, cycleEnd: string) {

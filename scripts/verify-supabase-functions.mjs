@@ -92,7 +92,7 @@ const simulatorChecks = [
   ["keeps public state reads separate from scheduler-owned ticks", /action === "state"[\s\S]+action === "tick" && state\.status === "running"/],
   ["anchors service simulation time in the venue timezone", /simulationStart\(venue\.timezone/],
   ["writes each scheduler tick's simulated sales in one batch", /salesRows\.push[\s\S]+JSON\.stringify\(salesRows\)/],
-  ["measures 36x progress between scheduler starts", /const tickedAt = new Date\(\)[\s\S]+last_tick_at: tickedAt\.toISOString\(\)/],
+  ["paces quick-start progress through the shared simulation clock", /simulationProgress\(state\.simulated_minute[\s\S]+last_tick_at: progress\.lastTickAt/],
   ["closes the public market when automatic progress completes", /if \(status === "ended"\) \{[\s\S]+setMarketLive\(url, headers, venueId, false\)[\s\S]+finishRun/],
   ["requires signed-in venue administrators before returning simulator data", /authenticatedUserId[\s\S]+venue_members[\s\S]+Only venue owners or admins/],
   ["handles browser CORS preflight requests", /request\.method === "OPTIONS"[\s\S]+corsHeaders/],

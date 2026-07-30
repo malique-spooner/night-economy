@@ -206,6 +206,8 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await page.getByRole("button", { name: "Quick start · 10 min" }).click();
   await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
   await expect(page.getByText(/Market open · 18:00/)).toBeVisible();
+  await expect(page.getByText(/Market open · 00:00/)).not.toBeVisible();
+  await expect(page.getByRole("button", { name: "Quick start · 10 min" })).not.toBeVisible();
   expect(cloud.actions).toContain("quick_start");
 
   await page.getByRole("button", { name: "Pause" }).click();

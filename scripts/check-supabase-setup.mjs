@@ -37,6 +37,11 @@ const expectedMigrations = [
   "20260729200000_add_platform_admins.sql",
   "20260729210000_add_cloud_simulator_controls.sql",
   "20260729220000_add_market_product_logos.sql",
+  "20260730092640_grant_market_product_logo_updates.sql",
+  "20260730100120_grant_market_schedule_updates.sql",
+  "20260730101346_authenticate_service_scheduler_cron.sql",
+  "20260730102448_expose_run_sales_to_venue_members.sql",
+  "20260730134436_pace_quick_start_ticks.sql",
 ];
 
 const env = {

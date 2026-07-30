@@ -42,6 +42,7 @@ const expectedMigrations = [
   "20260730100120_grant_market_schedule_updates.sql",
   "20260730101346_authenticate_service_scheduler_cron.sql",
   "20260730102448_expose_run_sales_to_venue_members.sql",
+  "20260730134436_pace_quick_start_ticks.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -110,6 +111,11 @@ function checkRequiredPatterns() {
       label: "scheduler cron passes the Edge Function gateway and private scheduler authentication",
       source: migrationSql["20260730101346_authenticate_service_scheduler_cron.sql"],
       pattern: /night_economy_scheduler_anon_key[\s\S]+'apikey'[\s\S]+'Authorization'[\s\S]+'Bearer '[\s\S]+'x-night-economy-scheduler-secret'[\s\S]+night_economy_scheduler_secret/i,
+    },
+    {
+      label: "quick-start scheduler advances in ten-second slices",
+      source: migrationSql["20260730134436_pace_quick_start_ticks.sql"],
+      pattern: /cron\.alter_job[\s\S]+schedule := '10 seconds'/i,
     },
     {
       label: "run sales are readable only by authenticated members of the matching venue",

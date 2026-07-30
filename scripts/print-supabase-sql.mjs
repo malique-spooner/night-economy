@@ -41,6 +41,8 @@ const expectedMigrations = [
   "20260730092640_grant_market_product_logo_updates.sql",
   "20260730100120_grant_market_schedule_updates.sql",
   "20260730101346_authenticate_service_scheduler_cron.sql",
+  "20260730102448_expose_run_sales_to_venue_members.sql",
+  "20260730134436_pace_quick_start_ticks.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
