@@ -36,11 +36,3 @@ export type MarketProduct = {
   isSoldOut: boolean;
   priority: boolean;
 };
-
-export type PriceDecision = {
-  productId: string;
-  oldPriceMinor: number;
-  newPriceMinor: number;
-  movement: "up" | "down" | "hold";
-  reason: string;
-};

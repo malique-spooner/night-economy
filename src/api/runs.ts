@@ -124,7 +124,7 @@ export async function getMarketRunPriceHistory(runId: string): Promise<MarketRun
   return rows.flatMap(mapRunPriceSnapshot);
 }
 
-export function mapRunPriceSnapshot(row: MarketRunPriceSnapshotRow): MarketRunPricePoint[] {
+function mapRunPriceSnapshot(row: MarketRunPriceSnapshotRow): MarketRunPricePoint[] {
   if (!isRecord(row.snapshot) || !Array.isArray(row.snapshot.decisions)) return [];
   const at = typeof row.snapshot.roundEnd === "string" ? row.snapshot.roundEnd : row.created_at;
   return row.snapshot.decisions.flatMap(decision => {

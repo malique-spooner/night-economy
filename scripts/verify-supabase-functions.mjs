@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 
 const functionFiles = ["supabase/functions/market-cycle/index.ts"];
+const sharedPricingSource = readFileSync("supabase/functions/_shared/marketPricing.ts", "utf8");
 const checks = [
   {
     label: "requires scheduler secret header support",
@@ -30,10 +31,7 @@ const checks = [
     label: "writes market price snapshots",
     pattern: /market_price_snapshots/,
   },
-  {
-    label: "uses the range-aware market setting",
-    pattern: /MARKET_INTENSITY = 1\.25[\s\S]+activityFactor[\s\S]+allowedRange/,
-  },
+  { label: "imports the canonical pricing engine", pattern: /_shared\/marketPricing\.ts/ },
   {
     label: "uses a five-minute POS sales round",
     pattern: /cycleEnd\.getTime\(\) - MARKET_CYCLE_MS/,
@@ -75,6 +73,11 @@ for (const file of functionFiles) {
     failures.forEach(failure => console.error(`- ${failure}`));
     process.exit(1);
   }
+}
+
+if (!/MARKET_INTENSITY = 1\.25[\s\S]+activityFactor[\s\S]+allowedRange/.test(sharedPricingSource)) {
+  console.error("Supabase function verification failed:\n- shared pricing engine is missing its range-aware market calculation");
+  process.exit(1);
 }
 
 const simulatorSource = readFileSync("supabase/functions/venue-simulator/index.ts", "utf8");

@@ -1,6 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { priceMarket } from "../../../src/engine/pricing";
+import { priceMarket as priceSharedMarket } from "../../../supabase/functions/_shared/marketPricing";
 import type { MarketProduct } from "../../../src/engine/types";
+
+type MarketSale = { productId: string; quantity: number };
+
+function priceMarket(products: MarketProduct[], sales: MarketSale[] = []) {
+  return priceSharedMarket(
+    products.map(product => ({
+      id: product.id,
+      pos_product_id: product.id,
+      base_price_minor: product.basePriceMinor,
+      current_price_minor: product.currentPriceMinor,
+      floor_price_minor: product.floorPriceMinor,
+      ceiling_price_minor: product.ceilingPriceMinor,
+      category: product.category,
+      is_live: product.isLive,
+      is_sold_out: product.isSoldOut,
+    })),
+    sales.map(sale => ({ pos_product_id: sale.productId, quantity: sale.quantity })),
+  );
+}
 
 const product = (id: string, category: string, overrides: Partial<MarketProduct> = {}): MarketProduct => ({
   id, symbol: id, name: id, category, basePriceMinor: 1000, currentPriceMinor: 1000,

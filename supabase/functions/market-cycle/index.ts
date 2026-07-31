@@ -1,34 +1,14 @@
-type MarketProduct = {
-  id: string;
-  pos_product_id: string | null;
-  base_price_minor: number;
-  current_price_minor: number;
-  floor_price_minor: number;
-  ceiling_price_minor: number;
-  category: string;
-  is_live: boolean;
-  is_sold_out: boolean;
-};
-
-type PosSaleEvent = {
-  pos_product_id: string;
-  quantity: number;
-};
+import {
+  priceMarket,
+  type MarketPricingSale,
+  type PriceableMarketProduct,
+} from "../_shared/marketPricing.ts";
 
 type Venue = {
   id: string;
   market_live: boolean;
 };
 
-type PriceDecision = {
-  productId: string;
-  oldPriceMinor: number;
-  newPriceMinor: number;
-  movement: "up" | "down" | "hold";
-  reason: string;
-};
-
-const MARKET_INTENSITY = 1.25;
 const MARKET_CYCLE_MS = 5 * 60_000;
 
 const corsHeaders = {
@@ -83,7 +63,7 @@ async function handleRequest(request: Request) {
     });
   }
 
-  const products = await restJson<MarketProduct[]>(
+  const products = await restJson<PriceableMarketProduct[]>(
     `${supabaseUrl}/rest/v1/market_products?venue_id=eq.${encodeURIComponent(venue.id)}&select=*&order=display_name.asc`,
     { headers },
     "load market products",
@@ -104,7 +84,7 @@ async function handleRequest(request: Request) {
       snapshot: latestSnapshots[0].snapshot,
     });
   }
-  const sales = await restJson<PosSaleEvent[]>(
+  const sales = await restJson<MarketPricingSale[]>(
     `${supabaseUrl}/rest/v1/pos_sales_events?venue_id=eq.${encodeURIComponent(venue.id)}&occurred_at=gte.${encodeURIComponent(cycleStart.toISOString())}&occurred_at=lt.${encodeURIComponent(cycleEnd.toISOString())}&select=pos_product_id,quantity`,
     { headers },
     "load recent POS sales",
@@ -163,49 +143,6 @@ async function restRequest(url: string, init: RequestInit, action: string) {
 
   return response;
 }
-
-function priceMarket(products: MarketProduct[], sales: PosSaleEvent[]): PriceDecision[] {
-  const active = products.filter(product => product.is_live && !product.is_sold_out);
-  const groups = new Map<string, MarketProduct[]>();
-  const sold = new Map<string, number>();
-  for (const product of active) groups.set(product.category, [...(groups.get(product.category) ?? []), product]);
-  for (const sale of sales) sold.set(sale.pos_product_id, (sold.get(sale.pos_product_id) ?? 0) + sale.quantity);
-  return products.map(product => priceProduct(product, groups, sold));
-}
-
-function priceProduct(product: MarketProduct, groups: Map<string, MarketProduct[]>, sold: Map<string, number>): PriceDecision {
-  if (!product.is_live || product.is_sold_out) {
-    return hold(product, "Product is not currently tradable.");
-  }
-  const peers = groups.get(product.category) ?? [product];
-  if (peers.length === 1) return hold(product, "This is the only live product in its category, so the price held.");
-  const categoryUnits = peers.reduce((sum, peer) => sum + (peer.pos_product_id ? sold.get(peer.pos_product_id) ?? 0 : 0), 0);
-  if (!categoryUnits) return hold(product, "No orders were recorded in this category, so the price held.");
-  // Every sale gives the sold drink +(N-1) points and each other live drink
-  // -1. The category total is always exactly zero.
-  const ownUnits = product.pos_product_id ? sold.get(product.pos_product_id) ?? 0 : 0;
-  const marketPoints = peers.length * ownUnits - categoryUnits;
-  const marketSignal = marketPoints / (peers.length * categoryUnits);
-  const activityFactor = categoryUnits / (categoryUnits + peers.length);
-  const allowedRange = (product.ceiling_price_minor - product.floor_price_minor) / product.base_price_minor;
-  const percentageChange = MARKET_INTENSITY * allowedRange * activityFactor * marketSignal;
-  const rawNext = Math.round(product.current_price_minor * (1 + percentageChange));
-
-  const nextPrice = Math.max(product.floor_price_minor, Math.min(product.ceiling_price_minor, rawNext));
-  const movement =
-    nextPrice > product.current_price_minor ? "up" : nextPrice < product.current_price_minor ? "down" : "hold";
-
-  return {
-    productId: product.id,
-    oldPriceMinor: product.current_price_minor,
-    newPriceMinor: nextPrice,
-    movement,
-    reason: movement === "hold"
-      ? "Orders were evenly balanced within this category, so the price held."
-      : `This drink ${movement === "up" ? "gained" : "lost"} market points against its category peers.`,
-  };
-}
-function hold(product: MarketProduct, reason: string): PriceDecision { return { productId: product.id, oldPriceMinor: product.current_price_minor, newPriceMinor: product.current_price_minor, movement: "hold", reason }; }
 
 function getServerKey() {
   const modernKeys = Deno.env.get("SUPABASE_SECRET_KEYS");

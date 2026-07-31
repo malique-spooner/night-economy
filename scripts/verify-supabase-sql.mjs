@@ -45,6 +45,7 @@ const expectedMigrations = [
   "20260730134436_pace_quick_start_ticks.sql",
   "20260730135157_link_run_price_history.sql",
   "20260730140326_add_instant_market_runs.sql",
+  "20260731074732_add_foreign_key_indexes.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -128,6 +129,11 @@ function checkRequiredPatterns() {
       label: "instant simulations are distinguished in run history",
       source: migrationSql["20260730140326_add_instant_market_runs.sql"],
       pattern: /market_runs_kind_check[\s\S]+kind in \('quick', 'instant', 'scheduled'\)/i,
+    },
+    {
+      label: "foreign-key columns used by run and POS queries are indexed",
+      source: migrationSql["20260731074732_add_foreign_key_indexes.sql"],
+      pattern: /pos_sales_events_pos_product_id_idx[\s\S]+price_publication_lines_publication_id_idx[\s\S]+venue_test_services_active_run_id_idx/i,
     },
     {
       label: "run sales are readable only by authenticated members of the matching venue",

@@ -1,3 +1,5 @@
+import { priceMarket, type MarketPriceDecision } from "./marketPricing.ts";
+
 export type InstantSimulationProduct = {
   id: string;
   category: string;
@@ -18,21 +20,12 @@ export type InstantSimulationSale = {
   unitPriceMinor: number;
 };
 
-export type InstantPriceDecision = {
-  productId: string;
-  oldPriceMinor: number;
-  newPriceMinor: number;
-  movement: "up" | "down" | "hold";
-  reason: string;
-};
-
 export type InstantSimulationRound = {
   minute: number;
   importedLines: number;
-  decisions: InstantPriceDecision[];
+  decisions: MarketPriceDecision[];
 };
 
-const MARKET_INTENSITY = 1.25;
 const REFERENCE_SERVICE_MINUTES = 360;
 
 // London Friday prior for 18:00–00:00. Public evidence does not expose
@@ -133,7 +126,10 @@ export function buildInstantSimulation(
     }
 
     if ((minute + 1) % 5 !== 0) continue;
-    const decisions = priceMarket(products, roundSales);
+    const decisions = priceMarket(products, [...roundSales.entries()].flatMap(([productId, quantity]) => {
+      const posProductId = products.find(product => product.id === productId)?.pos_product_id;
+      return posProductId ? [{ pos_product_id: posProductId, quantity }] : [];
+    }));
     rounds.push({ minute: minute + 1, importedLines: roundLineCount, decisions });
     for (const decision of decisions) {
       const product = products.find(item => item.id === decision.productId);
@@ -144,39 +140,6 @@ export function buildInstantSimulation(
   }
 
   return { sales, rounds };
-}
-
-function priceMarket(products: InstantSimulationProduct[], sold: Map<string, number>): InstantPriceDecision[] {
-  const active = products.filter(product => product.is_live && !product.is_sold_out);
-  const groups = new Map<string, InstantSimulationProduct[]>();
-  for (const product of active) groups.set(product.category, [...(groups.get(product.category) ?? []), product]);
-
-  return products.map(product => {
-    if (!product.is_live || product.is_sold_out) return hold(product, "Product is not currently tradable.");
-    const peers = groups.get(product.category) ?? [product];
-    if (peers.length === 1) return hold(product, "This is the only live product in its category, so the price held.");
-    const categoryUnits = peers.reduce((total, peer) => total + (sold.get(peer.id) ?? 0), 0);
-    if (!categoryUnits) return hold(product, "No orders were recorded in this category, so the price held.");
-    const ownUnits = sold.get(product.id) ?? 0;
-    const marketPoints = peers.length * ownUnits - categoryUnits;
-    const marketSignal = marketPoints / (peers.length * categoryUnits);
-    const activityFactor = categoryUnits / (categoryUnits + peers.length);
-    const allowedRange = (product.ceiling_price_minor - product.floor_price_minor) / Math.max(1, product.base_price_minor);
-    const percentageChange = MARKET_INTENSITY * allowedRange * activityFactor * marketSignal;
-    const newPriceMinor = Math.max(product.floor_price_minor, Math.min(product.ceiling_price_minor, Math.round(product.current_price_minor * (1 + percentageChange))));
-    const movement = newPriceMinor > product.current_price_minor ? "up" : newPriceMinor < product.current_price_minor ? "down" : "hold";
-    return {
-      productId: product.id,
-      oldPriceMinor: product.current_price_minor,
-      newPriceMinor,
-      movement,
-      reason: movement === "hold" ? "Orders were evenly balanced within this category, so the price held." : `This drink ${movement === "up" ? "gained" : "lost"} market points against its category peers.`,
-    };
-  });
-}
-
-function hold(product: InstantSimulationProduct, reason: string): InstantPriceDecision {
-  return { productId: product.id, oldPriceMinor: product.current_price_minor, newPriceMinor: product.current_price_minor, movement: "hold", reason };
 }
 
 // Defra Family Food FYE 2024, UK alcohol purchased outside the home. Cider is

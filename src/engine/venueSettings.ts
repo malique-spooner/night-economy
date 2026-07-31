@@ -1,6 +1,6 @@
 import type { CrashIntervalMinutes, VenueMarketSettings } from "./types";
 
-export const crashIntervalOptions = [15, 30, 60, 120] as const satisfies readonly CrashIntervalMinutes[];
+const crashIntervalOptions = [15, 30, 60, 120] as const satisfies readonly CrashIntervalMinutes[];
 
 export function defaultVenueMarketSettings(now = new Date()): VenueMarketSettings {
   const end = new Date(now.getTime() + 60 * 60 * 1000);

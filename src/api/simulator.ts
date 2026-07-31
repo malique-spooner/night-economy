@@ -33,9 +33,7 @@ const configuredUrl = String(import.meta.env.VITE_POS_SIMULATOR_URL ?? (import.m
   .trim()
   .replace(/\/$/, "");
 
-export const simulatorDashboardUrl = configuredUrl || null;
-
-export const simulatorStatus = {
+const simulatorStatus = {
   ready: Boolean(configuredUrl),
   reason: configuredUrl ? "Local POS simulator connected." : "Set VITE_POS_SIMULATOR_URL to enable local service controls.",
 };
@@ -57,10 +55,6 @@ export async function getSimulatorDashboard(venueSlug: string): Promise<Simulato
 export async function controlSimulator(venueSlug: string, action: "start" | "quick_start" | "instant_run" | "pause" | "resume" | "end" | "reset_prices" | "event", options: { speed?: number; targetRevenueMinor?: number; eventType?: "rush" | "slowdown" } = {}) {
   if (usesCloudSimulator(venueSlug)) return cloudSimulator(venueSlug, action, options);
   return postJson("/v1/simulation/control", { action, ...options });
-}
-
-export async function updateSimulatorService(options: { speed?: number; targetRevenueMinor?: number }) {
-  return postJson("/v1/simulation/control", options);
 }
 
 async function getJson(path: string) {

@@ -1,8 +1,8 @@
 # Night Economy
 
-Production-shaped migration repo for the Night Economy pilot.
+Production repository for the Night Economy venue market, operator portal, and Friday service simulator.
 
-The visible app now runs through the React/Vite/TypeScript entrypoint at `index.html`. The old static prototype runtime has been removed.
+The browser application has one React/Vite/TypeScript entrypoint at `index.html`. Supabase owns persistent state and service automation; Cloudflare Pages serves only the compiled frontend.
 
 ## Stack
 
@@ -14,6 +14,7 @@ The visible app now runs through the React/Vite/TypeScript entrypoint at `index.
 
 See [docs/deployment.md](docs/deployment.md) for the ordered Supabase and Cloudflare deployment checklist.
 See [docs/pos-integration-contract.md](docs/pos-integration-contract.md) for the boundary between a POS and Night Economy.
+See [docs/pricing-engine-rules.md](docs/pricing-engine-rules.md) for the market-points model and operator safeguards.
 See [docs/friday-service-acceptance.md](docs/friday-service-acceptance.md) for the accelerated local POS acceptance run.
 See [docs/testing.md](docs/testing.md) for the required Chromium button-testing contract and test commands.
 
@@ -26,6 +27,16 @@ See [docs/testing.md](docs/testing.md) for the required Chromium button-testing 
 - `scripts/` — local verification, setup, and operational commands exposed through `package.json`.
 - `tests/unit/` and `tests/integration/` — deterministic logic and service-contract coverage.
 - `tests/e2e/` — Chromium user workflows for the site, portal, market surfaces, and local POS simulator.
+
+## Runtime Flow
+
+1. The portal stores venue settings and requests simulator actions through Supabase.
+2. `service-scheduler` evaluates every venue schedule once per minute.
+3. `venue-simulator` creates POS sale events and keeps each run's takings aligned with its configured target.
+4. `market-cycle` applies the shared zero-sum pricing engine every five simulated minutes.
+5. TV, menu, simulator, and run-history pages read the same Supabase records.
+
+The canonical pricing implementation is `supabase/functions/_shared/marketPricing.ts`. The local POS simulator retains a small JavaScript implementation because it runs as an independent Node service; `npm run pricing:sync` prevents those two runtime targets from drifting.
 
 ## Run Locally
 

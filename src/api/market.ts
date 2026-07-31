@@ -148,7 +148,7 @@ export function mapMarketProductRow(row: MarketProductRow): MarketProduct {
   };
 }
 
-export function mapPosProductRow(row: PosProductRow): PosProduct {
+function mapPosProductRow(row: PosProductRow): PosProduct {
   return {
     id: row.id,
     externalId: row.external_id,

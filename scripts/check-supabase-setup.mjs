@@ -44,6 +44,7 @@ const expectedMigrations = [
   "20260730134436_pace_quick_start_ticks.sql",
   "20260730135157_link_run_price_history.sql",
   "20260730140326_add_instant_market_runs.sql",
+  "20260731074732_add_foreign_key_indexes.sql",
 ];
 
 const env = {

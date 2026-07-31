@@ -1,8 +1,6 @@
 # Deployment Checklist
 
-Use this order when taking the React app toward a real deployment.
-
-For the detailed Supabase connection flow, see [supabase-handoff.md](./supabase-handoff.md).
+Use this order for both first-time setup and routine production deployments.
 
 ## 1. Local Gates
 
@@ -41,45 +39,13 @@ Print the reviewed SQL bundle:
 npm run supabase:sql
 ```
 
-Apply the output in the Supabase SQL editor for the target project. The bundle includes:
+Apply the output in the Supabase SQL editor for the target project. The bundle
+contains every file in `supabase/migrations/`, in lexicographic order. Those
+files are immutable production history: add a migration for a schema change;
+never edit, delete, or squash one already applied to a project.
 
-```text
-001_initial.sql
-002_auth_rls.sql
-003_realtime_market.sql
-004_site_leads.sql
-005_market_sales_velocity.sql
-006_venue_market_settings.sql
-007_market_product_inserts.sql
-008_pos_catalog_and_publications.sql
-009_pos_owned_catalogue_portal_rules.sql
-010_server_runner_privileges.sql
-011_link_demo_market_products_to_pos_products.sql
-012_align_demo_catalogue_with_simulator_product_ids.sql
-013_tlj_menu_catalogue.sql
-014_hide_legacy_demo_catalogue.sql
-015_pos_catalogue_grouping.sql
-016_configure_wine_market_variants.sql
-20260726084640_add_market_schedule.sql
-20260726084653_normalize_market_schedule_midnight.sql
-20260727062059_curate_live_tv_menu.sql
-20260727062121_clear_curated_priority.sql
-20260727062930_limit_category_tv_priorities.sql
-20260727063247_fill_live_tv_categories.sql
-20260728090000_add_venue_test_services.sql
-20260728100000_add_internal_venue_simulator_setup.sql
-20260729090000_add_cloud_service_scheduler.sql
-20260729110000_add_night_economy_dev_venue.sql
-20260729120000_add_market_run_history.sql
-20260729121000_grant_service_role_market_run_access.sql
-20260729130000_reset_stale_market_live_flags.sql
-20260729170000_add_platform_admin_memberships.sql
-20260729180000_remove_development_venue.sql
-20260729190000_rename_demo_venue.sql
-20260729200000_add_platform_admins.sql
-20260729210000_add_cloud_simulator_controls.sql
-20260729220000_add_market_product_logos.sql
-```
+`npm run supabase:verify-sql` checks ordering, security guardrails, and expected
+migration coverage without maintaining a second, stale filename list here.
 
 After applying SQL, create a Supabase Auth operator user and print the venue access grant:
 
@@ -103,6 +69,10 @@ Set Supabase function secrets:
 SUPABASE_SERVICE_ROLE_KEY
 SCHEDULER_SECRET
 ```
+
+Create `.env.local` with the public project URL/key for frontend builds and the
+server-only values for operational scripts. Never put a service or scheduler
+secret in a `VITE_*` variable.
 
 Before applying the SQL bundle, store the scheduler's private header secret and
 the project's legacy anonymous JWT in Supabase Vault. The anonymous JWT only

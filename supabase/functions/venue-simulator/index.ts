@@ -2,6 +2,13 @@ import { simulationStart } from "../_shared/serviceSchedule.ts";
 import { buildInstantSimulation, buildLondonFridayRevenuePlan, selectTargetedMinuteProducts } from "../_shared/instantSimulation.ts";
 import { marketCycleMinutes, simulationProgress } from "../_shared/simulationClock.ts";
 
+/**
+ * Authoritative cloud simulator for manual rehearsals, instant simulations,
+ * and scheduled services. It owns run state, generated POS events, five-minute
+ * pricing rounds, and final run-history totals. The browser only requests an
+ * action; it never calculates or persists simulation results itself.
+ */
+
 type Service = { venue_id: string; status: "idle" | "running" | "paused" | "ended"; simulated_minute: number; speed: number; target_revenue_minor: number; rush_until_minute: number; slowdown_until_minute: number; last_tick_at: string | null; started_at: string | null; scheduled_slot_key: string | null; active_run_id: string | null };
 type Product = { id: string; display_name: string; category: string; base_price_minor: number; current_price_minor: number; floor_price_minor: number; ceiling_price_minor: number; pos_product_id: string | null; is_live: boolean; is_sold_out: boolean };
 type SimulatedSale = { occurred_at: string; quantity: number; unit_price_minor: number };

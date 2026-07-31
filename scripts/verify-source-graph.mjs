@@ -2,11 +2,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, extname, join, relative, resolve } from "node:path";
 
 const sourceRoot = resolve("src");
-const entryFiles = [
-  resolve("src/main.tsx"),
-  // Canonical deterministic engine used directly by tests and mirrored by the Edge Function.
-  resolve("src/engine/pricing.ts"),
-];
+const entryFiles = [resolve("src/main.tsx")];
 const sourceExtensions = [".ts", ".tsx", ".js", ".jsx", ".mjs"];
 const sourceFiles = walk(sourceRoot).filter(file => sourceExtensions.includes(extname(file)) && !file.endsWith(".d.ts"));
 const reachable = new Set();

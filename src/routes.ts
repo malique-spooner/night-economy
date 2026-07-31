@@ -1,4 +1,4 @@
-export type AppSurface = "site" | "tv" | "menu" | "app" | "venue" | "sign-in" | "simulator";
+type AppSurface = "site" | "tv" | "menu" | "app" | "venue" | "sign-in" | "simulator";
 
 export type AppRoute = {
   surface: AppSurface;

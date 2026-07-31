@@ -1,5 +1,12 @@
 import { activeSlot, serviceAction, type ScheduleEntry } from "../_shared/serviceSchedule.ts";
 
+/**
+ * Cloud-owned orchestration entry point, invoked once per minute by Supabase
+ * Cron. It decides whether each prepared venue should start, advance, or end;
+ * all state mutation remains inside venue-simulator so manual and scheduled
+ * services follow exactly the same lifecycle.
+ */
+
 type Venue = { id: string; slug: string; timezone: string; market_schedule: ScheduleEntry[] | null };
 type Service = { venue_id: string; status: "idle" | "running" | "paused" | "ended"; scheduled_slot_key: string | null };
 
@@ -43,7 +50,39 @@ Deno.serve(async request => {
     return json({ error: error instanceof Error ? error.message : "Could not schedule venue services" }, 500);
   }
 });
-async function invokeVenueSimulator(url: string, key: string, body: Record<string, unknown>) { const res = await fetch(`${url}/functions/v1/venue-simulator`, { method: "POST", headers: { apikey: key, "content-type": "application/json", "x-night-economy-scheduler-secret": Deno.env.get("SCHEDULER_SECRET") ?? "" }, body: JSON.stringify(body) }); if (!res.ok) throw new Error(`Venue simulator failed: ${await res.text()}`); }
-async function restJson<T>(url: string, path: string, init: RequestInit, action: string): Promise<T> { const res = await fetch(`${url}/rest/v1${path}`, init); if (!res.ok) throw new Error(`Supabase REST failed to ${action}: ${res.status} ${await res.text()}`); return res.json() as Promise<T>; }
-function serverKey() { const keys = Deno.env.get("SUPABASE_SECRET_KEYS"); if (keys) try { const parsed = JSON.parse(keys) as Record<string, string>; return parsed.default ?? Object.values(parsed)[0]; } catch { return undefined; } return Deno.env.get("SUPABASE_SECRET_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"); }
-function json(body: unknown, status = 200) { return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } }); }
+
+async function invokeVenueSimulator(url: string, key: string, body: Record<string, unknown>) {
+  const response = await fetch(`${url}/functions/v1/venue-simulator`, {
+    method: "POST",
+    headers: {
+      apikey: key,
+      "content-type": "application/json",
+      "x-night-economy-scheduler-secret": Deno.env.get("SCHEDULER_SECRET") ?? "",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error(`Venue simulator failed: ${await response.text()}`);
+}
+
+async function restJson<T>(url: string, path: string, init: RequestInit, action: string): Promise<T> {
+  const response = await fetch(`${url}/rest/v1${path}`, init);
+  if (!response.ok) throw new Error(`Supabase REST failed to ${action}: ${response.status} ${await response.text()}`);
+  return response.json() as Promise<T>;
+}
+
+function serverKey() {
+  const modernKeys = Deno.env.get("SUPABASE_SECRET_KEYS");
+  if (modernKeys) {
+    try {
+      const parsed = JSON.parse(modernKeys) as Record<string, string>;
+      return parsed.default ?? Object.values(parsed)[0];
+    } catch {
+      return undefined;
+    }
+  }
+  return Deno.env.get("SUPABASE_SECRET_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+}
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+}

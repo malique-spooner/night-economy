@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 
-const frontendSource = readFileSync("src/engine/pricing.ts", "utf8");
+const sharedEngineSource = readFileSync("supabase/functions/_shared/marketPricing.ts", "utf8");
 const edgeFunctionSource = readFileSync("supabase/functions/market-cycle/index.ts", "utf8");
+const instantSimulationSource = readFileSync("supabase/functions/_shared/instantSimulation.ts", "utf8");
 const simulatorRunnerSource = readFileSync("pos-simulator/src/marketPricing.mjs", "utf8");
 
 const sharedSnippets = [
@@ -33,11 +34,17 @@ const sharedSnippets = [
 
 const failures = sharedSnippets.flatMap(({ label, pattern }) => {
   const missing = [];
-  if (!pattern.test(frontendSource)) missing.push(`src/engine/pricing.ts missing ${label}.`);
-  if (!pattern.test(edgeFunctionSource)) missing.push(`supabase/functions/market-cycle/index.ts missing ${label}.`);
+  if (!pattern.test(sharedEngineSource)) missing.push(`supabase/functions/_shared/marketPricing.ts missing ${label}.`);
   if (!pattern.test(simulatorRunnerSource)) missing.push(`pos-simulator/src/marketPricing.mjs missing ${label}.`);
   return missing;
 });
+
+if (!/from "\.\.\/_shared\/marketPricing\.ts"/.test(edgeFunctionSource)) {
+  failures.push("supabase/functions/market-cycle/index.ts must import the shared pricing engine.");
+}
+if (!/from "\.\/marketPricing\.ts"/.test(instantSimulationSource)) {
+  failures.push("supabase/functions/_shared/instantSimulation.ts must import the shared pricing engine.");
+}
 
 if (failures.length) {
   console.error("Pricing engine sync verification failed:");

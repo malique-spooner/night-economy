@@ -1,7 +1,7 @@
 import type { MarketRun, MarketRunPricePoint, MarketRunSale } from "../../api/runs";
 import type { MarketProduct } from "../../engine/types";
 
-export type RunDashboardProduct = {
+type RunDashboardProduct = {
   id: string;
   name: string;
   category: string;
@@ -9,7 +9,7 @@ export type RunDashboardProduct = {
   revenueMinor: number;
 };
 
-export type RunDashboardPoint = {
+type RunDashboardPoint = {
   label: string;
   quantity: number;
   revenueMinor: number;
