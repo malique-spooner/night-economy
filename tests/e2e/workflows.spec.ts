@@ -315,10 +315,24 @@ test("conditional portal warning buttons cancel or confirm the guarded action", 
   await expect(page.getByRole("dialog", { name: "Three priority drinks per category" })).not.toBeVisible();
 });
 
+test("previous runs stay visible during a slow background refresh", async ({ page }) => {
+  const cloud = await mockSupabase(page, [], { marketRunsRefreshDelayMs: 1_500 });
+  await signIn(page);
+
+  await page.getByRole("button", { name: /Run history/ }).click();
+  await expect(page.getByRole("heading", { name: "Previous runs" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open dashboard for 10-minute live rehearsal" })).toBeVisible();
+
+  await expect.poll(cloud.marketRunsRequestCount, { timeout: 7_000 }).toBeGreaterThan(1);
+  await page.waitForTimeout(100);
+  await expect(page.getByText("Loading run history…")).not.toBeVisible();
+  await expect(page.getByRole("button", { name: "Open dashboard for 10-minute live rehearsal" })).toBeVisible();
+});
+
 async function mockSupabase(
   page: Page,
   writes: Array<{ path: string; body: unknown }> = [],
-  options: { products?: typeof products; memberRole?: "owner" | null } = {},
+  options: { products?: typeof products; memberRole?: "owner" | null; marketRunsRefreshDelayMs?: number } = {},
 ) {
   const actions: string[] = [];
   const authRequests: string[] = [];
@@ -326,6 +340,7 @@ async function mockSupabase(
   const memberRole: "owner" | null = options.memberRole === null ? null : "owner";
   let service = serviceState("idle", 0);
   let latestRunKind: "quick" | "instant" = "quick";
+  let marketRunsRequestCount = 0;
 
   await page.route(/https:\/\/[^/]+\.supabase\.co\/.*/, async route => {
     const request = route.request();
@@ -377,13 +392,19 @@ async function mockSupabase(
 
     if (url.pathname.startsWith("/rest/v1/")) {
       if (!["GET", "HEAD"].includes(request.method())) writes.push({ path: url.pathname, body });
+      if (url.pathname.endsWith("/market_runs") && request.method() === "GET") {
+        marketRunsRequestCount += 1;
+        if (marketRunsRequestCount > 1 && options.marketRunsRefreshDelayMs) {
+          await new Promise(resolve => setTimeout(resolve, options.marketRunsRefreshDelayMs));
+        }
+      }
       return handleRest(route, url, request.method(), mockProducts, body, memberRole, latestRunKind);
     }
 
     return json(route, {});
   });
 
-  return { actions, authRequests };
+  return { actions, authRequests, marketRunsRequestCount: () => marketRunsRequestCount };
 }
 
 async function handleRest(route: Route, url: URL, method: string, mockProducts: typeof products, requestBody: unknown, memberRole: "owner" | null, latestRunKind: "quick" | "instant") {

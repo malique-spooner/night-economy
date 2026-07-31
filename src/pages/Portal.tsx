@@ -68,6 +68,7 @@ export function Portal({ venueSlug }: Props) {
   const [priorityLimitWarning, setPriorityLimitWarning] = useState<string | null>(null);
   const [scheduleOverride, setScheduleOverride] = useState<VenueMarketSettingsPatch["marketSchedule"] | null>(null);
   const scheduleChangeVersion = useRef(0);
+  const runsLoadedVenueId = useRef<string | null>(null);
   const venueSettingsSaveQueue = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
@@ -157,25 +158,34 @@ export function Portal({ venueSlug }: Props) {
   useEffect(() => {
     if (!state || !isSignedIn || state.source !== "supabase") return;
     let cancelled = false;
+    let timer: number | undefined;
     const venueId = state.venue.id;
-    async function refreshRuns() {
+    const isInitialLoad = runsLoadedVenueId.current !== venueId;
+    async function refreshRuns(showLoading: boolean) {
       try {
-        setRunsLoading(true);
+        if (showLoading) setRunsLoading(true);
         const nextRuns = await getMarketRuns(venueId);
         if (!cancelled) setRuns(nextRuns);
       } catch {
-        if (!cancelled) setRuns([]);
+        // Keep the last successful archive visible when a background refresh
+        // fails. An empty state is only meaningful on the first venue load.
+        if (!cancelled && showLoading) setRuns([]);
       } finally {
-        if (!cancelled) setRunsLoading(false);
+        if (!cancelled) {
+          if (showLoading) {
+            runsLoadedVenueId.current = venueId;
+            setRunsLoading(false);
+          }
+          // Wait until this request finishes before scheduling the next one so
+          // a slow connection cannot create overlapping, out-of-order updates.
+          if (activeTab === "runs") timer = window.setTimeout(() => { void refreshRuns(false); }, 5_000);
+        }
       }
     }
-    void refreshRuns();
-    const interval = activeTab === "runs"
-      ? window.setInterval(() => { void refreshRuns(); }, 5_000)
-      : undefined;
+    void refreshRuns(isInitialLoad);
     return () => {
       cancelled = true;
-      if (interval !== undefined) window.clearInterval(interval);
+      if (timer !== undefined) window.clearTimeout(timer);
     };
   }, [activeTab, isSignedIn, state?.source, state?.venue.id]);
 
