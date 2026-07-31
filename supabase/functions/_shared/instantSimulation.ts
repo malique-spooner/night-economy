@@ -34,7 +34,6 @@ export type InstantSimulationRound = {
 
 const MARKET_INTENSITY = 1.25;
 const REFERENCE_SERVICE_MINUTES = 360;
-const REFERENCE_NIGHT_ORDERS = 2_560;
 
 // London Friday prior for 18:00–00:00. Public evidence does not expose
 // product-level till data by hour, so these shares combine the GLA's 3-hour
@@ -42,13 +41,12 @@ const REFERENCE_NIGHT_ORDERS = 2_560;
 // Keep this as a prior until a venue has enough of its own Friday POS history.
 export const LONDON_FRIDAY_HOURLY_ORDER_SHARES = [0.16, 0.19, 0.19, 0.18, 0.17, 0.11] as const;
 
-export function buildLondonFridayOrderPlan(
+export function buildLondonFridayRevenuePlan(
   targetRevenueMinor: number,
   serviceMinutes = REFERENCE_SERVICE_MINUTES,
 ): number[] {
   if (serviceMinutes <= 0) return [];
-  const revenueMultiplier = Math.max(0.2, targetRevenueMinor / 1_500_000);
-  const targetOrders = Math.max(1, Math.round(REFERENCE_NIGHT_ORDERS * (serviceMinutes / REFERENCE_SERVICE_MINUTES) * revenueMultiplier));
+  const targetRevenue = Math.max(0, Math.round(targetRevenueMinor));
   const minuteShares = Array.from({ length: serviceMinutes }, () => 0);
 
   for (let hour = 0; hour < LONDON_FRIDAY_HOURLY_ORDER_SHARES.length; hour += 1) {
@@ -70,11 +68,40 @@ export function buildLondonFridayOrderPlan(
   let cumulativeShare = 0;
   return minuteShares.map((share, minute) => {
     cumulativeShare += share;
-    const cumulativeOrders = minute === serviceMinutes - 1 ? targetOrders : Math.round(cumulativeShare * targetOrders);
-    const orders = cumulativeOrders - allocated;
-    allocated = cumulativeOrders;
-    return orders;
+    const cumulativeRevenue = minute === serviceMinutes - 1 ? targetRevenue : Math.round(cumulativeShare * targetRevenue);
+    const minuteRevenue = cumulativeRevenue - allocated;
+    allocated = cumulativeRevenue;
+    return minuteRevenue;
   });
+}
+
+export function selectTargetedMinuteProducts<
+  T extends Pick<InstantSimulationProduct, "category" | "base_price_minor" | "current_price_minor">
+>(products: T[], minute: number, startingRevenueMinor: number, cumulativeTargetRevenueMinor: number): T[] {
+  if (!products.length) return [];
+  const selected: T[] = [];
+  let revenueMinor = startingRevenueMinor;
+
+  // A drink is discrete, so the closest achievable result may differ from the
+  // target by a few pounds. The demand-model choice is used normally; only the
+  // final drink near a cumulative target may switch to the closest menu price.
+  for (let sequence = 0; sequence < 10_000; sequence += 1) {
+    const currentGap = Math.abs(cumulativeTargetRevenueMinor - revenueMinor);
+    let product = selectPubOrderProduct(products, minute, sequence);
+    let nextGap = Math.abs(cumulativeTargetRevenueMinor - revenueMinor - Math.max(1, product.current_price_minor));
+    if (nextGap >= currentGap) {
+      product = products.reduce((closest, candidate) => {
+        const closestGap = Math.abs(cumulativeTargetRevenueMinor - revenueMinor - Math.max(1, closest.current_price_minor));
+        const candidateGap = Math.abs(cumulativeTargetRevenueMinor - revenueMinor - Math.max(1, candidate.current_price_minor));
+        return candidateGap < closestGap ? candidate : closest;
+      }, products[0]);
+      nextGap = Math.abs(cumulativeTargetRevenueMinor - revenueMinor - Math.max(1, product.current_price_minor));
+    }
+    if (nextGap >= currentGap) break;
+    selected.push(product);
+    revenueMinor += Math.max(1, product.current_price_minor);
+  }
+  return selected;
 }
 
 export function buildInstantSimulation(
@@ -89,16 +116,20 @@ export function buildInstantSimulation(
   const sales: InstantSimulationSale[] = [];
   const rounds: InstantSimulationRound[] = [];
   const roundSales = new Map<string, number>();
-  const orderPlan = buildLondonFridayOrderPlan(targetRevenueMinor, serviceMinutes);
+  const revenuePlan = buildLondonFridayRevenuePlan(targetRevenueMinor, serviceMinutes);
   let roundLineCount = 0;
+  let cumulativeTargetRevenueMinor = 0;
+  let revenueMinor = 0;
 
   for (let minute = 0; minute < serviceMinutes; minute += 1) {
-    const orders = orderPlan[minute];
-    for (let sequence = 0; sequence < orders; sequence += 1) {
-      const product = selectPubOrderProduct(active, minute, sequence);
+    cumulativeTargetRevenueMinor += revenuePlan[minute];
+    const minuteProducts = selectTargetedMinuteProducts(active, minute, revenueMinor, cumulativeTargetRevenueMinor);
+    for (let sequence = 0; sequence < minuteProducts.length; sequence += 1) {
+      const product = minuteProducts[sequence];
       sales.push({ minute, sequence, posProductId: product.pos_product_id!, quantity: 1, unitPriceMinor: product.current_price_minor });
       roundSales.set(product.id, (roundSales.get(product.id) ?? 0) + 1);
       roundLineCount += 1;
+      revenueMinor += product.current_price_minor;
     }
 
     if ((minute + 1) % 5 !== 0) continue;

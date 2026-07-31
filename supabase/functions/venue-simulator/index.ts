@@ -1,5 +1,5 @@
 import { simulationStart } from "../_shared/serviceSchedule.ts";
-import { buildInstantSimulation, buildLondonFridayOrderPlan, selectPubOrderProduct } from "../_shared/instantSimulation.ts";
+import { buildInstantSimulation, buildLondonFridayRevenuePlan, selectTargetedMinuteProducts } from "../_shared/instantSimulation.ts";
 import { marketCycleMinutes, simulationProgress } from "../_shared/simulationClock.ts";
 
 type Service = { venue_id: string; status: "idle" | "running" | "paused" | "ended"; simulated_minute: number; speed: number; target_revenue_minor: number; rush_until_minute: number; slowdown_until_minute: number; last_tick_at: string | null; started_at: string | null; scheduled_slot_key: string | null; active_run_id: string | null };
@@ -114,12 +114,19 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
   }
   const connectionId = `test_sim_${venueId}`;
   const salesRows: Array<Record<string, unknown>> = [];
-  const orderPlan = buildLondonFridayOrderPlan(state.target_revenue_minor, SERVICE_MINUTES);
+  const revenuePlan = buildLondonFridayRevenuePlan(state.target_revenue_minor, SERVICE_MINUTES);
+  const existingSales = state.active_run_id ? await loadRunSales(url, headers, state.active_run_id, "load running revenue") : [];
+  let generatedRevenueMinor = existingSales.reduce((total, sale) => total + sale.quantity * sale.unit_price_minor, 0);
+  let cumulativeTargetRevenueMinor = revenuePlan.slice(0, state.simulated_minute).reduce((total, revenue) => total + revenue, 0);
   for (let minute = state.simulated_minute; minute < nextMinute; minute += 1) {
     const eventMultiplier = minute < state.rush_until_minute ? 2.1 : minute < state.slowdown_until_minute ? 0.38 : 1;
-    const orders = Math.max(0, Math.round(orderPlan[minute] * eventMultiplier));
-    salesRows.push(...Array.from({ length: orders }, (_, index) => {
-      const product = selectPubOrderProduct(active, minute, index);
+    cumulativeTargetRevenueMinor += revenuePlan[minute];
+    const eventAdjustedTarget = minute === SERVICE_MINUTES - 1
+      ? state.target_revenue_minor
+      : cumulativeTargetRevenueMinor + Math.round(revenuePlan[minute] * (eventMultiplier - 1));
+    const minuteProducts = selectTargetedMinuteProducts(active, minute, generatedRevenueMinor, eventAdjustedTarget);
+    salesRows.push(...minuteProducts.map((product, index) => {
+      generatedRevenueMinor += product.current_price_minor;
       return { id: `test_${venueId}_${state.active_run_id ?? "legacy"}_${minute}_${index}`, venue_id: venueId, pos_connection_id: connectionId, pos_product_id: product.pos_product_id, run_id: state.active_run_id, occurred_at: simulatedTime(minute, state.started_at), quantity: 1, unit_price_minor: product.current_price_minor, currency: "GBP" };
     }));
   }
