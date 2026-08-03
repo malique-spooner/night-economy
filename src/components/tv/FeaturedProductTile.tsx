@@ -13,7 +13,9 @@ export function FeaturedProductTile({ currency, product, rank }: Props) {
   const trend = productTrend(product);
 
   return (
-    <article className={`feature-tile ${product.isSoldOut ? "sold-out" : ""}`}>
+    <article className={`feature-tile ${trend} ${product.isSoldOut ? "sold-out" : ""}`}>
+      {product.logoUrl ? <img alt="" className="feature-art" src={product.logoUrl} /> : null}
+      <div className="feature-shade" aria-hidden="true"></div>
       <div className="feature-tile-top">
         <span className="feature-rank">0{rank}</span>
         <span className="feature-cat">{movementLabel(product)}</span>

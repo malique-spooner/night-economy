@@ -3,11 +3,12 @@ import type { Venue } from "../../engine/types";
 import { formatRemainingTime, getNextMarket } from "./nextMarket";
 
 type Props = {
+  onFullscreen?: () => void;
   surface: "tv" | "mobile";
   venue: Venue;
 };
 
-export function MarketClosedExperience({ surface, venue }: Props) {
+export function MarketClosedExperience({ onFullscreen, surface, venue }: Props) {
   const [now, setNow] = useState(() => new Date());
   const next = getNextMarket(venue.marketSchedule, now, venue.timezone);
   const remaining = next ? formatRemainingTime(next.remainingMs) : null;
@@ -42,6 +43,9 @@ export function MarketClosedExperience({ surface, venue }: Props) {
             <p className="market-closed-note">Check back soon for live drink prices.</p>
           </>
         )}
+        {surface === "tv" && onFullscreen ? <div className="market-closed-actions">
+          <button className="market-closed-cinema primary" onClick={onFullscreen} type="button">Enter full screen</button>
+        </div> : null}
       </section>
     </main>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { MarketProduct, Venue } from "../../engine/types";
 import { FeaturedProductTile } from "./FeaturedProductTile";
+import { BoardDepth } from "./BoardDepth";
 import { MarketProductRow } from "./MarketProductRow";
 import {
   categoryChangePercent,
@@ -84,6 +85,7 @@ export function MarketBoard({ products, venue }: Props) {
 
   return (
     <div className="board" ref={boardRef}>
+      <BoardDepth />
       <div className="board-hdr">
         <span className="slbl">{marketBoardLabel(venue)}</span>
         <div className="board-view-indicator">

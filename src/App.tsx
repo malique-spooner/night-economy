@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Menu } from "./pages/Menu";
+import { LogoDemo } from "./pages/LogoDemo";
 import { Portal } from "./pages/Portal";
 import { PortalSignIn } from "./pages/PortalSignIn";
 import { Simulator } from "./pages/Simulator";
@@ -11,6 +12,8 @@ export function App() {
   const route = resolveAppRoute(window.location.pathname, window.location.search);
   const appView = route.surface === "simulator"
     ? "simulator"
+    : route.surface === "logo"
+      ? "logo"
     : route.surface === "app" || route.surface === "sign-in"
       ? "portal"
     : route.surface === "menu"
@@ -33,6 +36,7 @@ export function App() {
   if (route.surface === "app") return <Portal venueSlug={route.slug ?? "demo-venue"} />;
   if (route.surface === "sign-in") return <PortalSignIn venueSlug={route.slug ?? "demo-venue"} />;
   if (route.surface === "simulator") return <Simulator venueSlug={route.slug ?? "demo-venue"} />;
+  if (route.surface === "logo") return <LogoDemo />;
 
   return <Site venueSlug={route.slug ?? "demo-venue"} />;
 }
