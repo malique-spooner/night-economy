@@ -10,6 +10,7 @@ import {
   getCategoryFeaturedProducts,
   groupProductsByCategory,
   marketBoardLabel,
+  productChangePercent,
   sortTvBoardProducts,
   sortTvCategories,
 } from "./tvHelpers";
@@ -82,10 +83,13 @@ export function MarketBoard({ products, venue }: Props) {
   const currentPage = pages[pageIndex % Math.max(pages.length, 1)] ?? { category: "Live market", categoryPageIndex: 0, categoryProducts: [], featuredProducts: [], pageCount: 1, products: [] };
   const { category, categoryPageIndex, categoryProducts, featuredProducts, pageCount, products: boardProducts } = currentPage;
   const categoryChange = categoryChangePercent(categoryProducts);
+  const marketEnergy = activeProducts.length
+    ? Math.min(1, activeProducts.reduce((total, product) => total + Math.abs(productChangePercent(product)), 0) / activeProducts.length / 10)
+    : 0;
 
   return (
     <div className="board" ref={boardRef}>
-      <BoardDepth />
+      <BoardDepth energy={marketEnergy} />
       <div className="board-hdr">
         <span className="slbl">{marketBoardLabel(venue)}</span>
         <div className="board-view-indicator">

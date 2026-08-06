@@ -130,6 +130,14 @@ VITE_SUPABASE_PUBLISHABLE_KEY
 
 `public/_redirects` sends all routes to `index.html`, the React app entrypoint.
 
+After a successful production build, publish the compiled frontend:
+
+```bash
+npx wrangler pages deploy dist --project-name night-economy --branch main --commit-dirty=true
+```
+
+This deploys the contents of `dist/` to the production branch. It does not apply Supabase migrations or deploy Edge Functions; complete those earlier steps separately.
+
 ## 5. Post-Deploy Smoke
 
 Check:

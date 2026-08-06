@@ -1,6 +1,8 @@
 # Night Economy
 
-Production repository for the Night Economy venue market, operator portal, and Friday service simulator.
+Production repository for the Night Economy venue market, operator portal, TV display, and Friday service simulator.
+
+New to this codebase? Begin with [START-HERE.md](START-HERE.md) for a plain-English map of the project.
 
 The browser application has one React/Vite/TypeScript entrypoint at `index.html`. Supabase owns persistent state and service automation; Cloudflare Pages serves only the compiled frontend.
 
@@ -17,6 +19,7 @@ See [docs/pos-integration-contract.md](docs/pos-integration-contract.md) for the
 See [docs/pricing-engine-rules.md](docs/pricing-engine-rules.md) for the market-points model and operator safeguards.
 See [docs/friday-service-acceptance.md](docs/friday-service-acceptance.md) for the accelerated local POS acceptance run.
 See [docs/testing.md](docs/testing.md) for the required Chromium button-testing contract and test commands.
+See [docs/README.md](docs/README.md) for the complete documentation index and visual references.
 
 ## Repository Map
 
@@ -124,6 +127,14 @@ Local builds can use `npm run build`. Production deploys should use `npm run bui
 `public/_redirects` sends all app routes to `index.html`, the React entrypoint.
 
 Local `npm run check` verifies the Cloudflare config with `npm run cloudflare:config`.
+
+To publish the already-built frontend to production from this repository:
+
+```bash
+npx wrangler pages deploy dist --project-name night-economy --branch main --commit-dirty=true
+```
+
+Run `npm run build:production` first. This publishes only the compiled frontend; Supabase migrations and Edge Functions follow the separate steps in [docs/deployment.md](docs/deployment.md).
 
 ## Pre-Deploy Check
 
