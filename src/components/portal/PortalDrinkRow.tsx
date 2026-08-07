@@ -26,7 +26,6 @@ export function PortalDrinkRow({ allProducts, history, historyLoading, marketLiv
   const linkedPos = posProducts.find(candidate => candidate.id === product.posProductId);
   const isConnected = Boolean(linkedPos && linkedPos.isCurrent !== false);
   const canGoLive = isConnected && !product.isArchived;
-  const status = product.isArchived ? "Archived" : isConnected ? "Connected" : "POS connection needed";
 
   return (
     <article className={`portal-drink-row ${product.isSoldOut ? "paused" : ""} ${product.isArchived ? "archived" : ""} ${!isConnected ? "mapping-lost" : ""} ${selected ? "selected" : ""}`}>
@@ -36,7 +35,7 @@ export function PortalDrinkRow({ allProducts, history, historyLoading, marketLiv
       </div>
       <label className="portal-drink-name">
         <span>Market name</span>
-        <div className="portal-name-with-status"><input value={product.name} onChange={event => onChange(product.id, { name: event.target.value }, { persist: false })} onBlur={event => onChange(product.id, { name: event.target.value })} /><small className={isConnected ? "connected" : "attention"}>{isConnected ? "●" : "!"} {status}</small></div>
+        <input value={product.name} onChange={event => onChange(product.id, { name: event.target.value }, { persist: false })} onBlur={event => onChange(product.id, { name: event.target.value })} />
       </label>
       <label className="portal-drink-cat"><span>Category</span><select value={product.category} onChange={event => onChange(product.id, { category: event.target.value })}>{categoryOptions.map(category => <option value={category} key={category}>{portalCategoryLabel(category)}</option>)}</select></label>
       <div className="portal-live-actions"><span>Live</span><button aria-label={`${product.isLive ? "Take" : "Make"} ${product.name} live`} className={`portal-live-toggle ${product.isLive ? "on" : "off"}`} disabled={!canGoLive} title={canGoLive ? undefined : "Connect this drink to an active POS product before it can go live"} type="button" onClick={() => onChange(product.id, { isLive: !product.isLive })}>{product.isLive ? "Live" : "Off"}</button></div>

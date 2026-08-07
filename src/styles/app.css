@@ -7225,8 +7225,6 @@ body[data-app-view='portal'] .portal-money-field button{height:28px;padding:0;wi
 body[data-app-view='portal'] .portal-money-field input{min-width:0;text-align:center}
 body[data-app-view='portal'] .portal-inline-history{grid-column:1/-1}
 
-body[data-app-view='portal'] .portal-name-with-status{display:grid;gap:4px}
-body[data-app-view='portal'] .portal-name-with-status small,
 body[data-app-view='portal'] .portal-pos-connection small{font:10px 'DM Mono',monospace;letter-spacing:.04em}
 body[data-app-view='portal'] .connected{color:#3f8256}
 body[data-app-view='portal'] .attention{color:#a56124}
