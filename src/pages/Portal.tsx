@@ -23,6 +23,7 @@ import {
   createMarketProductConfiguration,
   getMarketProductPriceHistory,
   getPosProducts,
+  removeMarketProductLogo,
   updateMarketProduct,
   uploadMarketProductLogo,
   updateVenueMarketSettings,
@@ -294,7 +295,7 @@ export function Portal({ venueSlug }: Props) {
     );
   }
 
-  const liveCount = state.products.filter(product => !product.isSoldOut && product.isLive).length;
+  const liveCount = state.products.filter(product => !product.isArchived && !product.isSoldOut && product.isLive).length;
   const simulatorHref = isPlatformAdmin ? `/simulator/${encodeURIComponent(venueSlug)}` : null;
   const canPersist = canEditMarketProducts({ isSignedIn, role: memberRole, source: state.source });
   const canManageSettings = canManageVenueSettings({ role: memberRole, source: state.source });
@@ -317,12 +318,21 @@ export function Portal({ venueSlug }: Props) {
     if (!currentProduct) return;
     const normalizedPatch = {
       ...normalizeMarketProductPatch(currentProduct, patch),
-      ...(patch.isLive === false ? { priority: false } : {}),
+      ...(patch.isLive === false || patch.isArchived === true ? { isLive: false, priority: false } : {}),
     };
 
     if (!canPersist) {
       setLastSavedMessage(accessMessage);
       return;
+    }
+
+    if (normalizedPatch.isLive === true) {
+      const nextPosProductId = normalizedPatch.posProductId ?? currentProduct.posProductId;
+      const posProduct = posProducts.find(candidate => candidate.id === nextPosProductId);
+      if (!posProduct || posProduct.isCurrent === false) {
+        setLastSavedMessage("Connect this drink to an active POS product before making it live");
+        return;
+      }
     }
 
     if (wouldExceedPriorityLimit(state.products, currentProduct, normalizedPatch)) {
@@ -367,11 +377,29 @@ export function Portal({ venueSlug }: Props) {
 
   async function handleLogoUpload(productId: string, file: File) {
     if (!state) return;
+    const previousUrl = state.products.find(product => product.id === productId)?.logoUrl;
     try {
-      const logoUrl = await uploadMarketProductLogo(state.venue.id, productId, file);
-      await handleProductChange(productId, { logoUrl });
+      const uploaded = await uploadMarketProductLogo(state.venue.id, productId, file);
+      await updateMarketProduct(productId, { logoUrl: uploaded.url });
+      setState(current => current ? { ...current, products: applyMarketProductPatch(current.products, productId, { logoUrl: uploaded.url }) } : current);
+      if (previousUrl) await removeMarketProductLogo(previousUrl);
+      if (uploaded.warning) setLastSavedMessage(uploaded.warning);
     } catch (uploadError) {
       setAuthError(uploadError instanceof Error ? uploadError.message : "Could not upload logo.");
+    }
+  }
+
+  async function handleLogoRemove(productId: string) {
+    if (!state) return;
+    const previousUrl = state.products.find(product => product.id === productId)?.logoUrl;
+    if (!previousUrl) return;
+    try {
+      await updateMarketProduct(productId, { logoUrl: null });
+      setState(current => current ? { ...current, products: applyMarketProductPatch(current.products, productId, { logoUrl: null }) } : current);
+      await removeMarketProductLogo(previousUrl);
+      setLastSavedMessage("Drink image removed");
+    } catch (removeError) {
+      setAuthError(removeError instanceof Error ? removeError.message : "Could not remove drink image.");
     }
   }
 
@@ -530,8 +558,10 @@ export function Portal({ venueSlug }: Props) {
                   <PortalStartPage
                     instantRunPending={instantRunPending}
                     onConfigurePosProduct={handleConfigurePosProduct}
+                    onRestoreProduct={product => { void handleProductChange(product.id, { isArchived: false }); }}
                     onProductChange={handleProductChange}
                     onLogoUpload={handleLogoUpload}
+                    onLogoRemove={handleLogoRemove}
                     onSelectProduct={handleToggleProductHistory}
                     onVenueSettingsChange={handleVenueSettingsChange}
                     onInstantRun={handleInstantRun}

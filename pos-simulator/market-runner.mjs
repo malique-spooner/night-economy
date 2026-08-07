@@ -222,6 +222,12 @@ async function syncPosProducts({ supabase, fetchImpl, posBaseUrl, venueId, conne
     supabase.from("pos_products").select("id, external_id").eq("pos_connection_id", connectionId),
   ]);
   throwIfError(existingError, "load synced POS products");
+  const { error: markStaleError } = await supabase
+    .from("pos_products")
+    .update({ is_current: false, updated_at: new Date().toISOString() })
+    .eq("venue_id", venueId)
+    .eq("pos_connection_id", connectionId);
+  throwIfError(markStaleError, "mark missing POS products");
   const existingByExternalId = new Map((existing ?? []).map(product => [product.external_id, product]));
   const rows = products.map(product => {
     const existingProduct = existingByExternalId.get(product.id);

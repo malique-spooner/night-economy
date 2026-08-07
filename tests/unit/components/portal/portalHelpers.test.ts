@@ -89,6 +89,12 @@ describe("market configuration access", () => {
     expect(applyMarketProductPatch([product, { ...product, id: "mp_other" }], "mp_test", { symbol: "NEW" })[0].symbol).toBe("NEW");
   });
 
+  it("removes a drink image without losing its POS mapping or market settings", () => {
+    const withImage = { ...product, logoUrl: "https://storage.example/drink.webp" };
+    expect(applyMarketProductPatch([withImage], "mp_test", { logoUrl: null })[0]).toMatchObject({ id: "mp_test", posProductId: "pos_test", name: "Test Drink" });
+    expect(applyMarketProductPatch([withImage], "mp_test", { logoUrl: null })[0].logoUrl).toBeUndefined();
+  });
+
   it("keeps venue settings separate from product settings", () => {
     expect(applyVenueSettingsPatch({ id: "ven_demo", slug: "demo", name: "Demo", currency: "GBP", timezone: "Europe/London", marketLive: false, marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }], crashIntervalMinutes: 30, launchDate: "2026-07-12", launchStartTime: "18:00", launchEndTime: "23:00" }, { marketLive: true })).toMatchObject({ marketLive: true, launchStartTime: "18:00" });
   });

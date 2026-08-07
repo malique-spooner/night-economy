@@ -172,13 +172,13 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await espresso.getByRole("button", { name: "Increase Ceiling" }).click();
   await expect(ceiling).toHaveValue("14.40");
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && (write.body as { ceiling_price_minor?: number })?.ceiling_price_minor === 1440)).toBe(true);
-  await espresso.getByRole("button", { name: "Show price history for Espresso Martini" }).click();
-  await expect(espresso.getByRole("button", { name: "Hide price history for Espresso Martini" })).toBeVisible();
-  await espresso.getByRole("button", { name: "Hide price history for Espresso Martini" }).click();
-  await espresso.getByRole("button", { name: "Live", exact: true }).click();
-  await expect(espresso.getByRole("button", { name: "Off", exact: true })).toBeVisible();
+  await espresso.getByRole("button", { name: "Show market and POS details for Espresso Martini" }).click();
+  await expect(espresso.getByRole("button", { name: "Hide market and POS details for Espresso Martini" })).toBeVisible();
+  await espresso.getByRole("button", { name: "Hide market and POS details for Espresso Martini" }).click();
+  await espresso.getByRole("button", { name: "Take Espresso Martini live" }).click();
+  await expect(espresso.getByRole("button", { name: "Make Espresso Martini live" })).toBeVisible();
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && (write.body as { is_live?: boolean })?.is_live === false)).toBe(true);
-  await espresso.getByRole("button", { name: "Off", exact: true }).click();
+  await espresso.getByRole("button", { name: "Make Espresso Martini live" }).click();
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && (write.body as { is_live?: boolean })?.is_live === true)).toBe(true);
 
   await espresso.getByRole("combobox").selectOption("Wine");
@@ -189,17 +189,18 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && (write.body as { priority?: boolean })?.priority === true)).toBe(true);
 
   const chooserPromise = page.waitForEvent("filechooser");
-  const addLogo = espresso.getByRole("button", { name: "Add logo for Espresso Martini" });
+  const addLogo = espresso.getByRole("button", { name: "Add drink image for Espresso Martini" });
   await expect(addLogo).toHaveText("+");
   await addLogo.click();
   const chooser = await chooserPromise;
   await chooser.setFiles({ name: "espresso.png", mimeType: "image/png", buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64") });
-  await expect(espresso.getByAltText("Espresso Martini logo")).toHaveAttribute("src", /storage\/v1\/object\/public\/market-logos/);
-  await expect(espresso.getByRole("button", { name: "Replace logo for Espresso Martini" })).toBeVisible();
+  await expect(espresso.getByAltText("Espresso Martini drink")).toHaveAttribute("src", /storage\/v1\/object\/public\/market-logos/);
+  await expect(espresso.getByRole("button", { name: "Replace drink image for Espresso Martini" })).toBeVisible();
   await expect(espresso).not.toContainText("Replace");
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && typeof (write.body as { logo_url?: string })?.logo_url === "string")).toBe(true);
 
-  await page.getByRole("button", { name: "Configure market" }).click();
+  await page.getByText("POS drinks", { exact: true }).click();
+  await page.getByRole("button", { name: "Set up" }).click();
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && write.body !== null)).toBe(true);
   await expect(page.getByText("New POS Drink", { exact: true })).not.toBeVisible();
 

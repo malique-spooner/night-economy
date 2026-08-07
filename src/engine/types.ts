@@ -23,6 +23,7 @@ export type VenueMarketSettings = Pick<
 export type MarketProduct = {
   id: string;
   posProductId?: string;
+  isArchived?: boolean;
   symbol: string;
   logoUrl?: string;
   name: string;

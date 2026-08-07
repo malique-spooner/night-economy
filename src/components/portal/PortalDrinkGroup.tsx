@@ -1,5 +1,5 @@
 import type { MarketProduct } from "../../engine/types";
-import type { MarketPriceHistoryPoint, MarketProductPatch } from "../../api/market";
+import type { MarketPriceHistoryPoint, MarketProductPatch, PosProduct } from "../../api/market";
 import { portalCategoryLabel, TV_CATEGORY_PAGE_LIMIT } from "./portalHelpers";
 import { PortalDrinkRow } from "./PortalDrinkRow";
 
@@ -8,14 +8,17 @@ type Props = {
   category: string;
   onProductChange: (productId: string, patch: MarketProductPatch, options?: { persist?: boolean }) => void;
   onLogoUpload: (productId: string, file: File) => void;
+  onLogoRemove: (productId: string) => void;
   onSelectProduct: (productId: string) => void;
   priceHistory: MarketPriceHistoryPoint[];
   priceHistoryLoading: boolean;
+  marketLive: boolean;
+  posProducts: PosProduct[];
   products: MarketProduct[];
   selectedProductId: string | null;
 };
 
-export function PortalDrinkGroup({ allProducts, category, onLogoUpload, onProductChange, onSelectProduct, priceHistory, priceHistoryLoading, products, selectedProductId }: Props) {
+export function PortalDrinkGroup({ allProducts, category, marketLive, onLogoRemove, onLogoUpload, onProductChange, onSelectProduct, posProducts, priceHistory, priceHistoryLoading, products, selectedProductId }: Props) {
   const liveProducts = products.filter(product => product.isLive && !product.isSoldOut).length;
   return (
     <section className="portal-drink-group">
@@ -25,7 +28,7 @@ export function PortalDrinkGroup({ allProducts, category, onLogoUpload, onProduc
           <span>{liveProducts} live · {products.length} drinks{liveProducts > TV_CATEGORY_PAGE_LIMIT ? ` · TV pages: ${Math.ceil(liveProducts / TV_CATEGORY_PAGE_LIMIT)}` : ""}</span>
         </div>
         <div className="portal-drink-column-head" aria-hidden="true">
-          <span>Logo</span>
+          <span>Drink image</span>
           <span>Market name</span>
           <span>Category</span>
           <span>Live</span>
@@ -38,7 +41,7 @@ export function PortalDrinkGroup({ allProducts, category, onLogoUpload, onProduc
         </div>
       </div>
       {products.map(product => (
-        <PortalDrinkRow allProducts={allProducts} history={priceHistory} historyLoading={priceHistoryLoading} onChange={onProductChange} onLogoUpload={onLogoUpload} onSelect={onSelectProduct} product={product} selected={product.id === selectedProductId} key={product.id} />
+        <PortalDrinkRow allProducts={allProducts} history={priceHistory} historyLoading={priceHistoryLoading} marketLive={marketLive} onChange={onProductChange} onLogoRemove={onLogoRemove} onLogoUpload={onLogoUpload} onSelect={onSelectProduct} posProducts={posProducts} product={product} selected={product.id === selectedProductId} key={product.id} />
       ))}
     </section>
   );

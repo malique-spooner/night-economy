@@ -5,6 +5,7 @@ import { formatMoney } from "../format";
 type Props = {
   history: MarketPriceHistoryPoint[];
   isLoading: boolean;
+  marketLive: boolean;
   product: MarketProduct | null;
 };
 
@@ -34,7 +35,7 @@ function pricePath(prices: number[]) {
   }).join(" ");
 }
 
-export function PortalMarketDetail({ history, isLoading, product }: Props) {
+export function PortalMarketDetail({ history, isLoading, marketLive, product }: Props) {
   if (!product) return null;
 
   const index = indexFor(product);
@@ -48,7 +49,7 @@ export function PortalMarketDetail({ history, isLoading, product }: Props) {
     <section className="portal-market-detail" aria-live="polite">
       <div className="portal-market-detail-head">
         <div>
-          <span className="portal-market-kicker">Live market focus</span>
+          <span className="portal-market-kicker">{marketLive ? "Current market run" : "Last completed market run"}</span>
           <h2>{product.name}</h2>
           <p>{product.symbol} · {product.category}</p>
         </div>
@@ -64,8 +65,8 @@ export function PortalMarketDetail({ history, isLoading, product }: Props) {
       </div>
       <div className="portal-market-history">
         <div className="portal-market-history-head">
-          <span>Price history</span>
-          <small>{isLoading ? "Loading rounds…" : history.length ? `${history.length} completed 5-minute rounds` : "No completed rounds yet"}</small>
+          <span>{marketLive ? "Current price and completed rounds" : "Price history"}</span>
+          <small>{isLoading ? "Loading rounds…" : marketLive ? "Live now · next price is published at the end of this round" : history.length ? `${history.length} completed 5-minute rounds` : "No completed rounds yet"}</small>
         </div>
         <svg viewBox="0 0 520 104" role="img" aria-label={`${product.name} price history`} preserveAspectRatio="none">
           <line x1="8" x2="512" y1="52" y2="52" />

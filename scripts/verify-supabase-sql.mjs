@@ -46,6 +46,7 @@ const expectedMigrations = [
   "20260730135157_link_run_price_history.sql",
   "20260730140326_add_instant_market_runs.sql",
   "20260731074732_add_foreign_key_indexes.sql",
+  "20260807074706_portal_pos_connection_status.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -104,6 +105,16 @@ function checkRequiredPatterns() {
       label: "authenticated venue editors can persist market logo URLs",
       source: migrationSql["20260730092640_grant_market_product_logo_updates.sql"],
       pattern: /grant update \(logo_url\) on table public\.market_products to authenticated/i,
+    },
+    {
+      label: "market products can be safely archived and remapped to a POS product",
+      source: migrationSql["20260807074706_portal_pos_connection_status.sql"],
+      pattern: /add column if not exists is_archived boolean not null default false[\s\S]+grant update \(pos_product_id, is_archived\) on public\.market_products to authenticated/i,
+    },
+    {
+      label: "market logo deletion is restricted to venue admins",
+      source: migrationSql["20260807074706_portal_pos_connection_status.sql"],
+      pattern: /create policy "venue admins can delete market logos"[\s\S]+for delete to authenticated[\s\S]+bucket_id = 'market-logos'[\s\S]+venue_members[\s\S]+role in \('owner', 'admin'\)/i,
     },
     {
       label: "authenticated venue editors can persist market schedules and target takings",

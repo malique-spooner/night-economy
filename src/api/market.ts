@@ -14,14 +14,15 @@ export type MarketProductPatch = Partial<
     MarketProduct,
     | "name"
     | "symbol"
-    | "logoUrl"
+    | "posProductId"
+    | "isArchived"
     | "category"
     | "floorPriceMinor"
     | "ceilingPriceMinor"
     | "isLive"
     | "priority"
   >
->;
+> & { logoUrl?: string | null };
 
 export type VenueMarketSettingsPatch = Partial<VenueMarketSettings>;
 
@@ -43,6 +44,7 @@ export type PosProduct = {
   currentPriceMinor: number;
   currency: string;
   isAvailable: boolean;
+  isCurrent?: boolean;
   category: string;
   subcategory: string;
   productGroup?: string;
@@ -78,6 +80,7 @@ export type MarketProductRow = {
   is_live: boolean;
   is_sold_out: boolean;
   priority: boolean;
+  is_archived?: boolean | null;
 };
 
 type VenueMarketStateRow = VenueRow & {
@@ -93,6 +96,7 @@ type PosProductRow = {
   current_price_minor: number;
   currency: string;
   is_available: boolean;
+  is_current: boolean;
   category?: string | null;
   subcategory?: string | null;
   product_group?: string | null;
@@ -133,6 +137,7 @@ export function mapMarketProductRow(row: MarketProductRow): MarketProduct {
   return {
     id: row.id,
     ...(row.pos_product_id ? { posProductId: row.pos_product_id } : {}),
+    ...(row.is_archived ? { isArchived: true } : {}),
     symbol: row.market_symbol,
     ...(row.logo_url ? { logoUrl: row.logo_url } : {}),
     name: row.display_name,
@@ -158,6 +163,7 @@ function mapPosProductRow(row: PosProductRow): PosProduct {
     currentPriceMinor: row.current_price_minor,
     currency: row.currency,
     isAvailable: row.is_available,
+    isCurrent: row.is_current,
     category: row.category ?? "Uncategorised",
     subcategory: row.subcategory ?? "",
     ...(row.product_group ? { productGroup: row.product_group } : {}),
@@ -204,7 +210,6 @@ export async function getPosProducts(venueId: string): Promise<PosProduct[]> {
     .from("pos_products")
     .select("*")
     .eq("venue_id", venueId)
-    .eq("is_current", true)
     .order("source_name");
   throwIfSupabaseQueryError(error, "Could not load POS products");
   return (data ?? []).map(mapPosProductRow);
@@ -258,13 +263,23 @@ export async function updateMarketProduct(productId: string, patch: MarketProduc
 export async function uploadMarketProductLogo(venueId: string, productId: string, file: File) {
   if (!supabase) throw new Error("Image uploads need Supabase to be connected.");
   if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.");
-  if (file.size > 5 * 1024 * 1024) throw new Error("Images must be 5 MB or smaller.");
+  if (file.size > 12 * 1024 * 1024) throw new Error("Choose an image smaller than 12 MB.");
 
-  const extension = file.name.split(".").pop()?.replace(/[^a-z0-9]/gi, "") || "image";
-  const path = `${venueId}/${productId}/${crypto.randomUUID()}.${extension}`;
-  const { error } = await supabase.storage.from("market-logos").upload(path, file, { cacheControl: "31536000", contentType: file.type, upsert: false });
+  const prepared = await prepareDrinkImage(file);
+  const path = `${venueId}/${productId}/${crypto.randomUUID()}.webp`;
+  const { error } = await supabase.storage.from("market-logos").upload(path, prepared.file, { cacheControl: "31536000", contentType: "image/webp", upsert: false });
   if (error) throw error;
-  return supabase.storage.from("market-logos").getPublicUrl(path).data.publicUrl;
+  return { url: supabase.storage.from("market-logos").getPublicUrl(path).data.publicUrl, warning: prepared.warning };
+}
+
+export async function removeMarketProductLogo(url: string) {
+  if (!supabase) return;
+  const marker = "/object/public/market-logos/";
+  const index = url.indexOf(marker);
+  if (index === -1) return;
+  const path = decodeURIComponent(url.slice(index + marker.length));
+  const { error } = await supabase.storage.from("market-logos").remove([path]);
+  if (error) throw error;
 }
 
 export async function createMarketProductConfiguration(venueId: string, product: MarketProductConfiguration) {
@@ -297,6 +312,8 @@ export function toMarketProductRowPatch(patch: MarketProductPatch) {
     ...(patch.name !== undefined ? { display_name: patch.name } : {}),
     ...(patch.symbol !== undefined ? { market_symbol: patch.symbol } : {}),
     ...(patch.logoUrl !== undefined ? { logo_url: patch.logoUrl } : {}),
+    ...(patch.posProductId !== undefined ? { pos_product_id: patch.posProductId } : {}),
+    ...(patch.isArchived !== undefined ? { is_archived: patch.isArchived } : {}),
     ...(patch.category !== undefined ? { category: patch.category } : {}),
     ...(patch.floorPriceMinor !== undefined ? { floor_price_minor: patch.floorPriceMinor } : {}),
     ...(patch.ceilingPriceMinor !== undefined ? { ceiling_price_minor: patch.ceilingPriceMinor } : {}),
@@ -336,9 +353,32 @@ function demoPosProducts(): PosProduct[] {
     currentPriceMinor: product.currentPriceMinor,
     currency: seedVenue.currency,
     isAvailable: !product.isSoldOut,
+    isCurrent: true,
     category: product.category,
     subcategory: "",
   }));
+}
+
+async function prepareDrinkImage(file: File) {
+  const bitmap = await createImageBitmap(file);
+  const sourceSize = Math.min(bitmap.width, bitmap.height);
+  const outputSize = Math.min(2560, Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = outputSize;
+  canvas.height = outputSize;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Your browser could not prepare this image.");
+
+  const cropSize = Math.min(bitmap.width, bitmap.height);
+  context.drawImage(bitmap, (bitmap.width - cropSize) / 2, (bitmap.height - cropSize) / 2, cropSize, cropSize, 0, 0, outputSize, outputSize);
+  bitmap.close();
+  const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/webp", 0.88));
+  if (!blob) throw new Error("Could not compress this image.");
+  if (blob.size > 5 * 1024 * 1024) throw new Error("This image is still too large after optimisation. Choose a simpler image.");
+  return {
+    file: new File([blob], `${file.name.replace(/\.[^.]+$/, "")}.webp`, { type: "image/webp" }),
+    warning: sourceSize < 2000 ? "This source is below 2000px and may look soft on a large TV." : null,
+  };
 }
 
 function demoMarketProducts(): MarketProduct[] {

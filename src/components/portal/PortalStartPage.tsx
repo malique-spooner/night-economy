@@ -12,8 +12,10 @@ import { portalCategories } from "./portalHelpers";
 type Props = {
   onProductChange: (productId: string, patch: MarketProductPatch, options?: { persist?: boolean }) => void;
   onLogoUpload: (productId: string, file: File) => void;
+  onLogoRemove: (productId: string) => void;
   onSelectProduct: (productId: string) => void;
   onConfigurePosProduct: (posProduct: PosProduct) => void;
+  onRestoreProduct: (product: MarketProduct) => void;
   onVenueSettingsChange: (patch: VenueMarketSettingsPatch) => void;
   instantRunPending: boolean;
   onInstantRun: () => void;
@@ -32,8 +34,10 @@ type Props = {
 
 export function PortalStartPage({
   onConfigurePosProduct,
+  onRestoreProduct,
   onProductChange,
   onLogoUpload,
+  onLogoRemove,
   onSelectProduct,
   onVenueSettingsChange,
   instantRunPending,
@@ -50,8 +54,9 @@ export function PortalStartPage({
   posProducts,
   venue,
 }: Props) {
-  const groups = groupProductsByCategory(products);
-  const categories = portalCategories(products);
+  const activeProducts = products.filter(product => !product.isArchived);
+  const groups = groupProductsByCategory(activeProducts);
+  const categories = portalCategories(activeProducts);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const activeCategory = selectedCategory && categories.includes(selectedCategory) ? selectedCategory : null;
   const visibleGroups = activeCategory ? groups.filter(([category]) => category === activeCategory) : groups;
@@ -72,20 +77,23 @@ export function PortalStartPage({
       <div className="portal-drink-list">
         {visibleGroups.map(([category, categoryProducts]) => (
           <PortalDrinkGroup
-            allProducts={products}
+            allProducts={activeProducts}
             category={category}
+            marketLive={venue.marketLive}
             onProductChange={onProductChange}
             onLogoUpload={onLogoUpload}
+            onLogoRemove={onLogoRemove}
             onSelectProduct={onSelectProduct}
             priceHistory={priceHistory}
             priceHistoryLoading={priceHistoryLoading}
+            posProducts={posProducts}
             products={categoryProducts}
             selectedProductId={selectedProductId}
             key={category}
           />
         ))}
       </div>
-      <PortalPosProductSetup onConfigure={onConfigurePosProduct} posProducts={posProducts} products={products} />
+      <PortalPosProductSetup archivedProducts={products.filter(product => product.isArchived)} onConfigure={onConfigurePosProduct} onRestore={onRestoreProduct} posProducts={posProducts} products={activeProducts} />
     </section>
   );
 }

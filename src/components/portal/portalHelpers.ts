@@ -24,7 +24,17 @@ export function normalizeMarketProductPatch(product: MarketProduct, patch: Marke
   return { ...patch, ...(patch.floorPriceMinor !== undefined || patch.ceilingPriceMinor !== undefined ? { floorPriceMinor, ceilingPriceMinor } : {}), ...(patch.name !== undefined ? { name: patch.name.trim() || product.name } : {}), ...(patch.symbol !== undefined ? { symbol: patch.symbol.replace(/[^a-z0-9]/gi, "").slice(0, 4).toUpperCase() || product.symbol } : {}) };
 }
 
-export function applyMarketProductPatch(products: MarketProduct[], productId: string, patch: MarketProductPatch): MarketProduct[] { return products.map(product => (product.id === productId ? { ...product, ...patch } : product)); }
+export function applyMarketProductPatch(products: MarketProduct[], productId: string, patch: MarketProductPatch): MarketProduct[] {
+  return products.map(product => {
+    if (product.id !== productId) return product;
+    const { logoUrl, ...patchWithoutLogo } = patch;
+    if (logoUrl === null) {
+      const { logoUrl: _removedLogo, ...productWithoutLogo } = product;
+      return { ...productWithoutLogo, ...patchWithoutLogo };
+    }
+    return { ...product, ...patchWithoutLogo, ...(logoUrl !== undefined ? { logoUrl } : {}) };
+  });
+}
 export function wouldNeedAnotherTvPage(products: MarketProduct[], product: MarketProduct, patch: MarketProductPatch) {
   const nextCategory = patch.category ?? product.category;
   const willBeLive = patch.isLive ?? product.isLive;
