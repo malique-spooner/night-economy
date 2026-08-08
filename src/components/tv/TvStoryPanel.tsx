@@ -10,12 +10,11 @@ type Props = {
 export function TvStoryPanel({ products, venue }: Props) {
   const storyProduct = getStoryProduct(products);
   const trend = storyProduct ? productTrend(storyProduct) : "dn";
-  const fallbackMark = storyProduct?.name.split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join("").toUpperCase() ?? "NE";
 
   return (
     <div className={`rpanel story-${trend} ${storyProduct?.isSoldOut ? "story-sold-out" : ""}`}>
       <div className="pview active" id="pv0">
-        {storyProduct?.logoUrl ? <img alt="" className="story-product-art" src={storyProduct.logoUrl} /> : storyProduct ? <div aria-hidden="true" className={`story-product-fallback ${trend}`}><span>{fallbackMark}</span><small>{storyProduct.category}</small></div> : <div className="bulletin-art" aria-hidden="true"></div>}
+        {storyProduct?.logoUrl ? <img alt="" className="story-product-art" src={storyProduct.logoUrl} /> : storyProduct ? <div aria-hidden="true" className={`story-product-fallback ${trend}`}><i></i><i></i><i></i></div> : <div className="bulletin-art" aria-hidden="true"></div>}
         <div className="panel-tag tag-market">Breaking News</div>
         <div className="bulletin-layout">
           <div className="bulletin-stack">
