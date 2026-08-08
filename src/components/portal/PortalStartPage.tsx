@@ -20,6 +20,7 @@ type Props = {
   instantRunPending: boolean;
   onInstantRun: () => void;
   onQuickStart: () => void;
+  onRealTimeStart: () => void;
   onPause: () => void;
   onResume: () => void;
   onEnd: () => void;
@@ -43,6 +44,7 @@ export function PortalStartPage({
   instantRunPending,
   onInstantRun,
   onQuickStart,
+  onRealTimeStart,
   onPause,
   onResume,
   onEnd,
@@ -73,7 +75,7 @@ export function PortalStartPage({
   return (
     <section className="portal-start-page">
       <h1 className="portal-page-title">Portal</h1>
-      <PortalLaunchStrip instantRunPending={instantRunPending} onEnd={onEnd} onInstantRun={onInstantRun} onPause={onPause} onQuickStart={onQuickStart} onResume={onResume} onSettingsChange={onVenueSettingsChange} settings={settings} simulatorState={simulatorState} timezone={venue.timezone} />
+      <PortalLaunchStrip instantRunPending={instantRunPending} onEnd={onEnd} onInstantRun={onInstantRun} onPause={onPause} onQuickStart={onQuickStart} onRealTimeStart={onRealTimeStart} onResume={onResume} onSettingsChange={onVenueSettingsChange} settings={settings} simulatorState={simulatorState} timezone={venue.timezone} />
       <PortalCategoryFilters activeCategory={activeCategory} categories={categories} onCategoryChange={setSelectedCategory} />
       <div className="portal-drink-list">
         {visibleGroups.map(([category, categoryProducts]) => (

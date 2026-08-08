@@ -468,6 +468,18 @@ export function Portal({ venueSlug }: Props) {
     }
   }
 
+  async function handleRealTimeStart() {
+    try {
+      // The same market service runs at 1×, so the six-hour night unfolds in real time.
+      const nextSimulatorState = await controlSimulator(venueSlug, "quick_start", { speed: 1 });
+      setSimulatorState(nextSimulatorState);
+      await handleVenueSettingsChange({ marketLive: true });
+      setLastSavedMessage("Quick-started a real-time market");
+    } catch (error) {
+      setLastSavedMessage(error instanceof Error ? `Could not start real-time market: ${error.message}` : "Could not start the real-time market");
+    }
+  }
+
   async function handleInstantRun() {
     try {
       setInstantRunPending(true);
@@ -566,6 +578,7 @@ export function Portal({ venueSlug }: Props) {
                     onVenueSettingsChange={handleVenueSettingsChange}
                     onInstantRun={handleInstantRun}
                     onQuickStart={handleQuickStart}
+                    onRealTimeStart={handleRealTimeStart}
                     onPause={handlePause}
                     onResume={handleResume}
                     onEnd={() => setIsEndConfirmationOpen(true)}

@@ -7,6 +7,7 @@ type Props = {
   instantRunPending: boolean;
   onInstantRun: () => void;
   onQuickStart: () => void;
+  onRealTimeStart: () => void;
   onPause: () => void;
   onResume: () => void;
   onEnd: () => void;
@@ -32,7 +33,7 @@ export function updateScheduleDay(schedule: MarketScheduleEntry[], day: string, 
   return schedule.map(entry => entry.day === day ? { ...entry, ...patch } : entry);
 }
 
-export function PortalLaunchStrip({ instantRunPending, onEnd, onInstantRun, onPause, onQuickStart, onResume, onSettingsChange, settings, simulatorState, timezone }: Props) {
+export function PortalLaunchStrip({ instantRunPending, onEnd, onInstantRun, onPause, onQuickStart, onRealTimeStart, onResume, onSettingsChange, settings, simulatorState, timezone }: Props) {
   const schedule = days.map(day => settings.marketSchedule.find(entry => entry.day === day) ?? { day, start: "18:00", end: "00:00", enabled: false });
   const next = getNextService(schedule, timezone);
   const save = (nextSchedule: MarketScheduleEntry[]) => onSettingsChange({ marketSchedule: nextSchedule });
@@ -40,7 +41,7 @@ export function PortalLaunchStrip({ instantRunPending, onEnd, onInstantRun, onPa
   const service = simulatorState?.service;
   const serviceIsOpen = service?.isOpen ?? Boolean(service?.running || service?.paused);
   const marketStatus = serviceIsOpen && service
-    ? service.running ? `Market open · ${formatSimulatedTime(service.simulatedTime, timezone)} · ${formatElapsed(service.minute)} elapsed` : `Market paused · ${formatSimulatedTime(service.simulatedTime, timezone)} · ${formatElapsed(service.minute)} elapsed`
+    ? service.running ? `Market open${service.speed === 1 ? " · real time" : ""} · ${formatSimulatedTime(service.simulatedTime, timezone)} · ${formatElapsed(service.minute)} elapsed` : `Market paused · ${formatSimulatedTime(service.simulatedTime, timezone)} · ${formatElapsed(service.minute)} elapsed`
     : next ? "Your next scheduled service" : "Choose a day to schedule your first service";
 
   return <section className="portal-start-strip" aria-label="Market schedule">
@@ -54,6 +55,7 @@ export function PortalLaunchStrip({ instantRunPending, onEnd, onInstantRun, onPa
         {!serviceIsOpen ? <>
           <button className="portal-instant-run" disabled={instantRunPending} onClick={onInstantRun} type="button">{instantRunPending ? "Simulating full night…" : "Quick start · instant"}</button>
           <button className="portal-quick-start" disabled={instantRunPending} onClick={onQuickStart} type="button">Quick start · 10 min live</button>
+          <button className="portal-real-time-start" disabled={instantRunPending} onClick={onRealTimeStart} type="button">Quick start · real time</button>
         </> : null}
         {service?.running ? <button className="portal-quick-start is-live" onClick={onPause} type="button">Pause</button> : null}
         {serviceIsOpen && service?.paused ? <button className="portal-quick-start" onClick={onResume} type="button">Resume</button> : null}
