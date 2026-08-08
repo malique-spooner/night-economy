@@ -21,7 +21,8 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
   const [selectedRun, setSelectedRun] = useState<MarketRun | null>(null);
   const [sales, setSales] = useState<MarketRunSale[]>([]);
   const [priceHistory, setPriceHistory] = useState<MarketRunPricePoint[]>([]);
-  const [selectedPriceProductId, setSelectedPriceProductId] = useState<string | null>(null);
+  const [selectedPriceProductIds, setSelectedPriceProductIds] = useState<string[]>([]);
+  const [selectedOrderProductIds, setSelectedOrderProductIds] = useState<string[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState("");
   const priceLedgerRef = useRef<HTMLElement>(null);
@@ -53,8 +54,10 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
 
   const dashboard = useMemo(() => selectedRun ? buildRunDashboard(selectedRun, sales, products) : null, [products, sales, selectedRun]);
   const priceLedger = useMemo(() => buildRunPriceLedger(priceHistory, products), [priceHistory, products]);
-  const selectedPriceProduct = selectedPriceProductId ? products.find(product => product.id === selectedPriceProductId) : null;
-  const visiblePriceLedger = selectedPriceProductId ? priceLedger.filter(point => point.productId === selectedPriceProductId) : priceLedger;
+  const priceFilterOptions = useMemo(() => uniqueDrinkOptions(priceLedger.map(point => ({ id: point.productId, name: point.productName }))), [priceLedger]);
+  const orderFilterOptions = useMemo(() => uniqueDrinkOptions((dashboard?.orders ?? []).map(order => ({ id: order.posProductId, name: order.productName }))), [dashboard?.orders]);
+  const visiblePriceLedger = selectedPriceProductIds.length ? priceLedger.filter(point => selectedPriceProductIds.includes(point.productId)) : priceLedger;
+  const visibleOrders = selectedOrderProductIds.length ? (dashboard?.orders ?? []).filter(order => selectedOrderProductIds.includes(order.posProductId)) : (dashboard?.orders ?? []);
   const money = (minor: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(minor / 100);
   const serviceTime = (value: string, withSeconds = false) => new Intl.DateTimeFormat("en-GB", {
     timeZone: timezone,
@@ -95,8 +98,8 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
           </section>
           <section className="portal-run-panel" aria-labelledby="run-products-title">
             <PanelHeading eyebrow="Menu performance" id="run-products-title" title="Top drinks" />
-            {!dashboard.products.length ? <p>No item-level sales were recorded for this run.</p> : <ol className="portal-run-ranking">{dashboard.products.map(product => <li key={product.id}><button aria-pressed={selectedPriceProductId === product.id} onClick={() => {
-              setSelectedPriceProductId(current => current === product.id ? null : product.id);
+            {!dashboard.products.length ? <p>No item-level sales were recorded for this run.</p> : <ol className="portal-run-ranking">{dashboard.products.map(product => <li key={product.id}><button aria-pressed={selectedPriceProductIds.includes(product.id)} onClick={() => {
+              setSelectedPriceProductIds(current => current.includes(product.id) ? current.filter(id => id !== product.id) : [...current, product.id]);
               window.setTimeout(() => priceLedgerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
             }} type="button"><div><strong>{product.name}</strong><span>{product.quantity} sold · {product.category}</span></div><b>{money(product.revenueMinor)}</b><i style={{ width: `${(product.revenueMinor / maxProductRevenue) * 100}%` }} /></button></li>)}</ol>}
           </section>
@@ -112,12 +115,15 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
 
         <section className="portal-run-panel portal-run-ledger-panel" aria-labelledby="price-ledger-title" ref={priceLedgerRef}>
           <div className="portal-run-section-heading">
-            <PanelHeading eyebrow="Five-minute market tape" id="price-ledger-title" title={selectedPriceProduct ? `${selectedPriceProduct.name}: every five-minute price` : "Every price and percentage change"} />
-            <span>{distinctRounds} rounds · {visiblePriceLedger.length} decisions{selectedPriceProduct ? " · click the drink again to show all" : ""}</span>
+            <PanelHeading eyebrow="Five-minute market tape" id="price-ledger-title" title="Every price and percentage change" />
+            <div className="portal-run-heading-tools">
+              <DrinkMultiSelect label="Filter price tape by drink" options={priceFilterOptions} selectedIds={selectedPriceProductIds} onChange={setSelectedPriceProductIds} />
+              <span>{distinctRounds} rounds · {visiblePriceLedger.length} decisions</span>
+            </div>
           </div>
-          {!visiblePriceLedger.length ? <p className="portal-run-ledger-empty">{selectedPriceProduct ? `No five-minute price rounds were recorded for ${selectedPriceProduct.name}.` : "No linked price rounds were recorded for this historical run. New runs preserve every five-minute price decision here."}</p> :
+          {!visiblePriceLedger.length ? <p className="portal-run-ledger-empty">{selectedPriceProductIds.length ? "No five-minute price rounds match the selected drinks." : "No linked price rounds were recorded for this historical run. New runs preserve every five-minute price decision here."}</p> :
             <div className="portal-run-table-wrap">
-              <table className="portal-run-table" aria-label={selectedPriceProduct ? `Five-minute price history for ${selectedPriceProduct.name}` : "Five-minute price history"}>
+              <table className="portal-run-table" aria-label="Five-minute price history">
                 <thead><tr><th>Time</th><th>Product</th><th>Previous</th><th>Price</th><th>Change</th><th>Why</th></tr></thead>
                 <tbody>{visiblePriceLedger.map((point, index) => {
                   const change = `${point.changePercentage > 0 ? "+" : ""}${point.changePercentage.toFixed(2)}%`;
@@ -137,13 +143,16 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
         <section className="portal-run-panel portal-run-ledger-panel" aria-labelledby="order-ledger-title">
           <div className="portal-run-section-heading">
             <PanelHeading eyebrow="Complete POS ledger" id="order-ledger-title" title="Every single order" />
-            <span>{dashboard.orders.length} order events · {dashboard.unitsSold} drinks</span>
+            <div className="portal-run-heading-tools">
+              <DrinkMultiSelect label="Filter POS ledger by drink" options={orderFilterOptions} selectedIds={selectedOrderProductIds} onChange={setSelectedOrderProductIds} />
+              <span>{visibleOrders.length} order events · {visibleOrders.reduce((total, order) => total + order.quantity, 0)} drinks</span>
+            </div>
           </div>
-          {!dashboard.orders.length ? <p className="portal-run-ledger-empty">No orders were recorded for this run.</p> :
+          {!visibleOrders.length ? <p className="portal-run-ledger-empty">{selectedOrderProductIds.length ? "No orders match the selected drinks." : "No orders were recorded for this run."}</p> :
             <div className="portal-run-table-wrap portal-run-orders-wrap">
               <table className="portal-run-table portal-run-orders-table" aria-label="Every order">
                 <thead><tr><th>Time</th><th>Order</th><th>Drink</th><th>Qty</th><th>Unit price</th><th>Total</th></tr></thead>
-                <tbody>{dashboard.orders.map((order, index) => <tr key={order.id}>
+                <tbody>{visibleOrders.map((order, index) => <tr key={order.id}>
                   <td><time dateTime={order.occurredAt}>{serviceTime(order.occurredAt, true)}</time></td>
                   <td><code>#{String(index + 1).padStart(4, "0")}</code></td>
                   <td><strong>{order.productName}</strong></td>
@@ -165,7 +174,7 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
         <div><strong>{runLabel(run)}</strong><span>{new Date(run.startedAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: timezone })}</span></div>
         <span className={`portal-run-status ${run.status}`}>{run.status}</span>
         <dl><div><dt>Service time</dt><dd>{run.simulatedMinutes} min</dd></div><div><dt>Drinks sold</dt><dd>{run.salesCount}</dd></div><div><dt>Sales</dt><dd>{money(run.revenueMinor)}</dd></div></dl>
-        <button aria-label={`Open dashboard for ${runLabel(run)}`} className="portal-run-open" onClick={() => { setSelectedPriceProductId(null); setSelectedRun(run); }} type="button">View night dashboard →</button>
+        <button aria-label={`Open dashboard for ${runLabel(run)}`} className="portal-run-open" onClick={() => { setSelectedPriceProductIds([]); setSelectedOrderProductIds([]); setSelectedRun(run); }} type="button">View night dashboard →</button>
       </article>)}
     </div>}
   </section>;
@@ -177,6 +186,21 @@ function RunKpi({ label, value }: { label: string; value: string }) {
 
 function PanelHeading({ eyebrow, id, title }: { eyebrow: string; id: string; title: string }) {
   return <div><span>{eyebrow}</span><h2 id={id}>{title}</h2></div>;
+}
+
+function DrinkMultiSelect({ label, onChange, options, selectedIds }: { label: string; onChange: (ids: string[]) => void; options: Array<{ id: string; name: string }>; selectedIds: string[] }) {
+  const selectedCount = selectedIds.length;
+  return <details className="portal-run-drink-filter">
+    <summary aria-label={label}><span>Drinks</span><b>{selectedCount ? `${selectedCount} selected` : "All drinks"}</b></summary>
+    <div className="portal-run-drink-filter-menu" role="group" aria-label={label}>
+      {selectedCount > 0 && <button type="button" onClick={() => onChange([])}>Clear selection</button>}
+      {options.map(option => <label key={option.id}><input checked={selectedIds.includes(option.id)} onChange={() => onChange(selectedIds.includes(option.id) ? selectedIds.filter(id => id !== option.id) : [...selectedIds, option.id])} type="checkbox" /><span>{option.name}</span></label>)}
+    </div>
+  </details>;
+}
+
+function uniqueDrinkOptions(options: Array<{ id: string; name: string }>) {
+  return [...new Map(options.map(option => [option.id, option])).values()].sort((left, right) => left.name.localeCompare(right.name));
 }
 
 function runLabel(run: MarketRun) {
