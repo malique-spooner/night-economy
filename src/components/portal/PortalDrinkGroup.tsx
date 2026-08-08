@@ -28,7 +28,7 @@ export function PortalDrinkGroup({ allProducts, category, marketLive, onLogoRemo
           <span>{liveProducts} live · {products.length} drinks{liveProducts > TV_CATEGORY_PAGE_LIMIT ? ` · TV pages: ${Math.ceil(liveProducts / TV_CATEGORY_PAGE_LIMIT)}` : ""}</span>
         </div>
         <div className="portal-drink-column-head" aria-hidden="true">
-          <span>Drink image</span>
+          <span>Image</span>
           <span>Market name</span>
           <span>Category</span>
           <span>Live</span>
