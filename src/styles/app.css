@@ -7631,6 +7631,8 @@ body[data-app-view='site'] .site-section.site-subscribe{align-items:start;paddin
   body[data-app-view='portal'] .portal-nav-toggle b{font-size:10px;letter-spacing:.11em;text-transform:uppercase;white-space:nowrap;opacity:0;transition:opacity .16s ease}
   body[data-app-view='portal'] .portal-sidebar:hover .portal-nav-toggle b,body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-nav-toggle b{opacity:1}
   body[data-app-view='portal'] .portal-sidebar-brand{position:relative;min-height:48px;padding-left:0;overflow:hidden}
+  body[data-app-view='portal'] .portal-sidebar-brand-top{display:flex;align-items:center}
+  body[data-app-view='portal'] .portal-sidebar-brand .portal-nav-toggle{position:absolute;right:0;top:0}
   body[data-app-view='portal'] .portal-sidebar-brand strong,body[data-app-view='portal'] .portal-sidebar-venue{position:absolute;left:4px;white-space:nowrap;opacity:0;transform:translateX(-8px);transition:opacity .16s ease,transform .16s ease}
   body[data-app-view='portal'] .portal-sidebar-brand strong{top:3px;font-size:22px}
   body[data-app-view='portal'] .portal-sidebar-venue{top:30px}
@@ -7658,6 +7660,7 @@ body[data-app-view='site'] .site-section.site-subscribe{align-items:start;paddin
 
 /* Every surface owns the viewport; no shared app padding should shrink it. */
 #root{width:100%;min-height:100%}
+body[data-app-view='portal'] .portal-sidebar-brand-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
 body[data-app-view='portal'] .portal-nav-icon svg,body[data-app-view='portal'] .portal-signout>span svg{display:block;width:21px;height:21px;stroke-width:1.9}
 .alt-view{min-height:100dvh}
 body[data-app-view='portal'] .portal-view{padding:0;overflow:auto}

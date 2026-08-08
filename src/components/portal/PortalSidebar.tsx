@@ -20,12 +20,14 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
   return (
     <aside className={`portal-sidebar ${isPinned ? "is-pinned" : ""}`}>
       <div className="portal-sidebar-brand">
-        <strong>Night Economy</strong>
+        <div className="portal-sidebar-brand-top">
+          <strong>Night Economy</strong>
+          <button aria-label={isPinned ? "Collapse navigation" : "Keep navigation open"} className="portal-nav-toggle" onClick={onTogglePinned} type="button">
+            <span aria-hidden="true">☰</span><b>{isPinned ? "Collapse" : "Navigation"}</b>
+          </button>
+        </div>
         <span className="portal-sidebar-venue">{venueName}</span>
       </div>
-      <button aria-label={isPinned ? "Collapse navigation" : "Keep navigation open"} className="portal-nav-toggle" onClick={onTogglePinned} type="button">
-        <span aria-hidden="true">☰</span><b>{isPinned ? "Collapse" : "Navigation"}</b>
-      </button>
       {accessibleVenues.length > 1 && (
         <label className="portal-venue-switcher">
           <span>Switch venue</span>
