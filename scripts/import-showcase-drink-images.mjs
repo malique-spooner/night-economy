@@ -7,7 +7,7 @@ const venueId = "ven_showcase";
 const maxOutputBytes = 5 * 1024 * 1024;
 const sources = [
   ["show_cocktails_01", "Espresso Martini", "https://upload.wikimedia.org/wikipedia/commons/3/3e/Espresso_martini_-_November_2024_-_Sarah_Stierch.jpg"],
-  ["show_cocktails_02", "Margarita", "https://upload.wikimedia.org/wikipedia/commons/1/1d/Margarita_de_lim%C3%B3n%2C_Mazatl%C3%A1n%2C_23_de_noviembre_de_2022_13.jpg"],
+  ["show_cocktails_02", "Margarita", "https://upload.wikimedia.org/wikipedia/commons/f/f0/Margarita_2.jpg"],
   ["show_cocktails_03", "Aperol Spritz", "https://upload.wikimedia.org/wikipedia/commons/8/88/Aperol_Spritz_%28Aperol_Spritz_Original_Bar%29_%2842171686322%29.jpg"],
   ["show_cocktails_04", "Old Fashioned", "https://upload.wikimedia.org/wikipedia/commons/6/65/Images_of_drinks_with_neutral_Background%3B_Old_Fashioned_%28cocktail%29%2C_Whisky.jpg"],
   ["show_cocktails_05", "Negroni", "https://upload.wikimedia.org/wikipedia/commons/2/22/Negroni_on_the_Rocks.jpg"],
@@ -18,8 +18,8 @@ const sources = [
   ["show_cocktails_10", "Daiquiri", "https://upload.wikimedia.org/wikipedia/commons/9/99/Szechuan_Daiquiri.jpg"],
   ["show_cocktails_11", "Hugo Spritz", "https://upload.wikimedia.org/wikipedia/commons/5/5f/Hugo_Cocktail_2013-08-03_20-24.jpg"],
   ["show_cocktails_12", "Bloody Mary", "https://upload.wikimedia.org/wikipedia/commons/6/63/Bloody_Mary_at_the_Town_Square_-_May_2024_-_Sarah_Stierch.jpg"],
-  ["show_cocktails_13", "Cosmopolitan", "https://commons.wikimedia.org/wiki/Special:FilePath/Cosmopolitan_-_CrystalMixer.jpg?width=2560"],
-  ["show_cocktails_14", "French 75", "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/commons/0/0b/French_75.jpg&w=2560&output=jpg"],
+  ["show_cocktails_13", "Cosmopolitan", "https://upload.wikimedia.org/wikipedia/commons/0/0a/Cosmopolitan_-_CrystalMixer.jpg"],
+  ["show_cocktails_14", "French 75", "https://upload.wikimedia.org/wikipedia/commons/0/0b/French_75.jpg"],
 ];
 
 const url = process.env.VITE_SUPABASE_URL;

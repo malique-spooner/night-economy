@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { MarketPriceHistoryPoint, MarketProductPatch, PosProduct } from "../../api/market";
 import type { MarketProduct } from "../../engine/types";
 import { formatMoney } from "../format";
@@ -23,6 +23,7 @@ type Props = {
 export function PortalDrinkRow({ allProducts, history, historyLoading, marketLive, onChange, onLogoRemove, onLogoUpload, onSelect, posProducts, product, selected }: Props) {
   const categoryOptions = portalCategoryOptions(allProducts, product.category);
   const imageInput = useRef<HTMLInputElement>(null);
+  const [isImagePreviewOpen, setImagePreviewOpen] = useState(false);
   const linkedPos = posProducts.find(candidate => candidate.id === product.posProductId);
   const isConnected = Boolean(linkedPos && linkedPos.isCurrent !== false);
   const canGoLive = isConnected && !product.isArchived;
@@ -30,9 +31,17 @@ export function PortalDrinkRow({ allProducts, history, historyLoading, marketLiv
   return (
     <article className={`portal-drink-row ${product.isSoldOut ? "paused" : ""} ${product.isArchived ? "archived" : ""} ${!isConnected ? "mapping-lost" : ""} ${selected ? "selected" : ""}`}>
       <div className="portal-drink-symbol">
-        <button aria-label={`${product.logoUrl ? "Replace" : "Add"} drink image for ${product.name}`} className={`portal-logo-picker ${product.logoUrl ? "has-image" : ""}`} title={`${product.logoUrl ? "Replace" : "Add"} drink image`} type="button" onClick={() => imageInput.current?.click()}>{product.logoUrl ? <img alt={`${product.name} drink`} src={product.logoUrl} /> : <b aria-hidden="true">+</b>}</button>
+        <button aria-label={`${product.logoUrl ? "Preview" : "Add"} drink image for ${product.name}`} className={`portal-logo-picker ${product.logoUrl ? "has-image" : ""}`} title={`${product.logoUrl ? "Preview" : "Add"} drink image`} type="button" onClick={() => product.logoUrl ? setImagePreviewOpen(true) : imageInput.current?.click()}>{product.logoUrl ? <img alt={`${product.name} drink`} src={product.logoUrl} /> : <b aria-hidden="true">+</b>}</button>
         <input ref={imageInput} accept="image/png,image/jpeg,image/webp,image/svg+xml" aria-label={`Upload drink image for ${product.name}`} hidden onChange={event => { const file = event.target.files?.[0]; if (file) onLogoUpload(product.id, file); event.currentTarget.value = ""; }} type="file" />
       </div>
+      {isImagePreviewOpen && product.logoUrl && <div aria-label={`${product.name} drink image preview`} aria-modal="true" className="portal-image-preview-backdrop" onMouseDown={() => setImagePreviewOpen(false)} role="dialog">
+        <section className="portal-image-preview-dialog" onMouseDown={event => event.stopPropagation()}>
+          <button aria-label="Close image preview" className="portal-image-preview-close" type="button" onClick={() => setImagePreviewOpen(false)}>×</button>
+          <img alt={`${product.name} drink`} src={product.logoUrl} />
+          <div><strong>{product.name}</strong><span>Drink image</span></div>
+          <footer><button className="portal-image-preview-replace" type="button" onClick={() => { setImagePreviewOpen(false); imageInput.current?.click(); }}>Replace image</button><button className="portal-image-preview-remove" type="button" onClick={() => { setImagePreviewOpen(false); onLogoRemove(product.id); }}>Remove image</button></footer>
+        </section>
+      </div>}
       <label className="portal-drink-name">
         <span>Market name</span>
         <input value={product.name} onChange={event => onChange(product.id, { name: event.target.value }, { persist: false })} onBlur={event => onChange(product.id, { name: event.target.value })} />

@@ -5,7 +5,7 @@ The Showcase venue uses full-resolution cocktail photography from Wikimedia Comm
 | Drink | Source | Licence |
 | --- | --- | --- |
 | Espresso Martini | [Sarah Stierch, November 2024](https://commons.wikimedia.org/wiki/File:Espresso_martini_-_November_2024_-_Sarah_Stierch.jpg) | CC0 |
-| Margarita | [Margarita de limón](https://commons.wikimedia.org/wiki/File:Margarita_de_lim%C3%B3n,_Mazatl%C3%A1n,_23_de_noviembre_de_2022_13.jpg) | CC0 |
+| Margarita | [Margarita 2](https://commons.wikimedia.org/wiki/File:Margarita_2.jpg) | CC BY-SA 3.0 |
 | Aperol Spritz | [Aperol Spritz Original Bar](https://commons.wikimedia.org/wiki/File:Aperol_Spritz_(Aperol_Spritz_Original_Bar)_(42171686322).jpg) | CC BY-SA 2.0 |
 | Old Fashioned | [Neutral background Old Fashioned](https://commons.wikimedia.org/wiki/File:Images_of_drinks_with_neutral_Background;_Old_Fashioned_(cocktail),_Whisky.jpg) | CC BY-SA 4.0 |
 | Negroni | [Negroni on the Rocks](https://commons.wikimedia.org/wiki/File:Negroni_on_the_Rocks.jpg) | CC BY-SA 3.0 |
