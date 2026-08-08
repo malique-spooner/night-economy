@@ -16,7 +16,7 @@ export function MobileMarketRow({ currency, product, rank }: Props) {
   return (
     <article className={`mobile-market-row ${trend} accent-${accent}`}>
       <div className="mobile-drink-mark" aria-hidden="true">
-        <span>{mobileTickerSymbol(product.name)}</span>
+        {product.logoUrl ? <img alt="" src={product.logoUrl} /> : <span>{mobileTickerSymbol(product.name)}</span>}
       </div>
       <div className="mobile-market-main">
         <div className="mobile-market-name">
