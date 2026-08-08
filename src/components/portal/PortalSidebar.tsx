@@ -44,7 +44,7 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
           onClick={() => onTabChange("start")}
           type="button"
         >
-          <span className="portal-nav-icon" aria-hidden="true">⌁</span><span className="portal-nav-label">Start</span>
+          <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="start" /></span><span className="portal-nav-label">Start</span>
           <small>Market controls</small>
         </button>
         <button
@@ -52,7 +52,7 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
           onClick={() => onTabChange("runs")}
           type="button"
         >
-          <span className="portal-nav-icon" aria-hidden="true">◷</span><span className="portal-nav-label">Run history</span>
+          <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="history" /></span><span className="portal-nav-label">Run history</span>
           <small>Previous services</small>
         </button>
         <button
@@ -60,24 +60,37 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
           onClick={() => onTabChange("account")}
           type="button"
         >
-          <span className="portal-nav-icon" aria-hidden="true">◉</span><span className="portal-nav-label">Settings</span>
+          <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="settings" /></span><span className="portal-nav-label">Settings</span>
           <small>Venue and display</small>
         </button>
         <a className="portal-nav-item portal-nav-link" href={`/tv/${encodeURIComponent(venueSlug)}`} rel="noreferrer" target="_blank">
-          <span className="portal-nav-icon" aria-hidden="true">▣</span><span className="portal-nav-label">Market</span>
+          <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="market" /></span><span className="portal-nav-label">Market</span>
           <small>TV display</small>
         </a>
         <a className="portal-nav-item portal-nav-link" href={`/menu/${encodeURIComponent(venueSlug)}`} rel="noreferrer" target="_blank">
-          <span className="portal-nav-icon" aria-hidden="true">◫</span><span className="portal-nav-label">Mobile market</span>
+          <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="mobile" /></span><span className="portal-nav-label">Mobile market</span>
           <small>Guest menu</small>
         </a>
       </nav>
       <div className="portal-sidebar-foot">
         {simulatorHref && <a className="portal-nav-item portal-nav-link" href={simulatorHref}>
-          <span className="portal-nav-icon" aria-hidden="true">◌</span><span className="portal-nav-label">Simulator</span>
+          <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="simulator" /></span><span className="portal-nav-label">Simulator</span>
         </a>}
-        <button className="portal-signout" type="button" onClick={onSignOut}><span aria-hidden="true">↩</span><b>Sign out</b></button>
+        <button className="portal-signout" type="button" onClick={onSignOut}><span aria-hidden="true"><NavIcon name="signout" /></span><b>Sign out</b></button>
       </div>
     </aside>
   );
+}
+
+type NavIconName = "start" | "history" | "settings" | "market" | "mobile" | "simulator" | "signout";
+
+function NavIcon({ name }: { name: NavIconName }) {
+  const common = { fill: "none", stroke: "currentColor", strokeLinecap: "round" as const, strokeLinejoin: "round" as const, strokeWidth: 1.8 };
+  if (name === "start") return <svg viewBox="0 0 24 24" {...common}><path d="M5 4v16l14-8L5 4Z" /></svg>;
+  if (name === "history") return <svg viewBox="0 0 24 24" {...common}><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5M12 7v5l3 2" /></svg>;
+  if (name === "settings") return <svg viewBox="0 0 24 24" {...common}><path d="M4 7h16M4 17h16M8 7a2 2 0 1 0 0 .01M16 17a2 2 0 1 0 0 .01" /></svg>;
+  if (name === "market") return <svg viewBox="0 0 24 24" {...common}><rect x="3" y="4" width="18" height="13" rx="2" /><path d="m7 14 3-3 2 2 4-5M9 21h6" /></svg>;
+  if (name === "mobile") return <svg viewBox="0 0 24 24" {...common}><rect x="7" y="2.5" width="10" height="19" rx="2" /><path d="M11 18.5h2" /></svg>;
+  if (name === "simulator") return <svg viewBox="0 0 24 24" {...common}><path d="M9 3h6M10 3v6l-5.1 8.3A2.4 2.4 0 0 0 7 21h10a2.4 2.4 0 0 0 2.1-3.7L14 9V3M8.5 16h7" /></svg>;
+  return <svg viewBox="0 0 24 24" {...common}><path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h9" /></svg>;
 }

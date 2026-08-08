@@ -7641,14 +7641,15 @@ body[data-app-view='site'] .site-section.site-subscribe{align-items:start;paddin
   body[data-app-view='portal'] .portal-nav-link{text-decoration:none;color:inherit}
   body[data-app-view='portal'] .portal-nav-item{min-height:50px;padding:0;width:48px;grid-template-columns:48px 1fr;align-items:center;gap:8px;border-radius:13px;overflow:hidden;transition:width .26s ease,background .16s ease}
   body[data-app-view='portal'] .portal-sidebar:hover .portal-nav-item,body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-nav-item{width:100%;padding-right:12px}
-  body[data-app-view='portal'] .portal-nav-icon{display:grid;place-items:center;width:48px;height:50px;font-family:'DM Mono',monospace;font-size:19px}
+  body[data-app-view='portal'] .portal-nav-icon{display:grid;place-items:center;width:48px;height:50px}
+  body[data-app-view='portal'] .portal-nav-icon svg,body[data-app-view='portal'] .portal-signout>span svg{width:21px;height:21px;stroke-width:1.9}
   body[data-app-view='portal'] .portal-nav-label{font-size:15px!important;letter-spacing:0!important;white-space:nowrap;opacity:0;transform:translateX(-8px);transition:opacity .16s ease,transform .16s ease}
   body[data-app-view='portal'] .portal-nav-item small{display:none}
   body[data-app-view='portal'] .portal-sidebar:hover .portal-nav-label,body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-nav-label{opacity:1;transform:none}
   body[data-app-view='portal'] .portal-sidebar-foot{margin-top:auto;display:grid;gap:8px}
   body[data-app-view='portal'] .portal-signout{width:48px;min-height:50px;padding:0;display:flex;align-items:center;gap:10px;border-radius:13px;overflow:hidden;transition:width .26s ease}
   body[data-app-view='portal'] .portal-sidebar:hover .portal-signout,body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-signout{width:100%;padding:0 14px}
-  body[data-app-view='portal'] .portal-signout>span{width:48px;text-align:center;font-size:19px;line-height:1}
+  body[data-app-view='portal'] .portal-signout>span{display:grid;place-items:center;width:48px;line-height:1}
   body[data-app-view='portal'] .portal-signout b{white-space:nowrap;opacity:0;transition:opacity .16s ease;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
   body[data-app-view='portal'] .portal-sidebar:hover .portal-signout b,body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-signout b{opacity:1}
   body[data-app-view='portal'] .portal-main{padding:34px min(4vw,66px)}
@@ -7657,6 +7658,7 @@ body[data-app-view='site'] .site-section.site-subscribe{align-items:start;paddin
 
 /* Every surface owns the viewport; no shared app padding should shrink it. */
 #root{width:100%;min-height:100%}
+body[data-app-view='portal'] .portal-nav-icon svg,body[data-app-view='portal'] .portal-signout>span svg{display:block;width:21px;height:21px;stroke-width:1.9}
 .alt-view{min-height:100dvh}
 body[data-app-view='portal'] .portal-view{padding:0;overflow:auto}
 body[data-app-view='portal'] .portal-layout{min-height:100dvh;border:0;border-radius:0;box-shadow:none}
