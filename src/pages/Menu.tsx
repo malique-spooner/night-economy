@@ -1,6 +1,5 @@
 import { MobileCategoryRail } from "../components/mobile/MobileCategoryRail";
 import { MobileHero } from "../components/mobile/MobileHero";
-import { MobileMarketBrief } from "../components/mobile/MobileMarketBrief";
 import { MobileMarketSection } from "../components/mobile/MobileMarketSection";
 import { MarketClosedExperience } from "../components/market/MarketClosedExperience";
 import { mobileCategorySectionId } from "../components/mobile/mobileHelpers";
@@ -39,7 +38,6 @@ export function Menu({ venueSlug }: Props) {
         <div className="mobile-shell">
           <MobileHero venueName={state.venue.name} />
           <main className="mobile-menu">
-            <MobileMarketBrief products={activeProducts} venue={state.venue} />
             <MobileCategoryRail categories={categoryLinks} />
             {groups.map(([category, products]) => (
               <MobileMarketSection category={category} products={products} venue={state.venue} key={category} />
