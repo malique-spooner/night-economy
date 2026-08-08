@@ -8,6 +8,22 @@ export type ProductTrend = "up" | "dn";
 export const TV_CATEGORY_PAGE_LIMIT = 12;
 export const TV_FEATURED_PRODUCTS_PER_CATEGORY = 3;
 
+const defaultDrinkArtwork = {
+  beer: "/images/default-drink-art/beer.webp",
+  cocktails: "/images/default-drink-art/cocktails.webp",
+  spirits: "/images/default-drink-art/spirits.webp",
+  wine: "/images/default-drink-art/wine.webp",
+} as const;
+
+/** The venue's category photography fills in whenever an individual drink has no image. */
+export function defaultDrinkImage(category: string) {
+  const normalized = category.trim().toLowerCase();
+  if (normalized.includes("beer")) return defaultDrinkArtwork.beer;
+  if (normalized.includes("spirit")) return defaultDrinkArtwork.spirits;
+  if (normalized.includes("wine")) return defaultDrinkArtwork.wine;
+  return defaultDrinkArtwork.cocktails;
+}
+
 export function productTrend(product: MarketProduct): ProductTrend {
   return product.currentPriceMinor >= product.basePriceMinor ? "up" : "dn";
 }

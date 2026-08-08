@@ -1,6 +1,6 @@
 import type { MarketProduct, Venue } from "../../engine/types";
 import { formatMoney } from "../format";
-import { formatChangePercent, getStoryProduct, movementLabel, productTrend } from "./tvHelpers";
+import { defaultDrinkImage, formatChangePercent, getStoryProduct, movementLabel, productTrend } from "./tvHelpers";
 
 type Props = {
   products: MarketProduct[];
@@ -14,7 +14,7 @@ export function TvStoryPanel({ products, venue }: Props) {
   return (
     <div className={`rpanel story-${trend} ${storyProduct?.isSoldOut ? "story-sold-out" : ""}`}>
       <div className="pview active" id="pv0">
-        {storyProduct?.logoUrl ? <img alt="" className="story-product-art" src={storyProduct.logoUrl} /> : storyProduct ? <div aria-hidden="true" className={`story-product-fallback ${trend}`}><i></i><i></i><i></i></div> : <div className="bulletin-art" aria-hidden="true"></div>}
+        {storyProduct ? <img alt="" className="story-product-art" src={storyProduct.logoUrl ?? defaultDrinkImage(storyProduct.category)} /> : <div className="bulletin-art" aria-hidden="true"></div>}
         <div className="panel-tag tag-market">Breaking News</div>
         <div className="bulletin-layout">
           <div className="bulletin-stack">

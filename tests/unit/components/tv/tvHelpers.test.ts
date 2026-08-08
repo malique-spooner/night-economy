@@ -4,6 +4,7 @@ import {
   categoryChangePercent,
   categoryClass,
   categoryLabel,
+  defaultDrinkImage,
   formatChangePercent,
   getCategoryFeaturedProducts,
   getFeaturedProducts,
@@ -45,6 +46,14 @@ describe("tvHelpers", () => {
     expect(productTrend(product({ currentPriceMinor: 900 }))).toBe("dn");
     expect(formatChangePercent(product({ currentPriceMinor: 1125 }))).toBe("+12.5%");
     expect(formatChangePercent(product({ currentPriceMinor: 875 }))).toBe("-12.5%");
+  });
+
+  it("uses the supplied category photography when a drink has no individual image", () => {
+    expect(defaultDrinkImage("Beer")).toBe("/images/default-drink-art/beer.webp");
+    expect(defaultDrinkImage("Spirits")).toBe("/images/default-drink-art/spirits.webp");
+    expect(defaultDrinkImage("Wine")).toBe("/images/default-drink-art/wine.webp");
+    expect(defaultDrinkImage("Cocktails")).toBe("/images/default-drink-art/cocktails.webp");
+    expect(defaultDrinkImage("Other drinks")).toBe("/images/default-drink-art/cocktails.webp");
   });
 
   it("chooses movement labels from product state and price movement", () => {

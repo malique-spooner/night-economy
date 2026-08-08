@@ -1,7 +1,7 @@
 import type { MarketProduct } from "../../engine/types";
 import { formatMoney } from "../format";
 import { PricePosition } from "./PricePosition";
-import { formatChangePercent, movementLabel, productTrend } from "./tvHelpers";
+import { defaultDrinkImage, formatChangePercent, movementLabel, productTrend } from "./tvHelpers";
 
 type Props = {
   currency: string;
@@ -14,7 +14,7 @@ export function FeaturedProductTile({ currency, product, rank }: Props) {
 
   return (
     <article className={`feature-tile ${trend} ${product.isSoldOut ? "sold-out" : ""}`}>
-      {product.logoUrl ? <img alt="" className="feature-art" src={product.logoUrl} /> : <div aria-hidden="true" className={`feature-fallback-art ${trend}`}><i></i><i></i><i></i></div>}
+      <img alt="" className="feature-art" src={product.logoUrl ?? defaultDrinkImage(product.category)} />
       <div className="feature-shade" aria-hidden="true"></div>
       <div className="feature-tile-top">
         <span className="feature-rank">0{rank}</span>
