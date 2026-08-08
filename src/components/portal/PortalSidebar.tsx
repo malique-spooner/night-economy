@@ -19,14 +19,13 @@ type Props = {
 export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount, onSignOut, onTabChange, onTogglePinned, simulatorHref, totalCount, venueName, venueSlug }: Props) {
   return (
     <aside className={`portal-sidebar ${isPinned ? "is-pinned" : ""}`}>
+      <div className="portal-sidebar-brand">
+        <strong>Night Economy</strong>
+        <span className="portal-sidebar-venue">{venueName}</span>
+      </div>
       <button aria-label={isPinned ? "Collapse navigation" : "Keep navigation open"} className="portal-nav-toggle" onClick={onTogglePinned} type="button">
         <span aria-hidden="true">☰</span><b>{isPinned ? "Collapse" : "Navigation"}</b>
       </button>
-      <div className="portal-sidebar-brand">
-        <span className="portal-sidebar-mark" aria-hidden="true">NE</span>
-        <div className="portal-sidebar-kicker">Night Economy · venue account</div>
-        <strong>{venueName}</strong>
-      </div>
       {accessibleVenues.length > 1 && (
         <label className="portal-venue-switcher">
           <span>Switch venue</span>
@@ -64,10 +63,6 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
           <span className="portal-nav-icon" aria-hidden="true">◉</span><span className="portal-nav-label">Settings</span>
           <small>Venue and display</small>
         </button>
-        {simulatorHref && <a className="portal-nav-item portal-nav-link" href={simulatorHref}>
-          <span className="portal-nav-icon" aria-hidden="true">◌</span><span className="portal-nav-label">Simulator</span>
-          <small>Development tool</small>
-        </a>}
         <a className="portal-nav-item portal-nav-link" href={`/tv/${encodeURIComponent(venueSlug)}`} rel="noreferrer" target="_blank">
           <span className="portal-nav-icon" aria-hidden="true">▣</span><span className="portal-nav-label">Market</span>
           <small>TV display</small>
@@ -78,6 +73,9 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
         </a>
       </nav>
       <div className="portal-sidebar-foot">
+        {simulatorHref && <a className="portal-nav-item portal-nav-link" href={simulatorHref}>
+          <span className="portal-nav-icon" aria-hidden="true">◌</span><span className="portal-nav-label">Simulator</span>
+        </a>}
         <button className="portal-signout" type="button" onClick={onSignOut}><span aria-hidden="true">↩</span><b>Sign out</b></button>
       </div>
     </aside>
