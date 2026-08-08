@@ -6,15 +6,13 @@ type Props = {
   canEditTvStoryCategories: boolean;
   email: string;
   isSignedIn: boolean;
-  liveCount: number;
   onTvStoryCategoriesChange: (categories: string[]) => void;
   role: VenueMemberRole | null;
   source: "seed" | "supabase";
-  totalCount: number;
   venue: Venue;
 };
 
-export function PortalAccountPage({ categories, canEditTvStoryCategories, email, isSignedIn, liveCount, onTvStoryCategoriesChange, role, source, totalCount, venue }: Props) {
+export function PortalAccountPage({ categories, canEditTvStoryCategories, email, isSignedIn, onTvStoryCategoriesChange, role, source, venue }: Props) {
   const access = source === "seed" ? "Demo access" : role ? `${role[0].toUpperCase()}${role.slice(1)} access` : "No venue access";
   const toggleStoryCategory = (category: string) => {
     const selected = venue.tvStoryCategories.includes(category);
@@ -23,32 +21,12 @@ export function PortalAccountPage({ categories, canEditTvStoryCategories, email,
   };
 
   return (
-    <section className="portal-page-grid">
-      <article className="portal-account-card portal-account-card-hero">
-        <h2>{source === "supabase" ? "Connected venue" : "Demo venue"}</h2>
-        <div className="portal-account-actions">
-          <button className="manager-action" disabled type="button">Manage subscription</button>
-          <button className="manager-action" disabled type="button">Billing details</button>
-        </div>
-      </article>
-
-      <article className="portal-account-card">
-        <dl className="portal-account-list">
-          <div><dt>Venue</dt><dd>{venue.name}</dd></div>
-          <div><dt>Operator email</dt><dd>{isSignedIn ? email || "Signed in" : "Not signed in"}</dd></div>
-          <div><dt>Timezone</dt><dd>{venue.timezone}</dd></div>
-          <div><dt>Currency</dt><dd>{venue.currency}</dd></div>
-        </dl>
-      </article>
-
-      <article className="portal-account-card">
-        <dl className="portal-account-list">
-          <div><dt>Status</dt><dd>{venue.marketLive ? "Market live" : "Market paused"}</dd></div>
-          <div><dt>Account</dt><dd>{access}</dd></div>
-          <div><dt>Products</dt><dd>{liveCount}/{totalCount} live</dd></div>
-          <div><dt>Data</dt><dd>{source === "supabase" ? "Supabase" : "Seed fallback"}</dd></div>
-        </dl>
-      </article>
+    <section className="portal-page-grid portal-settings-page">
+      <header className="portal-settings-heading">
+        <span>Venue settings</span>
+        <h1>Settings</h1>
+        <p>Control the details that apply across your venue and its displays.</p>
+      </header>
 
       <article className="portal-account-card portal-tv-story-settings">
         <span>TV story panel</span>
@@ -61,6 +39,23 @@ export function PortalAccountPage({ categories, canEditTvStoryCategories, email,
           </div>
         </details>
         {!canEditTvStoryCategories && <small>Owner or admin access required to change this.</small>}
+      </article>
+
+      <article className="portal-account-card portal-settings-details">
+        <h2>Venue</h2>
+        <dl className="portal-account-list">
+          <div><dt>Venue</dt><dd>{venue.name}</dd></div>
+          <div><dt>Timezone</dt><dd>{venue.timezone}</dd></div>
+          <div><dt>Currency</dt><dd>{venue.currency}</dd></div>
+        </dl>
+      </article>
+
+      <article className="portal-account-card portal-settings-details">
+        <h2>Access</h2>
+        <dl className="portal-account-list">
+          <div><dt>Operator</dt><dd>{isSignedIn ? email || "Signed in" : "Not signed in"}</dd></div>
+          <div><dt>Permission</dt><dd>{access}</dd></div>
+        </dl>
       </article>
     </section>
   );

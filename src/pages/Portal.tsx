@@ -585,11 +585,9 @@ export function Portal({ venueSlug }: Props) {
                     canEditTvStoryCategories={canManageSettings}
                     email={signedInEmail}
                     isSignedIn={isSignedIn}
-                    liveCount={liveCount}
                     onTvStoryCategoriesChange={tvStoryCategories => { void handleVenueSettingsChange({ tvStoryCategories }); }}
                     role={memberRole}
                     source={state.source}
-                    totalCount={state.products.length}
                     venue={state.venue}
                   />
                 )}

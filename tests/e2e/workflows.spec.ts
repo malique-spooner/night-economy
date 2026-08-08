@@ -195,7 +195,7 @@ test("an owner signs in and clicks through scheduling, service controls, history
   const chooser = await chooserPromise;
   await chooser.setFiles({ name: "espresso.png", mimeType: "image/png", buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64") });
   await expect(espresso.getByAltText("Espresso Martini drink")).toHaveAttribute("src", /storage\/v1\/object\/public\/market-logos/);
-  await expect(espresso.getByRole("button", { name: "Replace drink image for Espresso Martini" })).toBeVisible();
+  await expect(espresso.getByRole("button", { name: "Preview drink image for Espresso Martini" })).toBeVisible();
   await expect(espresso).not.toContainText("Replace");
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && typeof (write.body as { logo_url?: string })?.logo_url === "string")).toBe(true);
 
@@ -258,11 +258,9 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await page.getByRole("button", { name: "Back to run history" }).click();
   await expect(page.getByRole("heading", { name: "Previous runs" })).toBeVisible();
 
-  await page.getByRole("button", { name: /Account/ }).click();
-  await expect(page.getByRole("heading", { name: "Connected venue" })).toBeVisible();
+  await page.getByRole("button", { name: /Settings/ }).click();
+  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await expect(page.getByText("Owner access", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Manage subscription" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Billing details" })).toBeDisabled();
 
   await page.getByRole("button", { name: /Start/ }).click();
   await expect(page.getByRole("heading", { name: "Portal" })).toBeVisible();

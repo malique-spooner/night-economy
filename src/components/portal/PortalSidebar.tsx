@@ -61,8 +61,8 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
           onClick={() => onTabChange("account")}
           type="button"
         >
-          <span className="portal-nav-icon" aria-hidden="true">◉</span><span className="portal-nav-label">Account</span>
-          <small>Venue settings</small>
+          <span className="portal-nav-icon" aria-hidden="true">◉</span><span className="portal-nav-label">Settings</span>
+          <small>Venue and display</small>
         </button>
         {simulatorHref && <a className="portal-nav-item portal-nav-link" href={simulatorHref}>
           <span className="portal-nav-icon" aria-hidden="true">◌</span><span className="portal-nav-label">Simulator</span>
