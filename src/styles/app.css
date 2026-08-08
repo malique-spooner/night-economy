@@ -113,7 +113,7 @@ html,body{width:100%;height:100%;background:#06060e;overflow:hidden;font-family:
 .cat-meta{font-family:'DM Mono',monospace;font-size:12px;color:rgba(255,255,255,0.4)}
 
 /* DRINK ROW */
-.drow{display:grid;grid-template-columns:1fr 96px 110px 80px 28px;align-items:center;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.04);gap:4px;position:relative;transition:all 0.2s;border-radius:4px;pointer-events:none}
+.drow{display:grid;grid-template-columns:1fr 96px 110px 80px 28px;align-items:center;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.04);gap:4px;position:relative;transition:all 0.2s;border-radius:4px;pointer-events:none}.drow>div:first-child{min-width:0}
 .drow.glow-up{animation:glowUp 1.2s ease-out forwards}
 .drow.glow-dn{animation:glowDn 1.2s ease-out forwards}
 .drow.crash-hit{animation:crashHit 0.6s ease-out forwards}
@@ -129,7 +129,7 @@ html,body{width:100%;height:100%;background:#06060e;overflow:hidden;font-family:
 .drow.decaying::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:2px;background:rgba(61,214,140,0.4);box-shadow:0 0 6px rgba(61,214,140,0.2)}
 .drow.sold-out{opacity:0.45;filter:saturate(0.7)}
 
-.dname{font:750 clamp(20px,1.55vw,27px)/1.05 'Inter',sans-serif;color:#fffdf2;letter-spacing:-0.025em}
+.dname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:750 clamp(20px,1.55vw,27px)/1.05 'Inter',sans-serif;color:#fffdf2;letter-spacing:-0.025em}
 .dcat-sub{font:700 11px/1.2 'Inter',sans-serif;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.58);margin-top:4px}
 .val-badge{display:inline-flex;align-items:center;gap:3px;font-size:8px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:1px 5px;border-radius:3px;background:rgba(61,214,140,0.14);color:#3dd68c;margin-left:6px;vertical-align:middle}
 
@@ -3484,6 +3484,7 @@ body[data-app-view='portal'] .portal-header h1{
   text-transform:uppercase;
   color:#6d7f90;
 }
+.portal-drink-name > span small{font:inherit;font-size:8px;letter-spacing:.04em;color:#8a9aab}
 
 .portal-live-toggle{
   border:none;

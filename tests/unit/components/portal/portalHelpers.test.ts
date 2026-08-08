@@ -11,6 +11,7 @@ import {
   prepareMarketProductConfiguration,
   PRIORITY_DRINKS_PER_CATEGORY_LIMIT,
   TV_CATEGORY_PAGE_LIMIT,
+  TV_DRINK_NAME_MAX_LENGTH,
   venueSettingsAccessMessage,
   wouldExceedPriorityLimit,
   wouldNeedAnotherTvPage,
@@ -93,6 +94,7 @@ describe("normalizeMarketProductPatch", () => {
 
   it("normalizes editable display name and symbol only", () => {
     expect(normalizeMarketProductPatch(product, { name: "  Better Drink  ", symbol: "b-d!" })).toEqual({ name: "Better Drink", symbol: "BD" });
+    expect(normalizeMarketProductPatch(product, { name: "A market name that is far too long for the TV screen" }).name).toHaveLength(TV_DRINK_NAME_MAX_LENGTH);
   });
 });
 

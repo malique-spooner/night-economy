@@ -5,6 +5,7 @@ import { categoryLabel, groupProductsByCategory, TV_CATEGORY_PAGE_LIMIT, TV_FEAT
 
 export { TV_CATEGORY_PAGE_LIMIT };
 export const PRIORITY_DRINKS_PER_CATEGORY_LIMIT = TV_FEATURED_PRODUCTS_PER_CATEGORY;
+export const TV_DRINK_NAME_MAX_LENGTH = 28;
 
 export function portalCategories(products: MarketProduct[]) { return groupProductsByCategory(products).map(([category]) => category); }
 export function portalCategoryOptions(products: MarketProduct[], currentCategory: string) { return [...new Set([...portalCategories(products), currentCategory].filter(Boolean))]; }
@@ -26,7 +27,7 @@ export function normalizeMarketProductPatch(product: MarketProduct, patch: Marke
   const requestedCeiling = patch.ceilingPriceMinor ?? product.ceilingPriceMinor;
   const floorPriceMinor = Math.min(Math.max(0, requestedFloor), product.currentPriceMinor);
   const ceilingPriceMinor = Math.max(floorPriceMinor, requestedCeiling, product.currentPriceMinor);
-  return { ...patch, ...(patch.floorPriceMinor !== undefined || patch.ceilingPriceMinor !== undefined ? { floorPriceMinor, ceilingPriceMinor } : {}), ...(patch.name !== undefined ? { name: patch.name.trim() || product.name } : {}), ...(patch.symbol !== undefined ? { symbol: patch.symbol.replace(/[^a-z0-9]/gi, "").slice(0, 4).toUpperCase() || product.symbol } : {}) };
+  return { ...patch, ...(patch.floorPriceMinor !== undefined || patch.ceilingPriceMinor !== undefined ? { floorPriceMinor, ceilingPriceMinor } : {}), ...(patch.name !== undefined ? { name: patch.name.trim().slice(0, TV_DRINK_NAME_MAX_LENGTH) || product.name } : {}), ...(patch.symbol !== undefined ? { symbol: patch.symbol.replace(/[^a-z0-9]/gi, "").slice(0, 4).toUpperCase() || product.symbol } : {}) };
 }
 
 export function applyMarketProductPatch(products: MarketProduct[], productId: string, patch: MarketProductPatch): MarketProduct[] {

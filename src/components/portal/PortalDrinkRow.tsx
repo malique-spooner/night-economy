@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import type { MarketPriceHistoryPoint, MarketProductPatch, PosProduct } from "../../api/market";
 import type { MarketProduct } from "../../engine/types";
 import { formatMoney } from "../format";
-import { portalCategoryLabel, portalCategoryOptions } from "./portalHelpers";
+import { portalCategoryLabel, portalCategoryOptions, TV_DRINK_NAME_MAX_LENGTH } from "./portalHelpers";
 import { PortalMarketDetail } from "./PortalMarketDetail";
 import { PortalMoneyField } from "./PortalMoneyField";
 
@@ -43,8 +43,8 @@ export function PortalDrinkRow({ allProducts, history, historyLoading, marketLiv
         </section>
       </div>}
       <label className="portal-drink-name">
-        <span>Market name</span>
-        <input value={product.name} onChange={event => onChange(product.id, { name: event.target.value }, { persist: false })} onBlur={event => onChange(product.id, { name: event.target.value })} />
+        <span>Market name <small>{product.name.length}/{TV_DRINK_NAME_MAX_LENGTH}</small></span>
+        <input maxLength={TV_DRINK_NAME_MAX_LENGTH} value={product.name} onChange={event => onChange(product.id, { name: event.target.value }, { persist: false })} onBlur={event => onChange(product.id, { name: event.target.value })} />
       </label>
       <label className="portal-drink-cat"><span>Category</span><select value={product.category} onChange={event => onChange(product.id, { category: event.target.value })}>{categoryOptions.map(category => <option value={category} key={category}>{portalCategoryLabel(category)}</option>)}</select></label>
       <div className="portal-live-actions"><span>Live</span><button aria-label={`${product.isLive ? "Take" : "Make"} ${product.name} live`} className={`portal-live-toggle ${product.isLive ? "on" : "off"}`} disabled={!canGoLive} title={canGoLive ? undefined : "Connect this drink to an active POS product before it can go live"} type="button" onClick={() => onChange(product.id, { isLive: !product.isLive })}>{product.isLive ? "Live" : "Off"}</button></div>

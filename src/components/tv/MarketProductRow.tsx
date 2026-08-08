@@ -15,7 +15,7 @@ export function MarketProductRow({ currency, product }: Props) {
   return (
     <div className={`drow ${product.salesVelocity > 3 ? "fresh" : "decaying"} ${product.isSoldOut ? "sold-out" : ""}`}>
       <div>
-        <div className="dname">
+        <div className="dname" title={product.name}>
           {product.name}
           {product.isSoldOut ? <span className="val-badge">SOLD OUT</span> : null}
         </div>
