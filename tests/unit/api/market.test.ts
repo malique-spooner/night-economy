@@ -48,6 +48,7 @@ describe("mapVenueRow", () => {
       currency: "GBP",
       timezone: "Europe/London",
       marketLive: true,
+      tvStoryCategories: ["Cocktails"],
       marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }],
       crashIntervalMinutes: 60,
       launchDate: "2026-07-08",
@@ -66,6 +67,7 @@ describe("mapVenueRow", () => {
     });
 
     expect(mapped.marketLive).toBe(false);
+    expect(mapped.tvStoryCategories).toEqual(["Cocktails"]);
     expect(mapped.crashIntervalMinutes).toBe(30);
     expect(mapped.launchDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(mapped.launchStartTime).toMatch(/^\d{2}:\d{2}$/);

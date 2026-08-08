@@ -58,6 +58,7 @@ export type VenueRow = {
   currency: string;
   timezone: string;
   market_live?: boolean | null;
+  tv_story_categories?: unknown;
   market_schedule?: unknown;
   crash_interval_minutes?: number | null;
   launch_date?: string | null;
@@ -125,6 +126,7 @@ export function mapVenueRow(row: VenueRow): Venue {
     currency: row.currency,
     timezone: row.timezone,
     marketLive: row.market_live ?? defaults.marketLive,
+    tvStoryCategories: parseTvStoryCategories(row.tv_story_categories, defaults.tvStoryCategories),
     marketSchedule: Array.isArray(row.market_schedule) ? row.market_schedule as MarketScheduleEntry[] : defaults.marketSchedule,
     crashIntervalMinutes,
     launchDate: row.launch_date ?? defaults.launchDate,
@@ -388,6 +390,7 @@ function demoMarketProducts(): MarketProduct[] {
 export function toVenueMarketSettingsRowPatch(patch: VenueMarketSettingsPatch) {
   const rowPatch = {
     ...(patch.marketLive !== undefined ? { market_live: patch.marketLive } : {}),
+    ...(patch.tvStoryCategories !== undefined ? { tv_story_categories: patch.tvStoryCategories } : {}),
     ...(patch.crashIntervalMinutes !== undefined
       ? { crash_interval_minutes: patch.crashIntervalMinutes as CrashIntervalMinutes }
       : {}),
@@ -411,6 +414,12 @@ function withUpdatedAt<T extends Record<string, unknown>>(rowPatch: T) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function parseTvStoryCategories(value: unknown, fallback: string[]) {
+  if (!Array.isArray(value)) return fallback;
+  const categories = value.filter((category): category is string => typeof category === "string").map(category => category.trim()).filter(Boolean);
+  return categories.length ? [...new Set(categories)] : fallback;
 }
 
 function isPriceDecision(value: Record<string, unknown>): value is {

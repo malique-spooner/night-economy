@@ -581,9 +581,12 @@ export function Portal({ venueSlug }: Props) {
                   <PortalRunsPage currency={state.venue.currency} isLoading={runsLoading} products={state.products} runs={runs} timezone={state.venue.timezone} />
                 ) : (
                   <PortalAccountPage
+                    categories={[...new Set(state.products.filter(product => !product.isArchived).map(product => product.category))].sort((left, right) => left.localeCompare(right))}
+                    canEditTvStoryCategories={canManageSettings}
                     email={signedInEmail}
                     isSignedIn={isSignedIn}
                     liveCount={liveCount}
+                    onTvStoryCategoriesChange={tvStoryCategories => { void handleVenueSettingsChange({ tvStoryCategories }); }}
                     role={memberRole}
                     source={state.source}
                     totalCount={state.products.length}

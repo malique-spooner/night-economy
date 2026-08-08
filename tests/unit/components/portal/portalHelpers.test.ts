@@ -110,7 +110,7 @@ describe("market configuration access", () => {
   });
 
   it("keeps venue settings separate from product settings", () => {
-    expect(applyVenueSettingsPatch({ id: "ven_demo", slug: "demo", name: "Demo", currency: "GBP", timezone: "Europe/London", marketLive: false, marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }], crashIntervalMinutes: 30, launchDate: "2026-07-12", launchStartTime: "18:00", launchEndTime: "23:00" }, { marketLive: true })).toMatchObject({ marketLive: true, launchStartTime: "18:00" });
+    expect(applyVenueSettingsPatch({ id: "ven_demo", slug: "demo", name: "Demo", currency: "GBP", timezone: "Europe/London", marketLive: false, tvStoryCategories: ["Cocktails"], marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }], crashIntervalMinutes: 30, launchDate: "2026-07-12", launchStartTime: "18:00", launchEndTime: "23:00" }, { marketLive: true })).toMatchObject({ marketLive: true, launchStartTime: "18:00" });
   });
 
   it("requires a membership to configure live POS-backed products", () => {

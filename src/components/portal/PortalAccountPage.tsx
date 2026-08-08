@@ -2,17 +2,25 @@ import type { Venue } from "../../engine/types";
 import type { VenueMemberRole } from "../../api/memberships";
 
 type Props = {
+  categories: string[];
+  canEditTvStoryCategories: boolean;
   email: string;
   isSignedIn: boolean;
   liveCount: number;
+  onTvStoryCategoriesChange: (categories: string[]) => void;
   role: VenueMemberRole | null;
   source: "seed" | "supabase";
   totalCount: number;
   venue: Venue;
 };
 
-export function PortalAccountPage({ email, isSignedIn, liveCount, role, source, totalCount, venue }: Props) {
+export function PortalAccountPage({ categories, canEditTvStoryCategories, email, isSignedIn, liveCount, onTvStoryCategoriesChange, role, source, totalCount, venue }: Props) {
   const access = source === "seed" ? "Demo access" : role ? `${role[0].toUpperCase()}${role.slice(1)} access` : "No venue access";
+  const toggleStoryCategory = (category: string) => {
+    const selected = venue.tvStoryCategories.includes(category);
+    if (selected && venue.tvStoryCategories.length === 1) return;
+    onTvStoryCategoriesChange(selected ? venue.tvStoryCategories.filter(item => item !== category) : [...venue.tvStoryCategories, category]);
+  };
 
   return (
     <section className="portal-page-grid">
@@ -40,6 +48,19 @@ export function PortalAccountPage({ email, isSignedIn, liveCount, role, source, 
           <div><dt>Products</dt><dd>{liveCount}/{totalCount} live</dd></div>
           <div><dt>Data</dt><dd>{source === "supabase" ? "Supabase" : "Seed fallback"}</dd></div>
         </dl>
+      </article>
+
+      <article className="portal-account-card portal-tv-story-settings">
+        <span>TV story panel</span>
+        <h2>Featured categories</h2>
+        <p>The right-hand TV panel uses Cocktails only for now. Add other categories here when you want them included.</p>
+        <details>
+          <summary>{venue.tvStoryCategories.join(", ")}</summary>
+          <div className="portal-tv-category-options">
+            {categories.map(category => <label key={category}><input checked={venue.tvStoryCategories.includes(category)} disabled={!canEditTvStoryCategories || (venue.tvStoryCategories.length === 1 && venue.tvStoryCategories.includes(category))} onChange={() => toggleStoryCategory(category)} type="checkbox" /><span>{category}</span></label>)}
+          </div>
+        </details>
+        {!canEditTvStoryCategories && <small>Owner or admin access required to change this.</small>}
       </article>
     </section>
   );

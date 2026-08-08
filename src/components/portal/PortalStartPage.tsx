@@ -62,6 +62,7 @@ export function PortalStartPage({
   const visibleGroups = activeCategory ? groups.filter(([category]) => category === activeCategory) : groups;
   const settings: VenueMarketSettings = {
     marketLive: venue.marketLive,
+    tvStoryCategories: venue.tvStoryCategories,
     crashIntervalMinutes: venue.crashIntervalMinutes,
     marketSchedule: venue.marketSchedule,
     launchDate: venue.launchDate,

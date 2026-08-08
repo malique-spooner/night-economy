@@ -5,6 +5,7 @@ describe("defaultVenueMarketSettings", () => {
   it("creates input-ready defaults from a date", () => {
     expect(defaultVenueMarketSettings(new Date(2026, 6, 8, 20, 15))).toEqual({
       marketLive: false,
+      tvStoryCategories: ["Cocktails"],
       marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }],
       crashIntervalMinutes: 30,
       launchDate: "2026-07-08",

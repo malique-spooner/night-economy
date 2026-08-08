@@ -7,6 +7,7 @@ export function defaultVenueMarketSettings(now = new Date()): VenueMarketSetting
 
   return {
     marketLive: false,
+    tvStoryCategories: ["Cocktails"],
     marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }],
     crashIntervalMinutes: 30,
     launchDate: formatDateInput(now),

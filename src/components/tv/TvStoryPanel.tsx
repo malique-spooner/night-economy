@@ -8,7 +8,7 @@ type Props = {
 };
 
 export function TvStoryPanel({ products, venue }: Props) {
-  const storyProduct = getStoryProduct(products);
+  const storyProduct = getStoryProduct(products.filter(product => venue.tvStoryCategories.includes(product.category)));
   const trend = storyProduct ? productTrend(storyProduct) : "dn";
 
   return (

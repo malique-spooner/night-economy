@@ -48,6 +48,7 @@ const expectedMigrations = [
   "20260731074732_add_foreign_key_indexes.sql",
   "20260807074706_portal_pos_connection_status.sql",
   "20260808151406_enforce_market_product_categories.sql",
+  "20260808153024_add_tv_story_categories.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -116,6 +117,11 @@ function checkRequiredPatterns() {
       label: "market products require a real category",
       source: migrationSql["20260808151406_enforce_market_product_categories.sql"],
       pattern: /alter column category set not null[\s\S]+market_products_category_is_configured[\s\S]+not in \('uncategorized', 'uncategorised'\)/i,
+    },
+    {
+      label: "venues persist a non-empty TV story category selection",
+      source: migrationSql["20260808153024_add_tv_story_categories.sql"],
+      pattern: /add column if not exists tv_story_categories jsonb not null default '\["Cocktails"\]'::jsonb[\s\S]+jsonb_array_length\(tv_story_categories\) > 0[\s\S]+grant update \(tv_story_categories\) on public\.venues to authenticated/i,
     },
     {
       label: "market logo deletion is restricted to venue admins",
