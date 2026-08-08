@@ -1,12 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mobileCategorySectionId, mobileTickerSymbol } from "../../../../src/components/mobile/mobileHelpers";
-
-describe("mobileTickerSymbol", () => {
-  it("uses the first two words as a compact drink mark", () => {
-    expect(mobileTickerSymbol("Classic Espresso Martini")).toBe("CE");
-    expect(mobileTickerSymbol("Spritz")).toBe("S");
-  });
-});
+import { mobileCategorySectionId } from "../../../../src/components/mobile/mobileHelpers";
 
 describe("mobileCategorySectionId", () => {
   it("creates stable category section ids", () => {

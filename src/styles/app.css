@@ -980,6 +980,22 @@ body[data-app-view='site'] .site-view{
   color:#3dd68c;
 }
 
+.mobile-market-tape strong:has(.mobile-market-tape-art){
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:7px;
+}
+
+.mobile-market-tape-art{
+  width:22px;
+  height:22px;
+  flex:0 0 auto;
+  border-radius:6px;
+  object-fit:cover;
+  border:1px solid rgba(245,240,230,0.16);
+}
+
 .mobile-market-section{
   scroll-margin-top:76px;
   padding-top:22px;
@@ -5210,9 +5226,9 @@ body[data-app-view='mobile'] .mobile-market-list{
 
 body[data-app-view='mobile'] .mobile-market-row{
   position:relative;
-  grid-template-columns:44px minmax(0,1fr);
+  grid-template-columns:54px minmax(0,1fr);
   align-items:center;
-  min-height:72px;
+  min-height:80px;
   gap:12px;
   padding:10px 0;
   border-bottom:1px solid rgba(245,240,230,0.08);
@@ -5230,10 +5246,10 @@ body[data-app-view='mobile'] .mobile-market-row::before{
 }
 
 body[data-app-view='mobile'] .mobile-drink-mark{
-  min-width:44px;
-  height:34px;
-  padding:0 10px;
-  border-radius:999px;
+  width:54px;
+  height:54px;
+  padding:0;
+  border-radius:14px;
   display:grid;
   place-items:center;
   background:
@@ -5243,20 +5259,7 @@ body[data-app-view='mobile'] .mobile-drink-mark{
   box-shadow:0 10px 24px rgba(0,0,0,0.28);
 }
 
-body[data-app-view='mobile'] .mobile-drink-mark span{
-  max-width:28px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-  font-family:'DM Mono',monospace;
-  font-size:9px;
-  font-weight:800;
-  letter-spacing:0.12em;
-  text-transform:uppercase;
-}
-
 body[data-app-view='mobile'] .mobile-drink-mark:has(img){
-  padding:0;
   overflow:hidden;
   background:#14251d;
 }

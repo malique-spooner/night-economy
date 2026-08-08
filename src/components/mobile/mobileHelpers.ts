@@ -11,16 +11,6 @@ const categoryAccents: Record<string, string> = {
   mocktails: "mint",
 };
 
-export function mobileTickerSymbol(productName: string) {
-  return productName
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(word => word[0])
-    .join("")
-    .toUpperCase();
-}
-
 export function mobileCategorySectionId(category: string) {
   const slug = category
     .trim()

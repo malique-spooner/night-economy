@@ -1,7 +1,7 @@
 import type { MarketProduct } from "../../engine/types";
 import { formatMoney } from "../format";
-import { formatChangePercent, productTrend } from "../tv/tvHelpers";
-import { mobileAccent, mobileHook, mobileMovementMark, mobileTickerSymbol } from "./mobileHelpers";
+import { defaultDrinkImage, formatChangePercent, productTrend } from "../tv/tvHelpers";
+import { mobileAccent, mobileHook, mobileMovementMark } from "./mobileHelpers";
 
 type Props = {
   currency: string;
@@ -16,7 +16,7 @@ export function MobileMarketRow({ currency, product, rank }: Props) {
   return (
     <article className={`mobile-market-row ${trend} accent-${accent}`}>
       <div className="mobile-drink-mark" aria-hidden="true">
-        {product.logoUrl ? <img alt="" src={product.logoUrl} /> : <span>{mobileTickerSymbol(product.name)}</span>}
+        <img alt="" src={product.logoUrl ?? defaultDrinkImage(product.category)} />
       </div>
       <div className="mobile-market-main">
         <div className="mobile-market-name">

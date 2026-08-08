@@ -1,6 +1,5 @@
 import type { MarketProduct, Venue } from "../../engine/types";
-import { formatChangePercent, getStoryProduct, mobilePriceStatusLabel, productTrend } from "../tv/tvHelpers";
-import { mobileTickerSymbol } from "./mobileHelpers";
+import { defaultDrinkImage, formatChangePercent, getStoryProduct, mobilePriceStatusLabel, productTrend } from "../tv/tvHelpers";
 
 type Props = {
   products: MarketProduct[];
@@ -21,7 +20,13 @@ export function MobileMarketBrief({ products, venue }: Props) {
       <div className="mobile-market-tape">
         <span>{upCount} up · {downCount} down</span>
         <strong>
-          {highestMover ? mobileTickerSymbol(highestMover.name) : "NE"}{" "}
+          {highestMover ? (
+            <img
+              alt=""
+              className="mobile-market-tape-art"
+              src={highestMover.logoUrl ?? defaultDrinkImage(highestMover.category)}
+            />
+          ) : null}
           {highestMover ? formatChangePercent(highestMover).replace("+", "▲ ") : "▲ 0.0%"}
         </strong>
       </div>
