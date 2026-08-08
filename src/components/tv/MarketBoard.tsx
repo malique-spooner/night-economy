@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { MarketProduct, Venue } from "../../engine/types";
 import { FeaturedProductTile } from "./FeaturedProductTile";
 import { BoardDepth } from "./BoardDepth";
@@ -13,6 +13,7 @@ import {
   productChangePercent,
   sortTvBoardProducts,
   sortTvCategories,
+  TV_CATEGORY_PAGE_LIMIT,
 } from "./tvHelpers";
 
 type Props = {
@@ -21,8 +22,6 @@ type Props = {
 };
 
 export function MarketBoard({ products, venue }: Props) {
-  const boardRef = useRef<HTMLDivElement>(null);
-  const [productsPerPage, setProductsPerPage] = useState(6);
   const [featureRotation, setFeatureRotation] = useState(0);
   const activeProducts = products.filter(product => product.isLive);
   const groups = sortTvCategories(groupProductsByCategory(activeProducts));
@@ -31,7 +30,10 @@ export function MarketBoard({ products, venue }: Props) {
     const featuredProducts = getCategoryFeaturedProducts(sortedProducts, featureRotation);
     const featuredIds = new Set(featuredProducts.map(product => product.id));
     const rowProducts = sortedProducts.filter(product => !featuredIds.has(product.id));
-    const rowsPerPage = Math.max(1, Math.min(productsPerPage, 12 - featuredProducts.length));
+    // The board has a fixed, tested layout: the feature cards plus nine rows
+    // make one complete TV page. Do not use a runtime height measurement here:
+    // it can read before the layout settles and split a category unnecessarily.
+    const rowsPerPage = Math.max(1, TV_CATEGORY_PAGE_LIMIT - featuredProducts.length);
     const pageCount = Math.max(1, Math.ceil(rowProducts.length / rowsPerPage));
     return Array.from({ length: pageCount }, (_, categoryPageIndex) => ({
       category,
@@ -55,31 +57,6 @@ export function MarketBoard({ products, venue }: Props) {
     return () => window.clearInterval(timer);
   }, [pages.length]);
 
-  useEffect(() => {
-    const board = boardRef.current;
-    if (!board) return undefined;
-
-    const measureRowsThatFit = () => {
-      const boardHeight = board.clientHeight;
-      const fixedHeight = [".board-hdr", ".board-featured", ".col-hdr", ".cat-header"]
-        .map(selector => board.querySelector<HTMLElement>(selector)?.offsetHeight ?? 0)
-        .reduce((total, height) => total + height, 0);
-      const rowHeight = board.querySelector<HTMLElement>(".drow")?.offsetHeight ?? 54;
-      const availableForRows = boardHeight - fixedHeight - 22;
-      const nextValue = Math.max(1, Math.floor(availableForRows / rowHeight));
-      setProductsPerPage(current => current === nextValue ? current : nextValue);
-    };
-
-    const observer = new ResizeObserver(measureRowsThatFit);
-    observer.observe(board);
-    const frame = window.requestAnimationFrame(measureRowsThatFit);
-
-    return () => {
-      observer.disconnect();
-      window.cancelAnimationFrame(frame);
-    };
-  }, []);
-
   const currentPage = pages[pageIndex % Math.max(pages.length, 1)] ?? { category: "Live market", categoryPageIndex: 0, categoryProducts: [], featuredProducts: [], pageCount: 1, products: [] };
   const { category, categoryPageIndex, categoryProducts, featuredProducts, pageCount, products: boardProducts } = currentPage;
   const categoryChange = categoryChangePercent(categoryProducts);
@@ -88,7 +65,7 @@ export function MarketBoard({ products, venue }: Props) {
     : 0;
 
   return (
-    <div className="board" ref={boardRef}>
+    <div className="board">
       <BoardDepth energy={marketEnergy} />
       <div className="board-hdr">
         <span className="slbl">{marketBoardLabel(venue)}</span>

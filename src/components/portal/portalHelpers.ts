@@ -1,10 +1,10 @@
 import type { MarketProduct, Venue } from "../../engine/types";
 import type { MarketProductPatch, PosProduct, VenueMarketSettingsPatch } from "../../api/market";
 import type { VenueMemberRole } from "../../api/memberships";
-import { categoryLabel, groupProductsByCategory } from "../tv/tvHelpers";
+import { categoryLabel, groupProductsByCategory, TV_CATEGORY_PAGE_LIMIT, TV_FEATURED_PRODUCTS_PER_CATEGORY } from "../tv/tvHelpers";
 
-export const TV_CATEGORY_PAGE_LIMIT = 12;
-export const PRIORITY_DRINKS_PER_CATEGORY_LIMIT = 3;
+export { TV_CATEGORY_PAGE_LIMIT };
+export const PRIORITY_DRINKS_PER_CATEGORY_LIMIT = TV_FEATURED_PRODUCTS_PER_CATEGORY;
 
 export function portalCategories(products: MarketProduct[]) { return groupProductsByCategory(products).map(([category]) => category); }
 export function portalCategoryOptions(products: MarketProduct[], currentCategory: string) { return [...new Set([...portalCategories(products), currentCategory].filter(Boolean))]; }

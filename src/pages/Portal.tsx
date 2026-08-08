@@ -605,7 +605,7 @@ export function Portal({ venueSlug }: Props) {
                   <section aria-labelledby="tv-page-warning-title" aria-modal="true" className="portal-confirm-dialog" role="dialog">
                     <span className="portal-start-kicker">TV display</span>
                     <h2 id="tv-page-warning-title">Add another {tvPageWarning.category} TV page?</h2>
-                    <p>Making {tvPageWarning.productName} live puts more than 13 drinks in {tvPageWarning.category}. The TV will rotate through multiple {tvPageWarning.category} pages and label them, for example “{tvPageWarning.category} · 1 / 2”.</p>
+                    <p>Each TV page holds up to 12 drinks in {tvPageWarning.category}: three feature cards and nine market rows. Making {tvPageWarning.productName} live adds a second page, labelled for example “{tvPageWarning.category} · 1 / 2”.</p>
                     <div>
                       <button onClick={() => setTvPageWarning(null)} type="button">Keep one page</button>
                       <button className="portal-confirm-end" onClick={() => {

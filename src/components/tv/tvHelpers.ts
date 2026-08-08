@@ -2,6 +2,12 @@ import type { MarketProduct, Venue } from "../../engine/types";
 
 export type ProductTrend = "up" | "dn";
 
+// One TV view is intentionally capped at twelve distinct drinks: three
+// featured cards plus nine rows. Keeping this shared makes the Portal's
+// paging warning match what guests see on screen.
+export const TV_CATEGORY_PAGE_LIMIT = 12;
+export const TV_FEATURED_PRODUCTS_PER_CATEGORY = 3;
+
 export function productTrend(product: MarketProduct): ProductTrend {
   return product.currentPriceMinor >= product.basePriceMinor ? "up" : "dn";
 }
@@ -95,7 +101,7 @@ export function getFeaturedProducts(products: MarketProduct[]) {
       if (a.priority !== b.priority) return a.priority ? -1 : 1;
       return Math.abs(productChangePercent(b)) - Math.abs(productChangePercent(a));
     })
-    .slice(0, 3);
+    .slice(0, TV_FEATURED_PRODUCTS_PER_CATEGORY);
 }
 
 // Each category owns its three top TV cards. Operator priorities stay fixed;
@@ -103,11 +109,11 @@ export function getFeaturedProducts(products: MarketProduct[]) {
 // comes back on screen.
 export function getCategoryFeaturedProducts(products: MarketProduct[], rotation = 0) {
   const activeProducts = products.filter(product => product.isLive && !product.isSoldOut);
-  const priorities = activeProducts.filter(product => product.priority).slice(0, 3);
+  const priorities = activeProducts.filter(product => product.priority).slice(0, TV_FEATURED_PRODUCTS_PER_CATEGORY);
   const availableFillers = activeProducts.filter(product => !product.priority);
   const fillerOffset = availableFillers.length ? rotation % availableFillers.length : 0;
   const rotatedFillers = [...availableFillers.slice(fillerOffset), ...availableFillers.slice(0, fillerOffset)];
-  return [...priorities, ...rotatedFillers].slice(0, 3);
+  return [...priorities, ...rotatedFillers].slice(0, TV_FEATURED_PRODUCTS_PER_CATEGORY);
 }
 
 export function getStoryProduct(products: MarketProduct[]) {
