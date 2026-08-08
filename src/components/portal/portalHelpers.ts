@@ -10,10 +10,15 @@ export function portalCategories(products: MarketProduct[]) { return groupProduc
 export function portalCategoryOptions(products: MarketProduct[], currentCategory: string) { return [...new Set([...portalCategories(products), currentCategory].filter(Boolean))]; }
 export function portalCategoryLabel(category: string) { return categoryLabel(category); }
 export function formatInputMoney(valueMinor: number) { return (valueMinor / 100).toFixed(2); }
+export function hasConfiguredCategory(category: string | null | undefined) {
+  const normalized = category?.trim() ?? "";
+  return Boolean(normalized) && !["uncategorized", "uncategorised"].includes(normalized.toLowerCase());
+}
 
 export function prepareMarketProductConfiguration({ id, posProduct, products }: { id: string; posProduct: PosProduct; products: MarketProduct[] }): MarketProduct {
+  if (!hasConfiguredCategory(posProduct.category)) throw new Error("Add a category in the POS before setting up this drink");
   const currentPriceMinor = posProduct.currentPriceMinor;
-  return { id, posProductId: posProduct.id, symbol: nextMarketSymbol(posProduct.name, products), name: posProduct.name, category: "uncategorized", basePriceMinor: posProduct.basePriceMinor, currentPriceMinor, floorPriceMinor: Math.round(currentPriceMinor * 0.65), ceilingPriceMinor: Math.round(currentPriceMinor * 1.65), salesVelocity: 0, isLive: false, isSoldOut: !posProduct.isAvailable, priority: false };
+  return { id, posProductId: posProduct.id, symbol: nextMarketSymbol(posProduct.name, products), name: posProduct.name, category: posProduct.category.trim(), basePriceMinor: posProduct.basePriceMinor, currentPriceMinor, floorPriceMinor: Math.round(currentPriceMinor * 0.65), ceilingPriceMinor: Math.round(currentPriceMinor * 1.65), salesVelocity: 0, isLive: false, isSoldOut: !posProduct.isAvailable, priority: false };
 }
 
 export function normalizeMarketProductPatch(product: MarketProduct, patch: MarketProductPatch): MarketProductPatch {

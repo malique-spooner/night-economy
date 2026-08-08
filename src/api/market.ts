@@ -164,7 +164,7 @@ function mapPosProductRow(row: PosProductRow): PosProduct {
     currency: row.currency,
     isAvailable: row.is_available,
     isCurrent: row.is_current,
-    category: row.category ?? "Uncategorised",
+    category: row.category?.trim() ?? "",
     subcategory: row.subcategory ?? "",
     ...(row.product_group ? { productGroup: row.product_group } : {}),
     ...(row.serve_size ? { serveSize: row.serve_size } : {}),

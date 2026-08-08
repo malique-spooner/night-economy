@@ -5,6 +5,7 @@ import {
   applyVenueSettingsPatch,
   canEditMarketProducts,
   canManageVenueSettings,
+  hasConfiguredCategory,
   normalizeMarketProductPatch,
   portalAccessMessage,
   prepareMarketProductConfiguration,
@@ -70,6 +71,17 @@ describe("prepareMarketProductConfiguration", () => {
       products: [],
     });
     expect(configured.isSoldOut).toBe(true);
+  });
+
+  it("uses the POS category and refuses to create an uncategorized market drink", () => {
+    expect(hasConfiguredCategory("Cocktails")).toBe(true);
+    expect(hasConfiguredCategory("uncategorized")).toBe(false);
+    expect(hasConfiguredCategory(" ")).toBe(false);
+    expect(() => prepareMarketProductConfiguration({
+      id: "mp_new",
+      posProduct: { id: "pos_new", externalId: "pos_new", sku: "MISSING", name: "Missing category", basePriceMinor: 1000, currentPriceMinor: 1000, currency: "GBP", isAvailable: true, category: "", subcategory: "" },
+      products: [],
+    })).toThrow("Add a category in the POS");
   });
 });
 

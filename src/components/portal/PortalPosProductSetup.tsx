@@ -1,6 +1,7 @@
 import type { PosProduct } from "../../api/market";
 import type { MarketProduct } from "../../engine/types";
 import { formatMoney } from "../format";
+import { hasConfiguredCategory } from "./portalHelpers";
 
 type Props = {
   archivedProducts: MarketProduct[];
@@ -17,7 +18,10 @@ export function PortalPosProductSetup({ archivedProducts, onConfigure, onRestore
 
   return <details className="portal-pos-setup"><summary><span>POS drinks</span><small>{unmatched.length ? `${unmatched.length} need setup` : "All connected"}{archivedProducts.length ? ` · ${archivedProducts.length} archived` : ""}</small></summary>
     <div className="portal-pos-setup-body">
-      {unmatched.map(product => <article className="portal-pos-setup-row" key={product.id}><div><strong>{product.name}</strong><span>{product.category}{product.subcategory ? ` · ${product.subcategory}` : ""} · {formatMoney(product.basePriceMinor)}</span></div><button onClick={() => onConfigure(product)} type="button">Set up</button></article>)}
+      {unmatched.map(product => {
+        const hasCategory = hasConfiguredCategory(product.category);
+        return <article className="portal-pos-setup-row" key={product.id}><div><strong>{product.name}</strong><span>{hasCategory ? product.category : "Category required in POS"}{product.subcategory ? ` · ${product.subcategory}` : ""} · {formatMoney(product.basePriceMinor)}</span></div><button disabled={!hasCategory} onClick={() => onConfigure(product)} type="button">{hasCategory ? "Set up" : "Add category in POS"}</button></article>;
+      })}
       {archivedProducts.map(product => <article className="portal-pos-setup-row archived" key={product.id}><div><strong>{product.name}</strong><span>Archived from the market · price history kept</span></div><button onClick={() => onRestore(product)} type="button">Restore</button></article>)}
     </div>
   </details>;

@@ -47,6 +47,7 @@ const expectedMigrations = [
   "20260730140326_add_instant_market_runs.sql",
   "20260731074732_add_foreign_key_indexes.sql",
   "20260807074706_portal_pos_connection_status.sql",
+  "20260808151406_enforce_market_product_categories.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -110,6 +111,11 @@ function checkRequiredPatterns() {
       label: "market products can be safely archived and remapped to a POS product",
       source: migrationSql["20260807074706_portal_pos_connection_status.sql"],
       pattern: /add column if not exists is_archived boolean not null default false[\s\S]+grant update \(pos_product_id, is_archived\) on public\.market_products to authenticated/i,
+    },
+    {
+      label: "market products require a real category",
+      source: migrationSql["20260808151406_enforce_market_product_categories.sql"],
+      pattern: /alter column category set not null[\s\S]+market_products_category_is_configured[\s\S]+not in \('uncategorized', 'uncategorised'\)/i,
     },
     {
       label: "market logo deletion is restricted to venue admins",
