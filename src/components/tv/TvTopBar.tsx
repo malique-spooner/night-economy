@@ -1,12 +1,12 @@
 type Props = {
   clock: string;
+  isFullscreen: boolean;
   marketStatusLabel: string;
-  sourceLabel: string;
   onFullscreen: () => void;
   venueName: string;
 };
 
-export function TvTopBar({ clock, marketStatusLabel, sourceLabel, onFullscreen, venueName }: Props) {
+export function TvTopBar({ clock, isFullscreen, marketStatusLabel, onFullscreen, venueName }: Props) {
   return (
     <div className="topbar">
       <div className="brand"><span>Night Economy</span><b aria-hidden="true">×</b><strong>{venueName}</strong></div>
@@ -15,9 +15,8 @@ export function TvTopBar({ clock, marketStatusLabel, sourceLabel, onFullscreen, 
         <span>{marketStatusLabel}</span>
       </div>
       <div className="top-right">
-        <div className="trade-count">{sourceLabel}</div>
         <div className="clk">{clock}</div>
-        <button aria-label="Enter full screen" className="cinema-expand tv-expand" onClick={onFullscreen} title="Enter full screen" type="button">⛶</button>
+        {!isFullscreen && <button aria-label="Enter full screen" className="cinema-expand tv-expand" onClick={onFullscreen} title="Enter full screen" type="button">⛶</button>}
       </div>
     </div>
   );

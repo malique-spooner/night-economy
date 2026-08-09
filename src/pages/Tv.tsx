@@ -17,6 +17,7 @@ export function Tv({ venueSlug }: Props) {
   const { error, state } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
   const timezone = state?.venue.timezone ?? "Europe/London";
   const [clock, setClock] = useState(() => formatClock(new Date(), timezone));
+  const [isFullscreen, setIsFullscreen] = useState(() => Boolean(document.fullscreenElement));
   const enterFullscreen = () => {
     if (!document.fullscreenElement) void document.documentElement.requestFullscreen?.().catch(() => undefined);
   };
@@ -27,6 +28,12 @@ export function Tv({ venueSlug }: Props) {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const syncFullscreenState = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", syncFullscreenState);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreenState);
   }, []);
 
   useEffect(() => {
@@ -58,14 +65,12 @@ export function Tv({ venueSlug }: Props) {
     return <MarketClosedExperience onFullscreen={enterFullscreen} surface="tv" venue={state.venue} />;
   }
 
-  const sourceLabel = state.source === "supabase" ? "Live data" : "Seed fallback";
-
   return (
     <>
       <TvBackground />
       <div className="root">
         <div className="ui">
-          <TvTopBar clock={clock} marketStatusLabel={marketStatusLabel(state.venue)} onFullscreen={enterFullscreen} sourceLabel={sourceLabel} venueName={state.venue.name} />
+          <TvTopBar clock={clock} isFullscreen={isFullscreen} marketStatusLabel={marketStatusLabel(state.venue)} onFullscreen={enterFullscreen} venueName={state.venue.name} />
           <div className="body">
             <MarketBoard products={state.products} venue={state.venue} />
             <div className="divv"></div>
