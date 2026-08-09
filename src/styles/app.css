@@ -7916,3 +7916,19 @@ body[data-app-view='portal'] .portal-settings-page{align-content:start;grid-temp
 
 /* Tablet-sized phone previews use the wider Portal breakpoint too. */
 @media(max-width:1100px){body[data-app-view='portal'] .portal-drink-name>span{display:none!important}}
+
+/* The collapsed phone list is deliberately minimal: name, live state, and one way into the full editor. */
+@media(max-width:600px){
+  body[data-app-view='portal'] .portal-drink-row{grid-template-columns:minmax(0,1fr) auto 42px;align-items:center}
+  body[data-app-view='portal'] .portal-drink-symbol{display:none}
+  body[data-app-view='portal'] .portal-drink-name{grid-column:1;grid-row:1}
+  body[data-app-view='portal'] .portal-drink-name input{min-height:44px}
+  body[data-app-view='portal'] .portal-drink-row>.portal-live-actions{grid-column:2;grid-row:1;display:block}
+  body[data-app-view='portal'] .portal-drink-row>.portal-live-actions>span{display:none}
+  body[data-app-view='portal'] .portal-live-toggle{width:auto;min-width:58px;min-height:40px}
+  body[data-app-view='portal'] .portal-history-toggle{grid-column:3!important;grid-row:1!important}
+  body[data-app-view='portal'] .portal-drink-row>.portal-current-price{display:none}
+  body[data-app-view='portal'] .portal-drink-row.selected>.portal-drink-symbol{display:grid;grid-column:1/-1;grid-row:auto;justify-items:start;margin-top:4px}
+  body[data-app-view='portal'] .portal-drink-row.selected>.portal-drink-symbol .portal-logo-picker{width:76px;height:76px;min-height:76px}
+  body[data-app-view='portal'] .portal-drink-row.selected>.portal-current-price{display:grid;grid-column:1/-1;grid-row:auto}
+}
