@@ -111,13 +111,20 @@ export function categoryChangePercent(products: MarketProduct[]) {
 }
 
 export function getFeaturedProducts(products: MarketProduct[]) {
+  return getStoryProducts(products)
+    .slice(0, TV_FEATURED_PRODUCTS_PER_CATEGORY);
+}
+
+// The story panel cycles through this full ordered list. Priorities and the
+// biggest price moves lead the cycle, but every live drink still gets a turn.
+export function getStoryProducts(products: MarketProduct[]) {
   return [...products]
     .filter(product => product.isLive && !product.isSoldOut)
     .sort((a, b) => {
       if (a.priority !== b.priority) return a.priority ? -1 : 1;
-      return Math.abs(productChangePercent(b)) - Math.abs(productChangePercent(a));
-    })
-    .slice(0, TV_FEATURED_PRODUCTS_PER_CATEGORY);
+      const movement = Math.abs(productChangePercent(b)) - Math.abs(productChangePercent(a));
+      return movement || a.name.localeCompare(b.name);
+    });
 }
 
 // Each category owns its three top TV cards. Operator priorities stay fixed;
@@ -133,5 +140,5 @@ export function getCategoryFeaturedProducts(products: MarketProduct[], rotation 
 }
 
 export function getStoryProduct(products: MarketProduct[]) {
-  return getFeaturedProducts(products)[0] ?? products.find(product => product.isLive) ?? null;
+  return getStoryProducts(products)[0] ?? products.find(product => product.isLive) ?? null;
 }

@@ -9,6 +9,7 @@ import {
   getCategoryFeaturedProducts,
   getFeaturedProducts,
   getStoryProduct,
+  getStoryProducts,
   groupProductsByCategory,
   marketBoardLabel,
   marketStatusLabel,
@@ -135,6 +136,18 @@ describe("tvHelpers", () => {
 
     expect(getStoryProduct(products)?.id).toBe("leader");
     expect(getStoryProduct([])).toBeNull();
+  });
+
+  it("keeps every eligible drink in the story rotation", () => {
+    const products = [
+      product({ id: "steady", currentPriceMinor: 1000 }),
+      product({ id: "priority", currentPriceMinor: 980, priority: true }),
+      product({ id: "leader", currentPriceMinor: 1200 }),
+      product({ id: "sold-out", currentPriceMinor: 1500, isSoldOut: true }),
+      product({ id: "inactive", currentPriceMinor: 1500, isLive: false }),
+    ];
+
+    expect(getStoryProducts(products).map(item => item.id)).toEqual(["priority", "leader", "steady"]);
   });
 
   it("does not select inactive products for the customer-facing market", () => {
