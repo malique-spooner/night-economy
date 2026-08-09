@@ -7305,6 +7305,122 @@ body[data-app-view='portal'] .portal-drink-sticky-head{background:#fff;position:
 body[data-app-view='portal'] .portal-drink-sticky-head .portal-drink-group-head{background:#fff;padding:17px 0 12px}
 body[data-app-view='portal'] .portal-drink-sticky-head .portal-drink-column-head{background:#fff;padding:7px 0 10px;position:static}
 
+/* Portal phone layout: navigation stays compact, then every control becomes usable at thumb size. */
+@media(max-width:1100px){
+  body[data-app-view='portal'] .portal-view{overflow:visible}
+  body[data-app-view='portal'] .portal-layout{display:block;min-height:100dvh}
+  body[data-app-view='portal'] .portal-sidebar{position:sticky;top:0;z-index:50;display:grid;gap:0;width:100%;min-height:0;height:auto;padding:11px 16px;border-radius:0;box-shadow:0 8px 24px rgba(15,47,35,.18)}
+  body[data-app-view='portal'] .portal-sidebar-brand{min-height:42px;overflow:visible}
+  body[data-app-view='portal'] .portal-sidebar-brand-top{justify-content:flex-start;gap:11px}
+  body[data-app-view='portal'] .portal-nav-toggle{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;padding:0;border:1px solid rgba(255,255,255,.16);border-radius:11px;background:rgba(255,255,255,.08);color:#fff;cursor:pointer}
+  body[data-app-view='portal'] .portal-nav-toggle span{font-size:17px;line-height:1}
+  body[data-app-view='portal'] .portal-nav-toggle b{display:none}
+  body[data-app-view='portal'] .portal-sidebar-brand strong{font-size:22px;line-height:1;letter-spacing:-.05em}
+  body[data-app-view='portal'] .portal-sidebar-venue{display:block;margin:4px 0 0 53px;color:rgba(247,246,239,.68);font:700 10px/1.2 'DM Mono',monospace;letter-spacing:.08em;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
+  body[data-app-view='portal'] .portal-sidebar>.portal-venue-switcher,
+  body[data-app-view='portal'] .portal-sidebar>.portal-sidebar-stat,
+  body[data-app-view='portal'] .portal-sidebar>.portal-nav,
+  body[data-app-view='portal'] .portal-sidebar>.portal-sidebar-foot{max-height:0;margin:0;opacity:0;overflow:hidden;pointer-events:none;transition:max-height .22s ease,margin .22s ease,opacity .16s ease}
+  body[data-app-view='portal'] .portal-sidebar.is-pinned>.portal-venue-switcher,
+  body[data-app-view='portal'] .portal-sidebar.is-pinned>.portal-sidebar-stat,
+  body[data-app-view='portal'] .portal-sidebar.is-pinned>.portal-nav,
+  body[data-app-view='portal'] .portal-sidebar.is-pinned>.portal-sidebar-foot{max-height:520px;margin-top:12px;opacity:1;overflow:visible;pointer-events:auto}
+  body[data-app-view='portal'] .portal-sidebar.is-pinned>.portal-venue-switcher{padding:11px 12px}
+  body[data-app-view='portal'] .portal-sidebar.is-pinned>.portal-sidebar-stat{padding:12px 14px}
+  body[data-app-view='portal'] .portal-sidebar.is-pinned>.portal-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-nav-item{display:grid;grid-template-columns:30px minmax(0,1fr);align-items:center;min-height:52px;padding:0 10px;border-radius:12px;text-decoration:none}
+  body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-nav-icon{display:grid;place-items:center;width:30px}
+  body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-nav-icon svg{width:19px;height:19px}
+  body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-nav-label{font-size:.8rem;font-weight:800;line-height:1.1}
+  body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-nav-item small{display:none}
+  body[data-app-view='portal'] .portal-sidebar.is-pinned>.portal-sidebar-foot{display:flex;align-items:center;gap:8px}
+  body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-sidebar-foot .portal-nav-item,
+  body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-signout{flex:1;min-height:46px;width:auto;margin:0}
+  body[data-app-view='portal'] .portal-main{min-height:calc(100dvh - 64px);padding:20px 16px 32px}
+  body[data-app-view='portal'] .portal-workspace{min-width:0}
+}
+
+@media(max-width:600px){
+  body[data-app-view='portal'] .portal-main{padding:18px 14px 30px}
+  body[data-app-view='portal'] .portal-start-page{gap:16px}
+  body[data-app-view='portal'] .portal-page-title{font-size:2.35rem}
+  body[data-app-view='portal'] .portal-start-strip{gap:16px;padding:16px}
+  body[data-app-view='portal'] .portal-schedule-summary{gap:14px}
+  body[data-app-view='portal'] .portal-service-actions{display:grid;grid-template-columns:1fr;width:100%}
+  body[data-app-view='portal'] .portal-service-actions button{width:100%}
+  body[data-app-view='portal'] .portal-schedule-days{grid-template-columns:1fr;gap:8px}
+  body[data-app-view='portal'] .portal-schedule-day{grid-template-columns:1fr 1fr;min-height:0;padding:10px}
+  body[data-app-view='portal'] .portal-schedule-day-toggle{grid-column:1/-1}
+  body[data-app-view='portal'] .portal-schedule-day>label{font-size:.62rem}
+  body[data-app-view='portal'] .portal-filter-row{position:sticky;top:64px;z-index:20;flex-wrap:nowrap;overflow-x:auto;padding:10px;scrollbar-width:none}
+  body[data-app-view='portal'] .portal-filter-row::-webkit-scrollbar{display:none}
+  body[data-app-view='portal'] .portal-filter-row .range-chip{flex:0 0 auto;min-height:38px}
+  body[data-app-view='portal'] .portal-drink-sticky-head{position:static}
+  body[data-app-view='portal'] .portal-drink-group{padding:0 12px}
+  body[data-app-view='portal'] .portal-drink-group-head{align-items:flex-start;gap:8px;padding:14px 0 10px}
+  body[data-app-view='portal'] .portal-drink-group-head span{max-width:18ch;line-height:1.35;text-align:right}
+  body[data-app-view='portal'] .portal-drink-row{grid-template-columns:48px minmax(0,1fr) 42px;gap:10px;padding:14px 0}
+  body[data-app-view='portal'] .portal-drink-row.selected{box-shadow:0 0 0 12px #eef7ef}
+  body[data-app-view='portal'] .portal-drink-symbol{grid-column:1;grid-row:1;align-self:center}
+  body[data-app-view='portal'] .portal-logo-picker{width:48px;height:48px;min-height:48px}
+  body[data-app-view='portal'] .portal-logo-picker:not(.has-image){width:42px;height:42px;min-height:42px}
+  body[data-app-view='portal'] .portal-drink-name{grid-column:2;grid-row:1}
+  body[data-app-view='portal'] .portal-history-toggle{grid-column:3!important;grid-row:1!important;align-self:center;width:42px;height:42px}
+  body[data-app-view='portal'] .portal-drink-row>.portal-drink-cat{grid-column:1/-1;grid-row:auto}
+  body[data-app-view='portal'] .portal-drink-row>.portal-live-actions,
+  body[data-app-view='portal'] .portal-drink-row>.portal-current-price,
+  body[data-app-view='portal'] .portal-drink-row>.portal-priority-toggle,
+  body[data-app-view='portal'] .portal-drink-row>.portal-money-field,
+  body[data-app-view='portal'] .portal-drink-row>.portal-base-price{grid-column:span 1;grid-row:auto}
+  body[data-app-view='portal'] .portal-drink-row>label>span,
+  body[data-app-view='portal'] .portal-drink-row>.portal-live-actions>span,
+  body[data-app-view='portal'] .portal-drink-row>.portal-current-price>span,
+  body[data-app-view='portal'] .portal-drink-row>.portal-base-price>span,
+  body[data-app-view='portal'] .portal-drink-row>.portal-priority-toggle>span{clip:auto;clip-path:none;height:auto;overflow:visible;position:static;white-space:normal}
+  body[data-app-view='portal'] .portal-drink-row>.portal-live-actions>span,
+  body[data-app-view='portal'] .portal-current-price>span,
+  body[data-app-view='portal'] .portal-base-price>span,
+  body[data-app-view='portal'] .portal-priority-toggle>span{font-size:.6rem}
+  body[data-app-view='portal'] .portal-live-toggle{min-height:40px}
+  body[data-app-view='portal'] .portal-current-price strong,body[data-app-view='portal'] .portal-base-price strong{min-height:40px;font-size:.82rem}
+  body[data-app-view='portal'] .portal-priority-toggle{align-content:end;min-height:64px}
+  body[data-app-view='portal'] .portal-priority-toggle input{height:40px;width:24px}
+  body[data-app-view='portal'] .portal-money-field>div{grid-template-columns:24px minmax(0,1fr) 24px}
+  body[data-app-view='portal'] .portal-money-field button{height:40px;width:24px}
+  body[data-app-view='portal'] .portal-money-field input{min-height:40px;padding:6px 2px;font-size:.82rem}
+  body[data-app-view='portal'] .portal-inline-history{margin-top:4px}
+  body[data-app-view='portal'] .portal-market-detail{padding:16px}
+  body[data-app-view='portal'] .portal-market-stats{grid-template-columns:1fr 1fr}
+  body[data-app-view='portal'] .portal-pos-connection{padding:12px}
+  body[data-app-view='portal'] .portal-confirm-backdrop{align-items:end;padding:12px}
+  body[data-app-view='portal'] .portal-confirm-dialog{max-width:none;padding:20px}
+  body[data-app-view='portal'] .portal-confirm-dialog>div{display:grid;grid-template-columns:1fr}
+  body[data-app-view='portal'] .portal-confirm-dialog button{width:100%}
+  body[data-app-view='portal'] .portal-image-preview-backdrop{align-items:end;padding:10px}
+  body[data-app-view='portal'] .portal-image-preview-dialog{max-height:92dvh;overflow:auto;padding:12px}
+  body[data-app-view='portal'] .portal-image-preview-dialog>img{max-height:54dvh;object-fit:cover}
+  body[data-app-view='portal'] .portal-image-preview-dialog footer{display:grid;grid-template-columns:1fr 1fr}
+  body[data-app-view='portal'] .portal-image-preview-dialog footer button{padding:0 8px}
+  body[data-app-view='portal'] .portal-runs-heading{margin-bottom:18px}
+  body[data-app-view='portal'] .portal-runs-heading>span{align-self:flex-start}
+  body[data-app-view='portal'] .portal-run-hero{padding:19px}
+  body[data-app-view='portal'] .portal-run-hero h1{font-size:2rem}
+  body[data-app-view='portal'] .portal-run-kpis{gap:8px}
+  body[data-app-view='portal'] .portal-run-kpis>div{min-height:88px;padding:14px}
+  body[data-app-view='portal'] .portal-run-kpis strong{font-size:1.15rem;overflow-wrap:anywhere}
+  body[data-app-view='portal'] .portal-run-table-wrap{margin-inline:-4px;border-radius:10px}
+  body[data-app-view='portal'] .portal-run-table{min-width:680px}
+  body[data-app-view='portal'] .portal-settings-page{gap:12px}
+  body[data-app-view='portal'] .portal-account-card{padding:17px}
+}
+
+@media(max-width:390px){
+  body[data-app-view='portal'] .portal-sidebar.is-pinned>.portal-nav{grid-template-columns:1fr}
+  body[data-app-view='portal'] .portal-drink-row{grid-template-columns:44px minmax(0,1fr) 38px}
+  body[data-app-view='portal'] .portal-logo-picker{width:44px;height:44px;min-height:44px}
+  body[data-app-view='portal'] .portal-history-toggle{width:38px;height:38px}
+}
+
 /* Site interaction guardrails — intentionally last to beat legacy landing overrides. */
 body[data-app-view='site'] .site-shell{
   width:100%;

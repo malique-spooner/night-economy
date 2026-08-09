@@ -21,7 +21,7 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
     <aside className={`portal-sidebar ${isPinned ? "is-pinned" : ""}`}>
       <div className="portal-sidebar-brand">
         <div className="portal-sidebar-brand-top">
-          <button aria-label={isPinned ? "Collapse navigation" : "Keep navigation open"} className="portal-nav-toggle" onClick={onTogglePinned} type="button">
+          <button aria-controls="portal-navigation" aria-expanded={isPinned} aria-label={isPinned ? "Collapse navigation" : "Open navigation"} className="portal-nav-toggle" onClick={onTogglePinned} type="button">
             <span aria-hidden="true">☰</span><b>{isPinned ? "Collapse" : "Navigation"}</b>
           </button>
           <strong>Night Economy</strong>
@@ -40,7 +40,7 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
         <span>Products live</span>
         <strong>{liveCount}/{totalCount}</strong>
       </div>
-      <nav className="portal-nav" aria-label="Portal sections">
+      <nav className="portal-nav" aria-label="Portal sections" id="portal-navigation">
         <button
           className={`portal-nav-item ${activeTab === "start" ? "active" : ""}`}
           onClick={() => onTabChange("start")}
