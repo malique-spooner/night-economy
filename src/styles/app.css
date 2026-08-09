@@ -7381,6 +7381,7 @@ body[data-app-view='portal'] .portal-drink-sticky-head .portal-drink-column-head
   body[data-app-view='portal'] .portal-current-price>span,
   body[data-app-view='portal'] .portal-base-price>span,
   body[data-app-view='portal'] .portal-priority-toggle>span{font-size:.6rem}
+  body[data-app-view='portal'] .portal-drink-name>span{display:none}
   body[data-app-view='portal'] .portal-live-toggle{min-height:40px}
   body[data-app-view='portal'] .portal-current-price strong,body[data-app-view='portal'] .portal-base-price strong{min-height:40px;font-size:.82rem}
   body[data-app-view='portal'] .portal-priority-toggle{align-content:end;min-height:64px}
