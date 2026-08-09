@@ -7421,6 +7421,35 @@ body[data-app-view='portal'] .portal-drink-sticky-head .portal-drink-column-head
   body[data-app-view='portal'] .portal-history-toggle{width:38px;height:38px}
 }
 
+/* Phone editor: keep the market list calm. Advanced controls belong behind each drink's expand button. */
+@media(max-width:600px){
+  body[data-app-view='portal'] .portal-sidebar{padding:10px 14px}
+  body[data-app-view='portal'] .portal-sidebar-brand{min-height:40px}
+  body[data-app-view='portal'] .portal-sidebar-brand-top{height:40px}
+  body[data-app-view='portal'] .portal-nav-toggle{flex-basis:40px;width:40px;height:40px}
+  body[data-app-view='portal'] .portal-sidebar-brand strong{font-size:20px}
+  body[data-app-view='portal'] .portal-sidebar-venue{display:none}
+  body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-sidebar-venue{display:block;margin:10px 0 0;color:rgba(247,246,239,.68)}
+  body[data-app-view='portal'] .portal-main{min-height:calc(100dvh - 60px)}
+  body[data-app-view='portal'] .portal-filter-row{top:60px}
+  body[data-app-view='portal'] .portal-drink-row{grid-template-columns:48px minmax(0,1fr) 42px;align-items:end}
+  body[data-app-view='portal'] .portal-drink-row>.portal-live-actions{grid-column:1 / span 1;grid-row:2}
+  body[data-app-view='portal'] .portal-drink-row>.portal-current-price{grid-column:2 / span 2;grid-row:2}
+  body[data-app-view='portal'] .portal-drink-row>.portal-drink-cat,
+  body[data-app-view='portal'] .portal-drink-row>.portal-priority-toggle,
+  body[data-app-view='portal'] .portal-drink-row>.portal-money-field,
+  body[data-app-view='portal'] .portal-drink-row>.portal-base-price{display:none}
+  body[data-app-view='portal'] .portal-drink-row.selected>.portal-drink-cat,
+  body[data-app-view='portal'] .portal-drink-row.selected>.portal-priority-toggle,
+  body[data-app-view='portal'] .portal-drink-row.selected>.portal-money-field,
+  body[data-app-view='portal'] .portal-drink-row.selected>.portal-base-price{display:grid;grid-column:1/-1;grid-row:auto}
+  body[data-app-view='portal'] .portal-drink-row.selected>.portal-priority-toggle{grid-template-columns:1fr auto;align-items:center;min-height:0;padding:10px 0;border-top:1px solid #e3e9e3}
+  body[data-app-view='portal'] .portal-drink-row.selected>.portal-priority-toggle input{grid-column:2;grid-row:1;width:28px}
+  body[data-app-view='portal'] .portal-drink-row.selected>.portal-money-field>div{max-width:220px}
+  body[data-app-view='portal'] .portal-drink-row.selected>.portal-base-price strong{max-width:220px}
+  body[data-app-view='portal'] .portal-inline-history{grid-row:auto}
+}
+
 /* Site interaction guardrails — intentionally last to beat legacy landing overrides. */
 body[data-app-view='site'] .site-shell{
   width:100%;
