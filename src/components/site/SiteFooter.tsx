@@ -7,14 +7,14 @@ export function SiteFooter({ venueSlug }: Props) {
     <footer className="site-footer">
       <div className="site-footer-brand">
         <div className="site-kicker">Night Economy</div>
-        <h2>Make the room worth watching.</h2>
+        <h2>Keep the room moving.</h2>
       </div>
       <div className="site-footer-cols">
         <div>
           <span>Product</span>
           <a href="#site-why">Why it works</a>
-          <a href="#site-decks">Product moments</a>
-          <a href="#site-subscribe">Book a pilot</a>
+          <a href="#site-decks">How it works</a>
+          <a href="#site-subscribe">Request a licence</a>
         </div>
         <div>
           <span>Surfaces</span>

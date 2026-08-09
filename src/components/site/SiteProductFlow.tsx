@@ -72,16 +72,10 @@ export function SiteProductFlow() {
   return (
     <section id="site-decks" className="site-section site-decks">
       <div className="site-section-intro">
-        <div className="site-kicker">Product flow</div>
-        <h2>One change. Every surface moves.</h2>
-        <p>Follow an operator spotlight from the control room to the board, guest menu, and next order.</p>
+        <div className="site-kicker">One connected market</div>
+        <h2>From sale to screen.</h2>
+        <p>The POS informs the market. Every surface updates together.</p>
       </div>
-      <ol className="site-sync-flow" aria-label="Connected product flow">
-        <li><span>01</span><strong>Operator sets spotlight</strong></li>
-        <li><span>02</span><strong>Room display updates</strong></li>
-        <li><span>03</span><strong>Guest menu syncs</strong></li>
-        <li><span>04</span><strong>Order joins the market</strong></li>
-      </ol>
       <div
         className="site-deck-track"
         ref={trackRef}
@@ -145,8 +139,8 @@ function DeckPreview({ tone }: { tone: string }) {
       <div className="site-preview-portal">
         <aside><strong>Night Economy</strong><span>Overview</span><span className="active">Live market</span><span>Menu</span><span>Settings</span></aside>
         <main>
-          <PreviewTop label="Operator controls" status="All guardrails active" />
-          <div className="site-preview-control-head"><div><span>Spotlight product</span><strong>Aperol Spritz</strong></div><b>Live</b></div>
+          <PreviewTop label="Venue controls" status="All guardrails active" />
+          <div className="site-preview-control-head"><div><span>Market product</span><strong>Aperol Spritz</strong></div><b>Live</b></div>
           <div className="site-preview-chart"><i></i><i></i><i></i><i></i><b></b></div>
           <div className="site-preview-limits"><div><span>Floor</span><strong>£9.00</strong></div><div><span>Live</span><strong>£10.80</strong></div><div><span>Ceiling</span><strong>£13.50</strong></div></div>
         </main>
@@ -157,10 +151,10 @@ function DeckPreview({ tone }: { tone: string }) {
   if (tone === "event") {
     return (
       <div className="site-preview-event">
-        <PreviewTop label="Market event" status="Synced to 3 surfaces" />
-        <div className="site-preview-event-hero"><span>Spotlight live</span><strong>Aperol Spritz is setting the pace.</strong><b>£10.80</b></div>
+        <PreviewTop label="Market update" status="Synced to 3 surfaces" />
+        <div className="site-preview-event-hero"><span>Latest market round</span><strong>Aperol Spritz is setting the pace.</strong><b>£10.80</b></div>
         <div className="site-preview-event-flow"><i>Portal</i><em>→</em><i>Display</i><em>→</em><i>Menu</i><em>→</em><i>Order</i></div>
-        <p>Every movement remains inside the operator’s configured range.</p>
+        <p>Every live price remains inside the venue’s configured range.</p>
       </div>
     );
   }

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { defaultSitePlanId, siteBuyingAnswers } from "../../content/siteContent";
+import { defaultSitePlanId } from "../../content/siteContent";
 import { prepareSiteLead } from "../../api/leadForm";
 import { createSiteLead, type SiteLeadPlan } from "../../api/leads";
 
@@ -32,7 +32,7 @@ export function SiteSignup() {
       setStatus("success");
       setMessage(
         result.persisted
-          ? "Request received. We will help you set up the venue."
+          ? "Request received. We’ll be in touch."
           : "Request ready locally. Connect Supabase to save live leads.",
       );
       setForm(initialForm);
@@ -45,20 +45,19 @@ export function SiteSignup() {
   return (
     <section id="site-subscribe" className="site-section site-subscribe">
       <div className="site-subscribe-copy">
-        <div className="site-kicker">Start with proof</div>
-        <h2>Prove it in one venue.</h2>
-        <p>Use a short discovery call to define the service, integration path, guardrails, and measurement plan.</p>
+        <div className="site-kicker">Limited venue licences · 10 only</div>
+        <h2>One of ten venues.</h2>
+        <p>Tell us about your venue.</p>
         <ul className="site-pilot-includes">
-          <li><span>01</span>Baseline and success measures</li>
-          <li><span>02</span>Menu and integration discovery</li>
-          <li><span>03</span>Operator training and launch support</li>
-          <li><span>04</span>Post-service performance review</li>
+          <li><span>01</span>Your venue licence</li>
+          <li><span>02</span>POS and menu setup</li>
+          <li><span>03</span>Launch support</li>
         </ul>
       </div>
       <div className="site-signup-panel">
         <div className="site-signup-head">
-          <div><span>15-minute discovery</span><strong>Tell us where to start.</strong></div>
-          <p>No payment details. We will scope the pilot before proposing a price.</p>
+          <div><span>Venue licence enquiry</span><strong>Request a place.</strong></div>
+          <p>We’ll review every enquiry personally.</p>
         </div>
         <form className="site-signup-form" onSubmit={handleSubmit}>
           <label>
@@ -97,19 +96,10 @@ export function SiteSignup() {
             </p>
           ) : null}
           <button className="site-primary" type="submit" disabled={status === "submitting"}>
-            {status === "submitting" ? "Sending request…" : "Book the discovery call"}
+            {status === "submitting" ? "Sending request…" : "Request a venue licence"}
           </button>
           <small className="site-form-privacy">We only use these details to respond about Night Economy. No mailing list.</small>
         </form>
-        <div className="site-buying-answers">
-          <div className="site-kicker">Before you ask</div>
-          {siteBuyingAnswers.map(item => (
-            <details key={item.question}>
-              <summary>{item.question}<span aria-hidden="true">+</span></summary>
-              <p>{item.answer}</p>
-            </details>
-          ))}
-        </div>
       </div>
     </section>
   );

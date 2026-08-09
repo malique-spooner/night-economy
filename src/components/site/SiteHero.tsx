@@ -24,22 +24,13 @@ export function SiteHero() {
       <div className="site-hero-scene" ref={sceneRef} aria-hidden="true">
         <div className="site-hero-orbit site-hero-orbit-one"></div>
         <div className="site-hero-orbit site-hero-orbit-two"></div>
-        <div className="site-hero-surface site-hero-surface-tv">
-          <span>Room display</span><strong>£9.80</strong><i></i><i></i><i></i>
-        </div>
-        <div className="site-hero-surface site-hero-surface-menu">
-          <span>Guest menu</span><strong>Market open</strong><b>Order at the live price</b>
-        </div>
-        <div className="site-hero-surface site-hero-surface-portal">
-          <span>Operator portal</span><strong>Limits active</strong><b>Guardrails on</b>
-        </div>
       </div>
       <div className="site-hero-inner">
         <div className="site-kicker">{siteHero.kicker}</div>
         <h1>{siteHero.title}</h1>
         <p>{siteHero.copy}</p>
         <div className="site-hero-actions">
-          <a className="site-primary" href="#site-subscribe">Book a 15-minute demo <span aria-hidden="true">↗</span></a>
+          <a className="site-primary" href="#site-subscribe">Request a venue licence <span aria-hidden="true">↗</span></a>
           <a className="site-text-link" href="#site-decks">See the three surfaces <span aria-hidden="true">↓</span></a>
         </div>
         <div className="site-hero-stats" aria-label="Live market stats">

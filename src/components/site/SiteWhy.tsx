@@ -63,9 +63,9 @@ export function SiteWhy() {
       <div className="site-why-shell">
         <div className="site-section-split site-why-grid">
           <div className="site-why-copy">
-            <div className="site-kicker">Why it wins</div>
-            <h2>Software the room can feel.</h2>
-            <p>Guests see momentum. Staff see where to steer demand. Operators keep the market playful, profitable, and under control.</p>
+            <div className="site-kicker">For guests. For venues.</div>
+            <h2>More energy in the room. More control behind the bar.</h2>
+            <p>Guests get a live experience. Venues stay in control.</p>
             <div className="site-why-panel" aria-label="Why Night Economy works">
               {siteReasons.map((reason, index) => (
                 <article className={`site-why-card ${index === 0 ? "site-why-card-primary" : ""}`} data-active={index === activeIndex} key={reason.number}>
