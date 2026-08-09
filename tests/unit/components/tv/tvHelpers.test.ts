@@ -59,12 +59,12 @@ describe("tvHelpers", () => {
 
   it("chooses movement labels from product state and price movement", () => {
     expect(movementLabel(product({ isSoldOut: true }))).toBe("Sold out");
-    expect(movementLabel(product({ priority: true }))).toBe("House signal");
-    expect(movementLabel(product({ currentPriceMinor: 1100 }))).toBe("Fast mover");
-    expect(movementLabel(product({ currentPriceMinor: 1040 }))).toBe("Heating up");
-    expect(movementLabel(product({ currentPriceMinor: 900 }))).toBe("Value window");
-    expect(movementLabel(product({ currentPriceMinor: 960 }))).toBe("Cooling off");
-    expect(movementLabel(product({ currentPriceMinor: 1000 }))).toBe("Steady trade");
+    expect(movementLabel(product({ priority: true }))).toBe("Featured");
+    expect(movementLabel(product({ currentPriceMinor: 1100 }))).toBe("Climbing fast");
+    expect(movementLabel(product({ currentPriceMinor: 1040 }))).toBe("Climbing");
+    expect(movementLabel(product({ currentPriceMinor: 900 }))).toBe("Falling fast");
+    expect(movementLabel(product({ currentPriceMinor: 960 }))).toBe("Easing");
+    expect(movementLabel(product({ currentPriceMinor: 1000 }))).toBe("Holding steady");
   });
 
   it("groups products by category in source order", () => {

@@ -64,14 +64,14 @@ export function mobilePriceStatusLabel(venue: Pick<Venue, "marketLive">) {
 
 export function movementLabel(product: MarketProduct) {
   if (product.isSoldOut) return "Sold out";
-  if (product.priority) return "House signal";
+  if (product.priority) return "Featured";
 
   const change = productChangePercent(product);
-  if (change >= 8) return "Fast mover";
-  if (change >= 3) return "Heating up";
-  if (change <= -8) return "Value window";
-  if (change <= -3) return "Cooling off";
-  return "Steady trade";
+  if (change >= 8) return "Climbing fast";
+  if (change >= 3) return "Climbing";
+  if (change <= -8) return "Falling fast";
+  if (change <= -3) return "Easing";
+  return "Holding steady";
 }
 
 export function groupProductsByCategory(products: MarketProduct[]) {
