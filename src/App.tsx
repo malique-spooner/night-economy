@@ -34,9 +34,9 @@ export function App() {
   if (route.surface === "tv") return <Tv venueSlug={route.slug ?? "demo-venue"} />;
   if (route.surface === "menu") return <Menu venueSlug={route.slug ?? "demo-venue"} />;
   if (route.surface === "app") return <Portal venueSlug={route.slug ?? "demo-venue"} />;
-  if (route.surface === "sign-in") return <PortalSignIn venueSlug={route.slug ?? "demo-venue"} />;
+  if (route.surface === "sign-in") return <PortalSignIn venueSlug={route.slug} />;
   if (route.surface === "simulator") return <Simulator venueSlug={route.slug ?? "demo-venue"} />;
   if (route.surface === "logo") return <LogoDemo />;
 
-  return <Site venueSlug={route.slug ?? "demo-venue"} />;
+  return <Site venueSlug={route.slug} />;
 }

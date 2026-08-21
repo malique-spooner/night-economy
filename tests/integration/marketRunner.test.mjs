@@ -26,7 +26,7 @@ describe("local market runner", () => {
     };
     const publications = [];
     const fetchImpl = async (url, init = {}) => {
-      if (url.endsWith("/v1/simulation/state")) return json({ service: { simulatedTime: "2026-07-17T22:00:00.000Z" } });
+      if (url.endsWith("/v1/simulation/state")) return json({ service: { minute: 300, simulatedTime: "2026-07-17T22:00:00.000Z" } });
       if (url.includes("/v1/products")) return json({ products: [{ id: "pos_cem", sku: "COCK-001", name: "Classic Espresso Martini", basePriceMinor: 1200, currentPriceMinor: 1200, currency: "GBP", isAvailable: true, updatedAt: "2026-07-17T22:00:00.000Z" }] });
       if (url.includes("/v1/sales")) return json({ sales: [{ id: "sale_001", occurredAt: "2026-07-17T21:59:30.000Z", productId: "pos_cem", quantity: 8, unitPriceMinor: 1200, currency: "GBP" }] });
       if (url.endsWith("/v1/price-publications") && init.method === "POST") {
@@ -37,7 +37,7 @@ describe("local market runner", () => {
       if (url === "https://example.supabase.co/functions/v1/market-cycle" && init.method === "POST") {
         const body = JSON.parse(init.body);
         expect(init.headers["x-night-economy-scheduler-secret"]).toBe("scheduler-secret");
-        expect(body).toMatchObject({ venueSlug: "demo-venue", reason: "simulator_cycle", cycleEnd: "2026-07-17T22:00:00.000Z" });
+        expect(body).toMatchObject({ venueSlug: "demo-venue", reason: "simulator_cycle", cycleEnd: "2026-07-17T22:00:00.000Z", serviceMinute: 300 });
         database.market_price_snapshots.push({ snapshot: { roundEnd: body.cycleEnd } });
         return json({
           ok: true,

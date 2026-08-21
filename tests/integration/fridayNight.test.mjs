@@ -102,8 +102,9 @@ describe("Friday-night POS simulation", () => {
       return sales.filter(sale => productIds.has(sale.productId)).reduce((total, sale) => total + sale.quantity, 0);
     };
 
-    expect(simulation.getState().totals.revenueMinor).toBeGreaterThanOrEqual(990_000);
-    expect(simulation.getState().totals.revenueMinor).toBeLessThanOrEqual(1_010_000);
+    expect(simulation.getState().totals.revenueMinor).toBeGreaterThanOrEqual(900_000);
+    expect(simulation.getState().totals.revenueMinor).toBeLessThanOrEqual(1_100_000);
     expect(unitsFor("Beer")).toBeGreaterThan(unitsFor("Cocktails"));
+    expect(unitsFor("Wine")).toBeGreaterThan(unitsFor("Spirits"));
   });
 });

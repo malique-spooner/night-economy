@@ -17,6 +17,7 @@ The browser application has one React/Vite/TypeScript entrypoint at `index.html`
 See [docs/deployment.md](docs/deployment.md) for the ordered Supabase and Cloudflare deployment checklist.
 See [docs/pos-integration-contract.md](docs/pos-integration-contract.md) for the boundary between a POS and Night Economy.
 See [docs/pricing-engine-rules.md](docs/pricing-engine-rules.md) for the market-points model and operator safeguards.
+See [docs/simulation-engine.md](docs/simulation-engine.md) for the customer, basket, trend, and price-response model used in rehearsals.
 See [docs/friday-service-acceptance.md](docs/friday-service-acceptance.md) for the accelerated local POS acceptance run.
 See [docs/testing.md](docs/testing.md) for the required Chromium button-testing contract and test commands.
 See [docs/README.md](docs/README.md) for the complete documentation index and visual references.
@@ -35,11 +36,11 @@ See [docs/README.md](docs/README.md) for the complete documentation index and vi
 
 1. The portal stores venue settings and requests simulator actions through Supabase.
 2. `service-scheduler` evaluates every venue schedule once per minute.
-3. `venue-simulator` creates POS sale events and keeps each run's takings aligned with its configured target.
+3. `venue-simulator` uses the configured takings target to size expected footfall, then creates seeded customer groups and price-sensitive baskets; realised takings remain an outcome.
 4. `market-cycle` applies the shared zero-sum pricing engine every five simulated minutes.
 5. TV, menu, simulator, and run-history pages read the same Supabase records.
 
-The canonical pricing implementation is `supabase/functions/_shared/marketPricing.ts`. The local POS simulator retains a small JavaScript implementation because it runs as an independent Node service; `npm run pricing:sync` prevents those two runtime targets from drifting.
+The canonical pricing implementation is `supabase/functions/_shared/marketPricing.ts`; the canonical rehearsal-demand implementation is `supabase/functions/_shared/customerDemand.ts`. Cloud and local simulations use the same demand model. The local POS connector retains a small JavaScript pricing adapter, and `npm run pricing:sync` prevents that adapter from drifting.
 
 ## Run Locally
 

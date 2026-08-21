@@ -1,13 +1,16 @@
 import { seedProducts, seedVenue } from "../demo/marketSeed";
 import type { CrashIntervalMinutes, MarketProduct, Venue, VenueMarketSettings, MarketScheduleEntry } from "../engine/types";
-import { defaultVenueMarketSettings, isCrashIntervalMinutes, normalizeTimeInput } from "../engine/venueSettings";
+import { defaultVenueMarketSettings, isCrashIntervalMinutes, normalizeMarketCrashSettings, normalizeTimeInput } from "../engine/venueSettings";
 import { supabase } from "./client";
 
 export type MarketState = {
   venue: Venue;
   products: MarketProduct[];
+  crash: MarketCrashEvent | null;
   source: "seed" | "supabase";
 };
+
+export type MarketCrashEvent = { id: string; category: string; createdAt: string; startMinute?: number };
 
 export type MarketProductPatch = Partial<
   Pick<
@@ -33,6 +36,12 @@ export type MarketPriceHistoryPoint = {
   oldPriceMinor: number;
   priceMinor: number;
   movement: "up" | "down" | "hold";
+};
+
+export type MarketRoundSignal = {
+  createdAt: string;
+  roundEnd: string;
+  runId: string | null;
 };
 
 export type PosProduct = {
@@ -61,6 +70,7 @@ export type VenueRow = {
   tv_story_categories?: unknown;
   market_schedule?: unknown;
   crash_interval_minutes?: number | null;
+  crash_settings?: unknown;
   launch_date?: string | null;
   launch_start_time?: string | null;
   launch_end_time?: string | null;
@@ -105,6 +115,9 @@ type PosProductRow = {
 };
 
 export type MarketPriceSnapshotRow = {
+  id?: string;
+  reason?: string;
+  run_id?: string | null;
   created_at: string;
   snapshot: unknown;
 };
@@ -129,6 +142,7 @@ export function mapVenueRow(row: VenueRow): Venue {
     tvStoryCategories: parseTvStoryCategories(row.tv_story_categories, defaults.tvStoryCategories),
     marketSchedule: Array.isArray(row.market_schedule) ? row.market_schedule as MarketScheduleEntry[] : defaults.marketSchedule,
     crashIntervalMinutes,
+    crashSettings: normalizeMarketCrashSettings(row.crash_settings),
     launchDate: row.launch_date ?? defaults.launchDate,
     launchStartTime: normalizeTimeInput(row.launch_start_time, defaults.launchStartTime),
     launchEndTime: normalizeTimeInput(row.launch_end_time, defaults.launchEndTime),
@@ -185,24 +199,37 @@ export function requireVenue<T extends VenueRow>(row: T | null): T {
 }
 
 export async function getMarketState(venueSlug: string): Promise<MarketState> {
-  if (!supabase) return { venue: seedVenue, products: demoMarketProducts(), source: "seed" };
+  if (!supabase) return { venue: seedVenue, products: demoMarketProducts(), crash: null, source: "seed" };
 
-  const { data: venue, error: venueError } = await supabase
-    .from("venues")
-    .select("*, market_products(*)")
-    .eq("slug", venueSlug)
-    .maybeSingle();
+  const { data: venue, error: venueError } = await supabase.from("venues").select("*, market_products(*)").eq("slug", venueSlug).maybeSingle();
   throwIfSupabaseQueryError(venueError, "Could not load venue");
 
   const existingVenue = requireVenue(venue as VenueMarketStateRow | null);
+  const { data: crashSnapshots, error: crashError } = await supabase
+    .from("market_price_snapshots")
+    .select("id, created_at, snapshot")
+    .eq("venue_id", existingVenue.id)
+    .eq("reason", "market_crash")
+    .order("created_at", { ascending: false })
+    .limit(1);
+  throwIfSupabaseQueryError(crashError, "Could not load latest market crash");
   const products = [...(existingVenue.market_products ?? [])]
     .sort((left, right) => left.display_name.localeCompare(right.display_name));
 
   return {
     venue: mapVenueRow(existingVenue),
     products: products.map(mapMarketProductRow),
+    crash: mapMarketCrashSnapshot(crashSnapshots?.[0] as MarketPriceSnapshotRow | undefined),
     source: "supabase",
   };
+}
+
+function mapMarketCrashSnapshot(row: MarketPriceSnapshotRow | undefined): MarketCrashEvent | null {
+  if (!row || !row.id || !isRecord(row.snapshot) || !isRecord(row.snapshot.crash) || typeof row.snapshot.crash.category !== "string") return null;
+  const startMinute = typeof row.snapshot.crash.startMinute === "number" ? row.snapshot.crash.startMinute : undefined;
+  const runId = typeof row.snapshot.runId === "string" ? row.snapshot.runId : row.created_at.slice(0, 10);
+  // A ten-minute crash has two five-minute price rounds but one TV moment.
+  return { id: startMinute === undefined ? row.id : `${runId}:${startMinute}:${row.snapshot.crash.category}`, category: row.snapshot.crash.category, createdAt: row.created_at, ...(startMinute === undefined ? {} : { startMinute }) };
 }
 
 export async function getPosProducts(venueId: string): Promise<PosProduct[]> {
@@ -218,19 +245,56 @@ export async function getPosProducts(venueId: string): Promise<PosProduct[]> {
 }
 
 /** Returns the actual completed market rounds for one product, oldest first. */
-export async function getMarketProductPriceHistory(venueId: string, productId: string): Promise<MarketPriceHistoryPoint[]> {
+export async function getMarketProductPriceHistory(venueId: string, productId: string, activeRunId?: string): Promise<MarketPriceHistoryPoint[]> {
   if (!supabase) return [];
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("market_price_snapshots")
-    .select("created_at, snapshot")
-    .eq("venue_id", venueId)
-    .order("created_at", { ascending: true });
+    .select("run_id, created_at, snapshot")
+    .eq("venue_id", venueId);
+  if (activeRunId) query = query.eq("run_id", activeRunId);
+
+  const { data, error } = await query
+    .order("created_at", { ascending: false })
+    .limit(200);
   throwIfSupabaseQueryError(error, "Could not load price history");
 
-  return (data ?? [])
+  const rows = (data ?? []) as MarketPriceSnapshotRow[];
+  const runRows = selectMarketHistoryRun(rows, activeRunId);
+  const points = runRows
+    .reverse()
     .map(row => mapMarketPriceSnapshotRow(row as MarketPriceSnapshotRow, productId))
     .filter((point): point is MarketPriceHistoryPoint => point !== null);
+
+  // A retried market cycle can write the same five-minute round twice. The TV
+  // still renders one point and one activity bar for that period.
+  return [...new Map(points.map(point => [point.at, point])).values()];
+}
+
+export function selectMarketHistoryRun(rows: MarketPriceSnapshotRow[], activeRunId?: string) {
+  if (activeRunId) return rows.filter(row => row.run_id === activeRunId);
+  const latestRunId = rows.find(row => row.run_id)?.run_id ?? null;
+  return latestRunId ? rows.filter(row => row.run_id === latestRunId) : rows.slice(0, 72);
+}
+
+/** Latest completed round, used as the TV's single presentation clock. */
+export async function getLatestMarketRound(venueId: string): Promise<MarketRoundSignal | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("market_price_snapshots")
+    .select("run_id, created_at, snapshot")
+    .eq("venue_id", venueId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  throwIfSupabaseQueryError(error, "Could not load the latest market round");
+  if (!data) return null;
+  return mapMarketRoundSnapshotRow(data as MarketPriceSnapshotRow);
+}
+
+export function mapMarketRoundSnapshotRow(row: MarketPriceSnapshotRow): MarketRoundSignal | null {
+  if (!isRecord(row.snapshot) || typeof row.snapshot.roundEnd !== "string") return null;
+  return { createdAt: row.created_at, roundEnd: row.snapshot.roundEnd, runId: row.run_id ?? null };
 }
 
 export function mapMarketPriceSnapshotRow(
@@ -394,6 +458,7 @@ export function toVenueMarketSettingsRowPatch(patch: VenueMarketSettingsPatch) {
     ...(patch.crashIntervalMinutes !== undefined
       ? { crash_interval_minutes: patch.crashIntervalMinutes as CrashIntervalMinutes }
       : {}),
+    ...(patch.crashSettings !== undefined ? { crash_settings: patch.crashSettings } : {}),
     ...(patch.marketSchedule !== undefined ? { market_schedule: patch.marketSchedule } : {}),
     ...(patch.launchDate !== undefined ? { launch_date: patch.launchDate } : {}),
     ...(patch.launchStartTime !== undefined ? { launch_start_time: patch.launchStartTime } : {}),

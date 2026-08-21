@@ -110,7 +110,7 @@ describe("market configuration access", () => {
   });
 
   it("keeps venue settings separate from product settings", () => {
-    expect(applyVenueSettingsPatch({ id: "ven_demo", slug: "demo", name: "Demo", currency: "GBP", timezone: "Europe/London", marketLive: false, tvStoryCategories: ["Cocktails"], marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }], crashIntervalMinutes: 30, launchDate: "2026-07-12", launchStartTime: "18:00", launchEndTime: "23:00" }, { marketLive: true })).toMatchObject({ marketLive: true, launchStartTime: "18:00" });
+    expect(applyVenueSettingsPatch({ id: "ven_demo", slug: "demo", name: "Demo", currency: "GBP", timezone: "Europe/London", marketLive: false, tvStoryCategories: ["Cocktails"], marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }], crashIntervalMinutes: 30, crashSettings: { durationMinutes: 10, categoryCrashCounts: {} }, launchDate: "2026-07-12", launchStartTime: "18:00", launchEndTime: "23:00" }, { marketLive: true })).toMatchObject({ marketLive: true, launchStartTime: "18:00" });
   });
 
   it("requires a membership to configure live POS-backed products", () => {
@@ -127,12 +127,23 @@ describe("market configuration access", () => {
 });
 
 describe("TV category page guidance", () => {
-  it("warns only when activating a thirteenth available drink in the same category", () => {
+  it("warns only when activating an eleventh available drink in the same category", () => {
     const cocktailPeers = Array.from({ length: TV_CATEGORY_PAGE_LIMIT }, (_, index) => ({ ...product, id: `mp_${index}`, isLive: true }));
     const inactiveCocktail = { ...product, id: "mp_inactive", isLive: false };
 
     expect(wouldNeedAnotherTvPage([...cocktailPeers, inactiveCocktail], inactiveCocktail, { isLive: true })).toBe(true);
     expect(wouldNeedAnotherTvPage([...cocktailPeers.slice(0, -1), inactiveCocktail], inactiveCocktail, { isLive: true })).toBe(false);
+  });
+
+  it("counts every live TV slot even when a drink is sold out", () => {
+    const livePeers = Array.from({ length: TV_CATEGORY_PAGE_LIMIT }, (_, index) => ({ ...product, id: `mp_${index}`, isLive: true, isSoldOut: index === 0 }));
+    const inactiveCocktail = { ...product, id: "mp_inactive", isLive: false };
+    expect(wouldNeedAnotherTvPage([...livePeers, inactiveCocktail], inactiveCocktail, { isLive: true })).toBe(true);
+  });
+
+  it("does not warn again when editing a drink already occupying the page", () => {
+    const liveProducts = Array.from({ length: TV_CATEGORY_PAGE_LIMIT + 1 }, (_, index) => ({ ...product, id: `mp_${index}`, isLive: true }));
+    expect(wouldNeedAnotherTvPage(liveProducts, liveProducts[0], { name: "Renamed drink" })).toBe(false);
   });
 
   it("limits each category to three live priority drinks", () => {

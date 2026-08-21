@@ -141,6 +141,7 @@ export async function runMarketCycle({
     serviceRoleKey,
     venueSlug,
     roundEnd,
+    serviceMinute: simulatorState.service.minute,
   });
   const posProductIds = new Map((marketProducts ?? []).map(product => [product.id, product.pos_product_id]));
   const changed = (cycle.snapshot?.decisions ?? [])
@@ -161,7 +162,7 @@ export async function runMarketCycle({
   return { importedSales, publishedLines: publishedLines.length, referenceTime, processedRoundEnd: roundEnd, simulatorResetId, status: resetDetected ? "service reset; cloud price cycle published" : "cloud price cycle published" };
 }
 
-async function invokeCloudMarketCycle({ fetchImpl, marketCycleUrl, schedulerSecret, serviceRoleKey, venueSlug, roundEnd }) {
+async function invokeCloudMarketCycle({ fetchImpl, marketCycleUrl, schedulerSecret, serviceRoleKey, venueSlug, roundEnd, serviceMinute }) {
   const response = await fetchImpl(marketCycleUrl, {
     method: "POST",
     headers: {
@@ -169,7 +170,7 @@ async function invokeCloudMarketCycle({ fetchImpl, marketCycleUrl, schedulerSecr
       "content-type": "application/json",
       "x-night-economy-scheduler-secret": schedulerSecret,
     },
-    body: JSON.stringify({ venueSlug, reason: "simulator_cycle", cycleEnd: roundEnd }),
+    body: JSON.stringify({ venueSlug, reason: "simulator_cycle", cycleEnd: roundEnd, serviceMinute }),
   });
   if (!response.ok) throw new Error(`Cloud market cycle failed: ${response.status} ${await response.text()}`);
   const result = await response.json();

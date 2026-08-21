@@ -458,11 +458,11 @@ export function Portal({ venueSlug }: Props) {
 
   async function handleQuickStart() {
     try {
-      // A rehearsal always compresses the six-hour service into ten minutes.
+      // A five-minute market round takes 15 seconds, matching the TV rotation.
       const nextSimulatorState = await controlSimulator(venueSlug, "quick_start");
       setSimulatorState(nextSimulatorState);
       await handleVenueSettingsChange({ marketLive: true });
-      setLastSavedMessage("Quick-started a 10-minute rehearsal");
+      setLastSavedMessage("Quick-started an 18-minute rehearsal");
     } catch (error) {
       setLastSavedMessage(error instanceof Error ? `Could not quick start: ${error.message}` : "Could not quick start the simulator");
     }
@@ -595,10 +595,11 @@ export function Portal({ venueSlug }: Props) {
                 ) : (
                   <PortalAccountPage
                     categories={[...new Set(state.products.filter(product => !product.isArchived).map(product => product.category))].sort((left, right) => left.localeCompare(right))}
-                    canEditTvStoryCategories={canManageSettings}
+                    canManageCrashSettings={canManageSettings}
                     email={signedInEmail}
                     isSignedIn={isSignedIn}
-                    onTvStoryCategoriesChange={tvStoryCategories => { void handleVenueSettingsChange({ tvStoryCategories }); }}
+                    onCrashSettingsChange={crashSettings => { void handleVenueSettingsChange({ crashSettings }); }}
+                    products={state.products}
                     role={memberRole}
                     source={state.source}
                     venue={state.venue}
@@ -619,7 +620,7 @@ export function Portal({ venueSlug }: Props) {
                   <section aria-labelledby="tv-page-warning-title" aria-modal="true" className="portal-confirm-dialog" role="dialog">
                     <span className="portal-start-kicker">TV display</span>
                     <h2 id="tv-page-warning-title">Add another {tvPageWarning.category} TV page?</h2>
-                    <p>Each TV page holds up to 12 drinks in {tvPageWarning.category}: three feature cards and nine market rows. Making {tvPageWarning.productName} live adds a second page, labelled for example “{tvPageWarning.category} · 1 / 2”.</p>
+                    <p>Each TV page holds up to 10 drinks in {tvPageWarning.category}: one featured drink and nine market rows. Making {tvPageWarning.productName} live adds a second page, labelled for example “{tvPageWarning.category} · 1 / 2”.</p>
                     <div>
                       <button onClick={() => setTvPageWarning(null)} type="button">Keep one page</button>
                       <button className="portal-confirm-end" onClick={() => {

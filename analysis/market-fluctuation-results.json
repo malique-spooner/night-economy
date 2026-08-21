@@ -1,0 +1,5576 @@
+{
+  "generatedAt": "2026-08-21T05:39:21.914Z",
+  "method": {
+    "engine": "buildInstantSimulation using shared customer demand and production market pricing",
+    "servicesPerScenario": 120,
+    "totalServices": 360,
+    "serviceMinutes": 360,
+    "priceRoundsPerService": 72,
+    "seedPrefix": "primary",
+    "activeProducts": 48,
+    "productsPerCategory": {
+      "Beer": 12,
+      "Cocktails": 12,
+      "Spirits": 12,
+      "Wine": 12
+    },
+    "priceBounds": "80% to 120% of base; normal pricing targets 75% of the available range",
+    "crashes": "Disabled to isolate normal demand-driven fluctuation"
+  },
+  "serviceSummary": [
+    {
+      "scenario": "quiet",
+      "scenarioLabel": "Quiet service",
+      "expectedRevenueGbp": 2500,
+      "simulatedServices": 120,
+      "averageUnitsPerService": 199.3,
+      "movingRoundRatePct": 69.1,
+      "averageRoundMovePct": 0.24,
+      "p95RoundMovePct": 0.88,
+      "averageDistanceFromBasePct": 0.7,
+      "averageProductNightRangePct": 4.01,
+      "p90ProductNightRangePct": 7.07,
+      "averageFinalPriceVsBasePct": 0,
+      "productsMovedBy60MinutesPct": 72.7,
+      "untradedProductsMovedBy60MinutesPct": 56.5,
+      "untradedProductRunsAt60": 3386,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "normal",
+      "scenarioLabel": "Normal service",
+      "expectedRevenueGbp": 10000,
+      "simulatedServices": 120,
+      "averageUnitsPerService": 790.1,
+      "movingRoundRatePct": 93.6,
+      "averageRoundMovePct": 0.72,
+      "p95RoundMovePct": 2,
+      "averageDistanceFromBasePct": 2.18,
+      "averageProductNightRangePct": 9.61,
+      "p90ProductNightRangePct": 13.48,
+      "averageFinalPriceVsBasePct": -0.31,
+      "productsMovedBy60MinutesPct": 97.8,
+      "untradedProductsMovedBy60MinutesPct": 97.5,
+      "untradedProductRunsAt60": 1116,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "busy",
+      "scenarioLabel": "Busy service",
+      "expectedRevenueGbp": 20000,
+      "simulatedServices": 120,
+      "averageUnitsPerService": 1586.6,
+      "movingRoundRatePct": 96.7,
+      "averageRoundMovePct": 1,
+      "p95RoundMovePct": 2.54,
+      "averageDistanceFromBasePct": 2.97,
+      "averageProductNightRangePct": 12.19,
+      "p90ProductNightRangePct": 15.37,
+      "averageFinalPriceVsBasePct": -0.97,
+      "productsMovedBy60MinutesPct": 98.9,
+      "untradedProductsMovedBy60MinutesPct": 100,
+      "untradedProductRunsAt60": 335,
+      "nearPriceLimitDecisionRatePct": 0
+    }
+  ],
+  "categorySummary": [
+    {
+      "scenario": "quiet",
+      "scenarioLabel": "Quiet service",
+      "expectedRevenueGbp": 2500,
+      "category": "Beer",
+      "products": 12,
+      "averageUnitsPerService": 96.7,
+      "averageOrderLinesPerService": 88.4,
+      "movingRoundRatePct": 87.1,
+      "averageRoundMovePct": 0.45,
+      "p95RoundMovePct": 1.22,
+      "averageDistanceFromBasePct": 1.36,
+      "averageProductNightRangePct": 6.71,
+      "p90ProductNightRangePct": 8.97,
+      "maximumObservedProductNightRangePct": 16.96,
+      "averageFinalPriceVsBasePct": -0.02,
+      "averagePeakAboveBasePct": 3.39,
+      "averagePeakBelowBasePct": 3.31,
+      "productsMovedBy15MinutesPct": 62.8,
+      "productsMovedBy30MinutesPct": 89,
+      "productsMovedBy60MinutesPct": 96.7,
+      "untradedProductsMovedBy60MinutesPct": 97.6,
+      "untradedProductRunsAt60": 413,
+      "averageReversalsPerProduct": 22.64,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "quiet",
+      "scenarioLabel": "Quiet service",
+      "expectedRevenueGbp": 2500,
+      "category": "Cocktails",
+      "products": 12,
+      "averageUnitsPerService": 36,
+      "averageOrderLinesPerService": 33.2,
+      "movingRoundRatePct": 66.4,
+      "averageRoundMovePct": 0.18,
+      "p95RoundMovePct": 0.73,
+      "averageDistanceFromBasePct": 0.52,
+      "averageProductNightRangePct": 3.23,
+      "p90ProductNightRangePct": 4.83,
+      "maximumObservedProductNightRangePct": 8.77,
+      "averageFinalPriceVsBasePct": 0,
+      "averagePeakAboveBasePct": 1.77,
+      "averagePeakBelowBasePct": 1.46,
+      "productsMovedBy15MinutesPct": 20,
+      "productsMovedBy30MinutesPct": 46.5,
+      "productsMovedBy60MinutesPct": 64.9,
+      "untradedProductsMovedBy60MinutesPct": 51.7,
+      "untradedProductRunsAt60": 1007,
+      "averageReversalsPerProduct": 13.42,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "quiet",
+      "scenarioLabel": "Quiet service",
+      "expectedRevenueGbp": 2500,
+      "category": "Spirits",
+      "products": 12,
+      "averageUnitsPerService": 27.9,
+      "averageOrderLinesPerService": 26.1,
+      "movingRoundRatePct": 40.7,
+      "averageRoundMovePct": 0.14,
+      "p95RoundMovePct": 0.67,
+      "averageDistanceFromBasePct": 0.37,
+      "averageProductNightRangePct": 2.7,
+      "p90ProductNightRangePct": 4,
+      "maximumObservedProductNightRangePct": 7.14,
+      "averageFinalPriceVsBasePct": 0.02,
+      "averagePeakAboveBasePct": 1.51,
+      "averagePeakBelowBasePct": 1.19,
+      "productsMovedBy15MinutesPct": 15.6,
+      "productsMovedBy30MinutesPct": 32,
+      "productsMovedBy60MinutesPct": 43.5,
+      "untradedProductsMovedBy60MinutesPct": 30.6,
+      "untradedProductRunsAt60": 1117,
+      "averageReversalsPerProduct": 10.14,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "quiet",
+      "scenarioLabel": "Quiet service",
+      "expectedRevenueGbp": 2500,
+      "category": "Wine",
+      "products": 12,
+      "averageUnitsPerService": 38.7,
+      "averageOrderLinesPerService": 35.8,
+      "movingRoundRatePct": 82.3,
+      "averageRoundMovePct": 0.19,
+      "p95RoundMovePct": 0.74,
+      "averageDistanceFromBasePct": 0.56,
+      "averageProductNightRangePct": 3.42,
+      "p90ProductNightRangePct": 4.98,
+      "maximumObservedProductNightRangePct": 8.92,
+      "averageFinalPriceVsBasePct": -0.01,
+      "averagePeakAboveBasePct": 1.87,
+      "averagePeakBelowBasePct": 1.55,
+      "productsMovedBy15MinutesPct": 35.4,
+      "productsMovedBy30MinutesPct": 67.4,
+      "productsMovedBy60MinutesPct": 85.6,
+      "untradedProductsMovedBy60MinutesPct": 76.2,
+      "untradedProductRunsAt60": 849,
+      "averageReversalsPerProduct": 14.77,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "normal",
+      "scenarioLabel": "Normal service",
+      "expectedRevenueGbp": 10000,
+      "category": "Beer",
+      "products": 12,
+      "averageUnitsPerService": 386.4,
+      "averageOrderLinesPerService": 352.7,
+      "movingRoundRatePct": 96.3,
+      "averageRoundMovePct": 1.06,
+      "p95RoundMovePct": 2.62,
+      "averageDistanceFromBasePct": 3.18,
+      "averageProductNightRangePct": 12.65,
+      "p90ProductNightRangePct": 15.57,
+      "maximumObservedProductNightRangePct": 20.43,
+      "averageFinalPriceVsBasePct": -0.98,
+      "averagePeakAboveBasePct": 4.76,
+      "averagePeakBelowBasePct": 7.89,
+      "productsMovedBy15MinutesPct": 97.2,
+      "productsMovedBy30MinutesPct": 98.5,
+      "productsMovedBy60MinutesPct": 98.9,
+      "untradedProductsMovedBy60MinutesPct": 100,
+      "untradedProductRunsAt60": 29,
+      "averageReversalsPerProduct": 22.94,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "normal",
+      "scenarioLabel": "Normal service",
+      "expectedRevenueGbp": 10000,
+      "category": "Cocktails",
+      "products": 12,
+      "averageUnitsPerService": 144.5,
+      "averageOrderLinesPerService": 132.7,
+      "movingRoundRatePct": 94.4,
+      "averageRoundMovePct": 0.63,
+      "p95RoundMovePct": 1.69,
+      "averageDistanceFromBasePct": 2.04,
+      "averageProductNightRangePct": 8.93,
+      "p90ProductNightRangePct": 11.77,
+      "maximumObservedProductNightRangePct": 17.33,
+      "averageFinalPriceVsBasePct": -0.1,
+      "averagePeakAboveBasePct": 4.16,
+      "averagePeakBelowBasePct": 4.77,
+      "productsMovedBy15MinutesPct": 64.4,
+      "productsMovedBy30MinutesPct": 94.7,
+      "productsMovedBy60MinutesPct": 98.8,
+      "untradedProductsMovedBy60MinutesPct": 99.7,
+      "untradedProductRunsAt60": 392,
+      "averageReversalsPerProduct": 24.44,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "normal",
+      "scenarioLabel": "Normal service",
+      "expectedRevenueGbp": 10000,
+      "category": "Spirits",
+      "products": 12,
+      "averageUnitsPerService": 110.1,
+      "averageOrderLinesPerService": 102.5,
+      "movingRoundRatePct": 86.7,
+      "averageRoundMovePct": 0.52,
+      "p95RoundMovePct": 1.37,
+      "averageDistanceFromBasePct": 1.54,
+      "averageProductNightRangePct": 7.62,
+      "p90ProductNightRangePct": 10,
+      "maximumObservedProductNightRangePct": 15.78,
+      "averageFinalPriceVsBasePct": -0.07,
+      "averagePeakAboveBasePct": 3.87,
+      "averagePeakBelowBasePct": 3.75,
+      "productsMovedBy15MinutesPct": 49.2,
+      "productsMovedBy30MinutesPct": 78.6,
+      "productsMovedBy60MinutesPct": 94.3,
+      "untradedProductsMovedBy60MinutesPct": 94.6,
+      "untradedProductRunsAt60": 497,
+      "averageReversalsPerProduct": 22.49,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "normal",
+      "scenarioLabel": "Normal service",
+      "expectedRevenueGbp": 10000,
+      "category": "Wine",
+      "products": 12,
+      "averageUnitsPerService": 149.1,
+      "averageOrderLinesPerService": 138.1,
+      "movingRoundRatePct": 97.3,
+      "averageRoundMovePct": 0.66,
+      "p95RoundMovePct": 1.74,
+      "averageDistanceFromBasePct": 1.95,
+      "averageProductNightRangePct": 9.26,
+      "p90ProductNightRangePct": 11.77,
+      "maximumObservedProductNightRangePct": 17.13,
+      "averageFinalPriceVsBasePct": -0.08,
+      "averagePeakAboveBasePct": 4.36,
+      "averagePeakBelowBasePct": 4.89,
+      "productsMovedBy15MinutesPct": 76.2,
+      "productsMovedBy30MinutesPct": 97.2,
+      "productsMovedBy60MinutesPct": 99.3,
+      "untradedProductsMovedBy60MinutesPct": 100,
+      "untradedProductRunsAt60": 198,
+      "averageReversalsPerProduct": 24.69,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "busy",
+      "scenarioLabel": "Busy service",
+      "expectedRevenueGbp": 20000,
+      "category": "Beer",
+      "products": 12,
+      "averageUnitsPerService": 778,
+      "averageOrderLinesPerService": 710.2,
+      "movingRoundRatePct": 97.1,
+      "averageRoundMovePct": 1.23,
+      "p95RoundMovePct": 2.96,
+      "averageDistanceFromBasePct": 3.58,
+      "averageProductNightRangePct": 13.29,
+      "p90ProductNightRangePct": 16.32,
+      "maximumObservedProductNightRangePct": 20.69,
+      "averageFinalPriceVsBasePct": -1.97,
+      "averagePeakAboveBasePct": 4.2,
+      "averagePeakBelowBasePct": 9.09,
+      "productsMovedBy15MinutesPct": 98.3,
+      "productsMovedBy30MinutesPct": 98.9,
+      "productsMovedBy60MinutesPct": 99,
+      "untradedProductsMovedBy60MinutesPct": 100,
+      "untradedProductRunsAt60": 1,
+      "averageReversalsPerProduct": 26.68,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "busy",
+      "scenarioLabel": "Busy service",
+      "expectedRevenueGbp": 20000,
+      "category": "Cocktails",
+      "products": 12,
+      "averageUnitsPerService": 287.2,
+      "averageOrderLinesPerService": 264.5,
+      "movingRoundRatePct": 96.8,
+      "averageRoundMovePct": 0.93,
+      "p95RoundMovePct": 2.38,
+      "averageDistanceFromBasePct": 3.04,
+      "averageProductNightRangePct": 11.97,
+      "p90ProductNightRangePct": 15.08,
+      "maximumObservedProductNightRangePct": 19.83,
+      "averageFinalPriceVsBasePct": -0.63,
+      "averagePeakAboveBasePct": 4.77,
+      "averagePeakBelowBasePct": 7.21,
+      "productsMovedBy15MinutesPct": 91.7,
+      "productsMovedBy30MinutesPct": 98.3,
+      "productsMovedBy60MinutesPct": 98.9,
+      "untradedProductsMovedBy60MinutesPct": 100,
+      "untradedProductRunsAt60": 124,
+      "averageReversalsPerProduct": 23.04,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "busy",
+      "scenarioLabel": "Busy service",
+      "expectedRevenueGbp": 20000,
+      "category": "Spirits",
+      "products": 12,
+      "averageUnitsPerService": 223.6,
+      "averageOrderLinesPerService": 208.3,
+      "movingRoundRatePct": 93.6,
+      "averageRoundMovePct": 0.85,
+      "p95RoundMovePct": 2.18,
+      "averageDistanceFromBasePct": 2.47,
+      "averageProductNightRangePct": 11.18,
+      "p90ProductNightRangePct": 14.09,
+      "maximumObservedProductNightRangePct": 19.56,
+      "averageFinalPriceVsBasePct": -0.74,
+      "averagePeakAboveBasePct": 4.9,
+      "averagePeakBelowBasePct": 6.28,
+      "productsMovedBy15MinutesPct": 85,
+      "productsMovedBy30MinutesPct": 97.6,
+      "productsMovedBy60MinutesPct": 98,
+      "untradedProductsMovedBy60MinutesPct": 100,
+      "untradedProductRunsAt60": 176,
+      "averageReversalsPerProduct": 22.47,
+      "nearPriceLimitDecisionRatePct": 0
+    },
+    {
+      "scenario": "busy",
+      "scenarioLabel": "Busy service",
+      "expectedRevenueGbp": 20000,
+      "category": "Wine",
+      "products": 12,
+      "averageUnitsPerService": 297.8,
+      "averageOrderLinesPerService": 276.6,
+      "movingRoundRatePct": 99.1,
+      "averageRoundMovePct": 1,
+      "p95RoundMovePct": 2.45,
+      "averageDistanceFromBasePct": 2.79,
+      "averageProductNightRangePct": 12.31,
+      "p90ProductNightRangePct": 15.25,
+      "maximumObservedProductNightRangePct": 19.63,
+      "averageFinalPriceVsBasePct": -0.55,
+      "averagePeakAboveBasePct": 4.93,
+      "averagePeakBelowBasePct": 7.38,
+      "productsMovedBy15MinutesPct": 98.5,
+      "productsMovedBy30MinutesPct": 100,
+      "productsMovedBy60MinutesPct": 99.6,
+      "untradedProductsMovedBy60MinutesPct": 100,
+      "untradedProductRunsAt60": 34,
+      "averageReversalsPerProduct": 23.58,
+      "nearPriceLimitDecisionRatePct": 0
+    }
+  ],
+  "timeSeries": [
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 5,
+      "averageDistanceFromBasePct": 0.97
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 10,
+      "averageDistanceFromBasePct": 1.72
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 15,
+      "averageDistanceFromBasePct": 2.46
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 20,
+      "averageDistanceFromBasePct": 2.95
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 25,
+      "averageDistanceFromBasePct": 3.26
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 30,
+      "averageDistanceFromBasePct": 3.44
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 35,
+      "averageDistanceFromBasePct": 3.51
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 40,
+      "averageDistanceFromBasePct": 3.5
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 45,
+      "averageDistanceFromBasePct": 3.53
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 50,
+      "averageDistanceFromBasePct": 3.67
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 55,
+      "averageDistanceFromBasePct": 3.68
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 60,
+      "averageDistanceFromBasePct": 3.59
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 65,
+      "averageDistanceFromBasePct": 3.61
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 70,
+      "averageDistanceFromBasePct": 3.64
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 75,
+      "averageDistanceFromBasePct": 3.74
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 80,
+      "averageDistanceFromBasePct": 3.7
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 85,
+      "averageDistanceFromBasePct": 3.68
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 90,
+      "averageDistanceFromBasePct": 3.62
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 95,
+      "averageDistanceFromBasePct": 3.64
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 100,
+      "averageDistanceFromBasePct": 3.61
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 105,
+      "averageDistanceFromBasePct": 3.52
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 110,
+      "averageDistanceFromBasePct": 3.53
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 115,
+      "averageDistanceFromBasePct": 3.58
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 120,
+      "averageDistanceFromBasePct": 3.62
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 125,
+      "averageDistanceFromBasePct": 3.65
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 130,
+      "averageDistanceFromBasePct": 3.66
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 135,
+      "averageDistanceFromBasePct": 3.66
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 140,
+      "averageDistanceFromBasePct": 3.71
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 145,
+      "averageDistanceFromBasePct": 3.69
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 150,
+      "averageDistanceFromBasePct": 3.69
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 155,
+      "averageDistanceFromBasePct": 3.69
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 160,
+      "averageDistanceFromBasePct": 3.6
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 165,
+      "averageDistanceFromBasePct": 3.52
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 170,
+      "averageDistanceFromBasePct": 3.56
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 175,
+      "averageDistanceFromBasePct": 3.57
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 180,
+      "averageDistanceFromBasePct": 3.69
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 185,
+      "averageDistanceFromBasePct": 3.7
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 190,
+      "averageDistanceFromBasePct": 3.71
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 195,
+      "averageDistanceFromBasePct": 3.68
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 200,
+      "averageDistanceFromBasePct": 3.69
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 205,
+      "averageDistanceFromBasePct": 3.76
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 210,
+      "averageDistanceFromBasePct": 3.75
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 215,
+      "averageDistanceFromBasePct": 3.79
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 220,
+      "averageDistanceFromBasePct": 3.72
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 225,
+      "averageDistanceFromBasePct": 3.54
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 230,
+      "averageDistanceFromBasePct": 3.53
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 235,
+      "averageDistanceFromBasePct": 3.6
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 240,
+      "averageDistanceFromBasePct": 3.59
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 245,
+      "averageDistanceFromBasePct": 3.7
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 250,
+      "averageDistanceFromBasePct": 3.82
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 255,
+      "averageDistanceFromBasePct": 3.8
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 260,
+      "averageDistanceFromBasePct": 3.65
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 265,
+      "averageDistanceFromBasePct": 3.64
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 270,
+      "averageDistanceFromBasePct": 3.7
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 275,
+      "averageDistanceFromBasePct": 3.69
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 280,
+      "averageDistanceFromBasePct": 3.72
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 285,
+      "averageDistanceFromBasePct": 3.83
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 290,
+      "averageDistanceFromBasePct": 3.8
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 295,
+      "averageDistanceFromBasePct": 3.71
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 300,
+      "averageDistanceFromBasePct": 3.66
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 305,
+      "averageDistanceFromBasePct": 3.85
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 310,
+      "averageDistanceFromBasePct": 4.03
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 315,
+      "averageDistanceFromBasePct": 4.03
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 320,
+      "averageDistanceFromBasePct": 3.99
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 325,
+      "averageDistanceFromBasePct": 3.9
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 330,
+      "averageDistanceFromBasePct": 3.75
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 335,
+      "averageDistanceFromBasePct": 3.73
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 340,
+      "averageDistanceFromBasePct": 3.62
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 345,
+      "averageDistanceFromBasePct": 3.57
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 350,
+      "averageDistanceFromBasePct": 3.67
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 355,
+      "averageDistanceFromBasePct": 3.62
+    },
+    {
+      "scenario": "busy",
+      "category": "Beer",
+      "minute": 360,
+      "averageDistanceFromBasePct": 3.62
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 5,
+      "averageDistanceFromBasePct": 0.38
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 10,
+      "averageDistanceFromBasePct": 0.92
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 15,
+      "averageDistanceFromBasePct": 1.46
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 20,
+      "averageDistanceFromBasePct": 1.85
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 25,
+      "averageDistanceFromBasePct": 2.12
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 30,
+      "averageDistanceFromBasePct": 2.43
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 35,
+      "averageDistanceFromBasePct": 2.64
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 40,
+      "averageDistanceFromBasePct": 2.68
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 45,
+      "averageDistanceFromBasePct": 2.75
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 50,
+      "averageDistanceFromBasePct": 2.85
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 55,
+      "averageDistanceFromBasePct": 2.88
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 60,
+      "averageDistanceFromBasePct": 2.93
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 65,
+      "averageDistanceFromBasePct": 3.02
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 70,
+      "averageDistanceFromBasePct": 3.17
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 75,
+      "averageDistanceFromBasePct": 3.19
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 80,
+      "averageDistanceFromBasePct": 3.18
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 85,
+      "averageDistanceFromBasePct": 3.26
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 90,
+      "averageDistanceFromBasePct": 3.32
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 95,
+      "averageDistanceFromBasePct": 3.34
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 100,
+      "averageDistanceFromBasePct": 3.4
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 105,
+      "averageDistanceFromBasePct": 3.37
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 110,
+      "averageDistanceFromBasePct": 3.3
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 115,
+      "averageDistanceFromBasePct": 3.33
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 120,
+      "averageDistanceFromBasePct": 3.38
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 125,
+      "averageDistanceFromBasePct": 3.33
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 130,
+      "averageDistanceFromBasePct": 3.3
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 135,
+      "averageDistanceFromBasePct": 3.35
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 140,
+      "averageDistanceFromBasePct": 3.35
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 145,
+      "averageDistanceFromBasePct": 3.32
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 150,
+      "averageDistanceFromBasePct": 3.35
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 155,
+      "averageDistanceFromBasePct": 3.35
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 160,
+      "averageDistanceFromBasePct": 3.3
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 165,
+      "averageDistanceFromBasePct": 3.27
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 170,
+      "averageDistanceFromBasePct": 3.24
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 175,
+      "averageDistanceFromBasePct": 3.28
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 180,
+      "averageDistanceFromBasePct": 3.36
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 185,
+      "averageDistanceFromBasePct": 3.37
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 190,
+      "averageDistanceFromBasePct": 3.38
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 195,
+      "averageDistanceFromBasePct": 3.37
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 200,
+      "averageDistanceFromBasePct": 3.37
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 205,
+      "averageDistanceFromBasePct": 3.33
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 210,
+      "averageDistanceFromBasePct": 3.28
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 215,
+      "averageDistanceFromBasePct": 3.37
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 220,
+      "averageDistanceFromBasePct": 3.48
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 225,
+      "averageDistanceFromBasePct": 3.51
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 230,
+      "averageDistanceFromBasePct": 3.51
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 235,
+      "averageDistanceFromBasePct": 3.45
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 240,
+      "averageDistanceFromBasePct": 3.37
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 245,
+      "averageDistanceFromBasePct": 3.34
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 250,
+      "averageDistanceFromBasePct": 3.32
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 255,
+      "averageDistanceFromBasePct": 3.25
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 260,
+      "averageDistanceFromBasePct": 3.17
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 265,
+      "averageDistanceFromBasePct": 3.12
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 270,
+      "averageDistanceFromBasePct": 3.15
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 275,
+      "averageDistanceFromBasePct": 3.19
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 280,
+      "averageDistanceFromBasePct": 3.2
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 285,
+      "averageDistanceFromBasePct": 3.19
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 290,
+      "averageDistanceFromBasePct": 3.11
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 295,
+      "averageDistanceFromBasePct": 3.18
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 300,
+      "averageDistanceFromBasePct": 3.22
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 305,
+      "averageDistanceFromBasePct": 3.16
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 310,
+      "averageDistanceFromBasePct": 3.15
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 315,
+      "averageDistanceFromBasePct": 3.13
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 320,
+      "averageDistanceFromBasePct": 3
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 325,
+      "averageDistanceFromBasePct": 3
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 330,
+      "averageDistanceFromBasePct": 2.96
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 335,
+      "averageDistanceFromBasePct": 2.88
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 340,
+      "averageDistanceFromBasePct": 2.78
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 345,
+      "averageDistanceFromBasePct": 2.78
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 350,
+      "averageDistanceFromBasePct": 2.7
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 355,
+      "averageDistanceFromBasePct": 2.65
+    },
+    {
+      "scenario": "busy",
+      "category": "Cocktails",
+      "minute": 360,
+      "averageDistanceFromBasePct": 2.62
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 5,
+      "averageDistanceFromBasePct": 0.29
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 10,
+      "averageDistanceFromBasePct": 0.69
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 15,
+      "averageDistanceFromBasePct": 1.04
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 20,
+      "averageDistanceFromBasePct": 1.37
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 25,
+      "averageDistanceFromBasePct": 1.65
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 30,
+      "averageDistanceFromBasePct": 1.93
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 35,
+      "averageDistanceFromBasePct": 2.15
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 40,
+      "averageDistanceFromBasePct": 2.32
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 45,
+      "averageDistanceFromBasePct": 2.38
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 50,
+      "averageDistanceFromBasePct": 2.44
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 55,
+      "averageDistanceFromBasePct": 2.41
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 60,
+      "averageDistanceFromBasePct": 2.38
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 65,
+      "averageDistanceFromBasePct": 2.38
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 70,
+      "averageDistanceFromBasePct": 2.41
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 75,
+      "averageDistanceFromBasePct": 2.38
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 80,
+      "averageDistanceFromBasePct": 2.4
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 85,
+      "averageDistanceFromBasePct": 2.44
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 90,
+      "averageDistanceFromBasePct": 2.48
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 95,
+      "averageDistanceFromBasePct": 2.44
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 100,
+      "averageDistanceFromBasePct": 2.49
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 105,
+      "averageDistanceFromBasePct": 2.53
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 110,
+      "averageDistanceFromBasePct": 2.53
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 115,
+      "averageDistanceFromBasePct": 2.6
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 120,
+      "averageDistanceFromBasePct": 2.55
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 125,
+      "averageDistanceFromBasePct": 2.53
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 130,
+      "averageDistanceFromBasePct": 2.57
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 135,
+      "averageDistanceFromBasePct": 2.56
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 140,
+      "averageDistanceFromBasePct": 2.59
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 145,
+      "averageDistanceFromBasePct": 2.59
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 150,
+      "averageDistanceFromBasePct": 2.52
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 155,
+      "averageDistanceFromBasePct": 2.42
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 160,
+      "averageDistanceFromBasePct": 2.46
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 165,
+      "averageDistanceFromBasePct": 2.59
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 170,
+      "averageDistanceFromBasePct": 2.55
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 175,
+      "averageDistanceFromBasePct": 2.53
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 180,
+      "averageDistanceFromBasePct": 2.52
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 185,
+      "averageDistanceFromBasePct": 2.6
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 190,
+      "averageDistanceFromBasePct": 2.7
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 195,
+      "averageDistanceFromBasePct": 2.71
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 200,
+      "averageDistanceFromBasePct": 2.72
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 205,
+      "averageDistanceFromBasePct": 2.71
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 210,
+      "averageDistanceFromBasePct": 2.7
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 215,
+      "averageDistanceFromBasePct": 2.75
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 220,
+      "averageDistanceFromBasePct": 2.72
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 225,
+      "averageDistanceFromBasePct": 2.7
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 230,
+      "averageDistanceFromBasePct": 2.7
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 235,
+      "averageDistanceFromBasePct": 2.66
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 240,
+      "averageDistanceFromBasePct": 2.68
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 245,
+      "averageDistanceFromBasePct": 2.69
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 250,
+      "averageDistanceFromBasePct": 2.69
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 255,
+      "averageDistanceFromBasePct": 2.74
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 260,
+      "averageDistanceFromBasePct": 2.78
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 265,
+      "averageDistanceFromBasePct": 2.83
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 270,
+      "averageDistanceFromBasePct": 2.82
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 275,
+      "averageDistanceFromBasePct": 2.78
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 280,
+      "averageDistanceFromBasePct": 2.77
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 285,
+      "averageDistanceFromBasePct": 2.78
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 290,
+      "averageDistanceFromBasePct": 2.75
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 295,
+      "averageDistanceFromBasePct": 2.8
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 300,
+      "averageDistanceFromBasePct": 2.83
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 305,
+      "averageDistanceFromBasePct": 2.79
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 310,
+      "averageDistanceFromBasePct": 2.72
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 315,
+      "averageDistanceFromBasePct": 2.81
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 320,
+      "averageDistanceFromBasePct": 2.75
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 325,
+      "averageDistanceFromBasePct": 2.68
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 330,
+      "averageDistanceFromBasePct": 2.55
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 335,
+      "averageDistanceFromBasePct": 2.44
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 340,
+      "averageDistanceFromBasePct": 2.41
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 345,
+      "averageDistanceFromBasePct": 2.53
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 350,
+      "averageDistanceFromBasePct": 2.57
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 355,
+      "averageDistanceFromBasePct": 2.54
+    },
+    {
+      "scenario": "busy",
+      "category": "Spirits",
+      "minute": 360,
+      "averageDistanceFromBasePct": 2.53
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 5,
+      "averageDistanceFromBasePct": 0.59
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 10,
+      "averageDistanceFromBasePct": 1.18
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 15,
+      "averageDistanceFromBasePct": 1.86
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 20,
+      "averageDistanceFromBasePct": 2.28
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 25,
+      "averageDistanceFromBasePct": 2.56
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 30,
+      "averageDistanceFromBasePct": 2.65
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 35,
+      "averageDistanceFromBasePct": 2.69
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 40,
+      "averageDistanceFromBasePct": 2.76
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 45,
+      "averageDistanceFromBasePct": 2.82
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 50,
+      "averageDistanceFromBasePct": 2.94
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 55,
+      "averageDistanceFromBasePct": 3.02
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 60,
+      "averageDistanceFromBasePct": 2.97
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 65,
+      "averageDistanceFromBasePct": 2.99
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 70,
+      "averageDistanceFromBasePct": 2.97
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 75,
+      "averageDistanceFromBasePct": 2.99
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 80,
+      "averageDistanceFromBasePct": 3.03
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 85,
+      "averageDistanceFromBasePct": 3.06
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 90,
+      "averageDistanceFromBasePct": 3.02
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 95,
+      "averageDistanceFromBasePct": 3.04
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 100,
+      "averageDistanceFromBasePct": 3.01
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 105,
+      "averageDistanceFromBasePct": 3
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 110,
+      "averageDistanceFromBasePct": 2.98
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 115,
+      "averageDistanceFromBasePct": 2.97
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 120,
+      "averageDistanceFromBasePct": 3
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 125,
+      "averageDistanceFromBasePct": 3.01
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 130,
+      "averageDistanceFromBasePct": 3.07
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 135,
+      "averageDistanceFromBasePct": 3.08
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 140,
+      "averageDistanceFromBasePct": 3.02
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 145,
+      "averageDistanceFromBasePct": 2.99
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 150,
+      "averageDistanceFromBasePct": 2.93
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 155,
+      "averageDistanceFromBasePct": 2.86
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 160,
+      "averageDistanceFromBasePct": 2.89
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 165,
+      "averageDistanceFromBasePct": 2.88
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 170,
+      "averageDistanceFromBasePct": 2.97
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 175,
+      "averageDistanceFromBasePct": 2.92
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 180,
+      "averageDistanceFromBasePct": 2.9
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 185,
+      "averageDistanceFromBasePct": 2.91
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 190,
+      "averageDistanceFromBasePct": 2.94
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 195,
+      "averageDistanceFromBasePct": 2.9
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 200,
+      "averageDistanceFromBasePct": 2.93
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 205,
+      "averageDistanceFromBasePct": 2.98
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 210,
+      "averageDistanceFromBasePct": 3.02
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 215,
+      "averageDistanceFromBasePct": 2.97
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 220,
+      "averageDistanceFromBasePct": 2.93
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 225,
+      "averageDistanceFromBasePct": 2.88
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 230,
+      "averageDistanceFromBasePct": 2.87
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 235,
+      "averageDistanceFromBasePct": 2.88
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 240,
+      "averageDistanceFromBasePct": 2.87
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 245,
+      "averageDistanceFromBasePct": 2.88
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 250,
+      "averageDistanceFromBasePct": 2.93
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 255,
+      "averageDistanceFromBasePct": 3.04
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 260,
+      "averageDistanceFromBasePct": 3.02
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 265,
+      "averageDistanceFromBasePct": 3.01
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 270,
+      "averageDistanceFromBasePct": 2.89
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 275,
+      "averageDistanceFromBasePct": 2.73
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 280,
+      "averageDistanceFromBasePct": 2.74
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 285,
+      "averageDistanceFromBasePct": 2.83
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 290,
+      "averageDistanceFromBasePct": 2.84
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 295,
+      "averageDistanceFromBasePct": 2.93
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 300,
+      "averageDistanceFromBasePct": 2.97
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 305,
+      "averageDistanceFromBasePct": 2.91
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 310,
+      "averageDistanceFromBasePct": 2.89
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 315,
+      "averageDistanceFromBasePct": 2.87
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 320,
+      "averageDistanceFromBasePct": 2.83
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 325,
+      "averageDistanceFromBasePct": 2.75
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 330,
+      "averageDistanceFromBasePct": 2.64
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 335,
+      "averageDistanceFromBasePct": 2.52
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 340,
+      "averageDistanceFromBasePct": 2.4
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 345,
+      "averageDistanceFromBasePct": 2.4
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 350,
+      "averageDistanceFromBasePct": 2.32
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 355,
+      "averageDistanceFromBasePct": 2.27
+    },
+    {
+      "scenario": "busy",
+      "category": "Wine",
+      "minute": 360,
+      "averageDistanceFromBasePct": 2.23
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 5,
+      "averageDistanceFromBasePct": 0.58
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 10,
+      "averageDistanceFromBasePct": 1.28
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 15,
+      "averageDistanceFromBasePct": 2.06
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 20,
+      "averageDistanceFromBasePct": 2.38
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 25,
+      "averageDistanceFromBasePct": 2.66
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 30,
+      "averageDistanceFromBasePct": 2.95
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 35,
+      "averageDistanceFromBasePct": 3.11
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 40,
+      "averageDistanceFromBasePct": 3.15
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 45,
+      "averageDistanceFromBasePct": 3.15
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 50,
+      "averageDistanceFromBasePct": 3.2
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 55,
+      "averageDistanceFromBasePct": 3.23
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 60,
+      "averageDistanceFromBasePct": 3.28
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 65,
+      "averageDistanceFromBasePct": 3.31
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 70,
+      "averageDistanceFromBasePct": 3.3
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 75,
+      "averageDistanceFromBasePct": 3.36
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 80,
+      "averageDistanceFromBasePct": 3.43
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 85,
+      "averageDistanceFromBasePct": 3.46
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 90,
+      "averageDistanceFromBasePct": 3.44
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 95,
+      "averageDistanceFromBasePct": 3.39
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 100,
+      "averageDistanceFromBasePct": 3.39
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 105,
+      "averageDistanceFromBasePct": 3.41
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 110,
+      "averageDistanceFromBasePct": 3.36
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 115,
+      "averageDistanceFromBasePct": 3.4
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 120,
+      "averageDistanceFromBasePct": 3.41
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 125,
+      "averageDistanceFromBasePct": 3.41
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 130,
+      "averageDistanceFromBasePct": 3.39
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 135,
+      "averageDistanceFromBasePct": 3.46
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 140,
+      "averageDistanceFromBasePct": 3.41
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 145,
+      "averageDistanceFromBasePct": 3.31
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 150,
+      "averageDistanceFromBasePct": 3.35
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 155,
+      "averageDistanceFromBasePct": 3.19
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 160,
+      "averageDistanceFromBasePct": 3.13
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 165,
+      "averageDistanceFromBasePct": 3.21
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 170,
+      "averageDistanceFromBasePct": 3.27
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 175,
+      "averageDistanceFromBasePct": 3.26
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 180,
+      "averageDistanceFromBasePct": 3.35
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 185,
+      "averageDistanceFromBasePct": 3.39
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 190,
+      "averageDistanceFromBasePct": 3.47
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 195,
+      "averageDistanceFromBasePct": 3.53
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 200,
+      "averageDistanceFromBasePct": 3.45
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 205,
+      "averageDistanceFromBasePct": 3.29
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 210,
+      "averageDistanceFromBasePct": 3.23
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 215,
+      "averageDistanceFromBasePct": 3.31
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 220,
+      "averageDistanceFromBasePct": 3.35
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 225,
+      "averageDistanceFromBasePct": 3.31
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 230,
+      "averageDistanceFromBasePct": 3.24
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 235,
+      "averageDistanceFromBasePct": 3.22
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 240,
+      "averageDistanceFromBasePct": 3.32
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 245,
+      "averageDistanceFromBasePct": 3.43
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 250,
+      "averageDistanceFromBasePct": 3.49
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 255,
+      "averageDistanceFromBasePct": 3.46
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 260,
+      "averageDistanceFromBasePct": 3.44
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 265,
+      "averageDistanceFromBasePct": 3.49
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 270,
+      "averageDistanceFromBasePct": 3.46
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 275,
+      "averageDistanceFromBasePct": 3.35
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 280,
+      "averageDistanceFromBasePct": 3.32
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 285,
+      "averageDistanceFromBasePct": 3.27
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 290,
+      "averageDistanceFromBasePct": 3.31
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 295,
+      "averageDistanceFromBasePct": 3.36
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 300,
+      "averageDistanceFromBasePct": 3.35
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 305,
+      "averageDistanceFromBasePct": 3.21
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 310,
+      "averageDistanceFromBasePct": 3.27
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 315,
+      "averageDistanceFromBasePct": 3.28
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 320,
+      "averageDistanceFromBasePct": 3.22
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 325,
+      "averageDistanceFromBasePct": 3.14
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 330,
+      "averageDistanceFromBasePct": 3.02
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 335,
+      "averageDistanceFromBasePct": 2.98
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 340,
+      "averageDistanceFromBasePct": 2.97
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 345,
+      "averageDistanceFromBasePct": 2.92
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 350,
+      "averageDistanceFromBasePct": 2.88
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 355,
+      "averageDistanceFromBasePct": 2.83
+    },
+    {
+      "scenario": "normal",
+      "category": "Beer",
+      "minute": 360,
+      "averageDistanceFromBasePct": 2.8
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 5,
+      "averageDistanceFromBasePct": 0.15
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 10,
+      "averageDistanceFromBasePct": 0.38
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 15,
+      "averageDistanceFromBasePct": 0.6
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 20,
+      "averageDistanceFromBasePct": 0.95
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 25,
+      "averageDistanceFromBasePct": 1.22
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 30,
+      "averageDistanceFromBasePct": 1.44
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 35,
+      "averageDistanceFromBasePct": 1.57
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 40,
+      "averageDistanceFromBasePct": 1.68
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 45,
+      "averageDistanceFromBasePct": 1.74
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 50,
+      "averageDistanceFromBasePct": 1.73
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 55,
+      "averageDistanceFromBasePct": 1.83
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 60,
+      "averageDistanceFromBasePct": 1.89
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 65,
+      "averageDistanceFromBasePct": 1.93
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 70,
+      "averageDistanceFromBasePct": 1.95
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 75,
+      "averageDistanceFromBasePct": 1.99
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 80,
+      "averageDistanceFromBasePct": 2.05
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 85,
+      "averageDistanceFromBasePct": 2.06
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 90,
+      "averageDistanceFromBasePct": 2.09
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 95,
+      "averageDistanceFromBasePct": 2.15
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 100,
+      "averageDistanceFromBasePct": 2.18
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 105,
+      "averageDistanceFromBasePct": 2.23
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 110,
+      "averageDistanceFromBasePct": 2.31
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 115,
+      "averageDistanceFromBasePct": 2.33
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 120,
+      "averageDistanceFromBasePct": 2.33
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 125,
+      "averageDistanceFromBasePct": 2.39
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 130,
+      "averageDistanceFromBasePct": 2.35
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 135,
+      "averageDistanceFromBasePct": 2.28
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 140,
+      "averageDistanceFromBasePct": 2.35
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 145,
+      "averageDistanceFromBasePct": 2.38
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 150,
+      "averageDistanceFromBasePct": 2.38
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 155,
+      "averageDistanceFromBasePct": 2.47
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 160,
+      "averageDistanceFromBasePct": 2.49
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 165,
+      "averageDistanceFromBasePct": 2.52
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 170,
+      "averageDistanceFromBasePct": 2.5
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 175,
+      "averageDistanceFromBasePct": 2.51
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 180,
+      "averageDistanceFromBasePct": 2.55
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 185,
+      "averageDistanceFromBasePct": 2.59
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 190,
+      "averageDistanceFromBasePct": 2.52
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 195,
+      "averageDistanceFromBasePct": 2.41
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 200,
+      "averageDistanceFromBasePct": 2.35
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 205,
+      "averageDistanceFromBasePct": 2.34
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 210,
+      "averageDistanceFromBasePct": 2.41
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 215,
+      "averageDistanceFromBasePct": 2.41
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 220,
+      "averageDistanceFromBasePct": 2.39
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 225,
+      "averageDistanceFromBasePct": 2.46
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 230,
+      "averageDistanceFromBasePct": 2.51
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 235,
+      "averageDistanceFromBasePct": 2.5
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 240,
+      "averageDistanceFromBasePct": 2.52
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 245,
+      "averageDistanceFromBasePct": 2.49
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 250,
+      "averageDistanceFromBasePct": 2.48
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 255,
+      "averageDistanceFromBasePct": 2.46
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 260,
+      "averageDistanceFromBasePct": 2.42
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 265,
+      "averageDistanceFromBasePct": 2.37
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 270,
+      "averageDistanceFromBasePct": 2.28
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 275,
+      "averageDistanceFromBasePct": 2.23
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 280,
+      "averageDistanceFromBasePct": 2.28
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 285,
+      "averageDistanceFromBasePct": 2.26
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 290,
+      "averageDistanceFromBasePct": 2.21
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 295,
+      "averageDistanceFromBasePct": 2.17
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 300,
+      "averageDistanceFromBasePct": 2.14
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 305,
+      "averageDistanceFromBasePct": 2.07
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 310,
+      "averageDistanceFromBasePct": 2.02
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 315,
+      "averageDistanceFromBasePct": 1.97
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 320,
+      "averageDistanceFromBasePct": 1.88
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 325,
+      "averageDistanceFromBasePct": 1.8
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 330,
+      "averageDistanceFromBasePct": 1.71
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 335,
+      "averageDistanceFromBasePct": 1.58
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 340,
+      "averageDistanceFromBasePct": 1.43
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 345,
+      "averageDistanceFromBasePct": 1.46
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 350,
+      "averageDistanceFromBasePct": 1.45
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 355,
+      "averageDistanceFromBasePct": 1.39
+    },
+    {
+      "scenario": "normal",
+      "category": "Cocktails",
+      "minute": 360,
+      "averageDistanceFromBasePct": 1.35
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 5,
+      "averageDistanceFromBasePct": 0.11
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 10,
+      "averageDistanceFromBasePct": 0.29
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 15,
+      "averageDistanceFromBasePct": 0.43
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 20,
+      "averageDistanceFromBasePct": 0.65
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 25,
+      "averageDistanceFromBasePct": 0.84
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 30,
+      "averageDistanceFromBasePct": 0.98
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 35,
+      "averageDistanceFromBasePct": 1.1
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 40,
+      "averageDistanceFromBasePct": 1.19
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 45,
+      "averageDistanceFromBasePct": 1.24
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 50,
+      "averageDistanceFromBasePct": 1.25
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 55,
+      "averageDistanceFromBasePct": 1.29
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 60,
+      "averageDistanceFromBasePct": 1.36
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 65,
+      "averageDistanceFromBasePct": 1.43
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 70,
+      "averageDistanceFromBasePct": 1.48
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 75,
+      "averageDistanceFromBasePct": 1.5
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 80,
+      "averageDistanceFromBasePct": 1.49
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 85,
+      "averageDistanceFromBasePct": 1.55
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 90,
+      "averageDistanceFromBasePct": 1.64
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 95,
+      "averageDistanceFromBasePct": 1.64
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 100,
+      "averageDistanceFromBasePct": 1.64
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 105,
+      "averageDistanceFromBasePct": 1.65
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 110,
+      "averageDistanceFromBasePct": 1.68
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 115,
+      "averageDistanceFromBasePct": 1.64
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 120,
+      "averageDistanceFromBasePct": 1.6
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 125,
+      "averageDistanceFromBasePct": 1.61
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 130,
+      "averageDistanceFromBasePct": 1.61
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 135,
+      "averageDistanceFromBasePct": 1.64
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 140,
+      "averageDistanceFromBasePct": 1.67
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 145,
+      "averageDistanceFromBasePct": 1.7
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 150,
+      "averageDistanceFromBasePct": 1.74
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 155,
+      "averageDistanceFromBasePct": 1.76
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 160,
+      "averageDistanceFromBasePct": 1.78
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 165,
+      "averageDistanceFromBasePct": 1.79
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 170,
+      "averageDistanceFromBasePct": 1.78
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 175,
+      "averageDistanceFromBasePct": 1.71
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 180,
+      "averageDistanceFromBasePct": 1.69
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 185,
+      "averageDistanceFromBasePct": 1.64
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 190,
+      "averageDistanceFromBasePct": 1.72
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 195,
+      "averageDistanceFromBasePct": 1.71
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 200,
+      "averageDistanceFromBasePct": 1.71
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 205,
+      "averageDistanceFromBasePct": 1.7
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 210,
+      "averageDistanceFromBasePct": 1.69
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 215,
+      "averageDistanceFromBasePct": 1.72
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 220,
+      "averageDistanceFromBasePct": 1.78
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 225,
+      "averageDistanceFromBasePct": 1.84
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 230,
+      "averageDistanceFromBasePct": 1.9
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 235,
+      "averageDistanceFromBasePct": 1.95
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 240,
+      "averageDistanceFromBasePct": 1.95
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 245,
+      "averageDistanceFromBasePct": 1.89
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 250,
+      "averageDistanceFromBasePct": 1.86
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 255,
+      "averageDistanceFromBasePct": 1.85
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 260,
+      "averageDistanceFromBasePct": 1.89
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 265,
+      "averageDistanceFromBasePct": 1.85
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 270,
+      "averageDistanceFromBasePct": 1.84
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 275,
+      "averageDistanceFromBasePct": 1.78
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 280,
+      "averageDistanceFromBasePct": 1.77
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 285,
+      "averageDistanceFromBasePct": 1.75
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 290,
+      "averageDistanceFromBasePct": 1.76
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 295,
+      "averageDistanceFromBasePct": 1.82
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 300,
+      "averageDistanceFromBasePct": 1.79
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 305,
+      "averageDistanceFromBasePct": 1.72
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 310,
+      "averageDistanceFromBasePct": 1.66
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 315,
+      "averageDistanceFromBasePct": 1.65
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 320,
+      "averageDistanceFromBasePct": 1.59
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 325,
+      "averageDistanceFromBasePct": 1.52
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 330,
+      "averageDistanceFromBasePct": 1.44
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 335,
+      "averageDistanceFromBasePct": 1.41
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 340,
+      "averageDistanceFromBasePct": 1.37
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 345,
+      "averageDistanceFromBasePct": 1.35
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 350,
+      "averageDistanceFromBasePct": 1.37
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 355,
+      "averageDistanceFromBasePct": 1.34
+    },
+    {
+      "scenario": "normal",
+      "category": "Spirits",
+      "minute": 360,
+      "averageDistanceFromBasePct": 1.37
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 5,
+      "averageDistanceFromBasePct": 0.26
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 10,
+      "averageDistanceFromBasePct": 0.55
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 15,
+      "averageDistanceFromBasePct": 0.89
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 20,
+      "averageDistanceFromBasePct": 1.27
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 25,
+      "averageDistanceFromBasePct": 1.54
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 30,
+      "averageDistanceFromBasePct": 1.67
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 35,
+      "averageDistanceFromBasePct": 1.86
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 40,
+      "averageDistanceFromBasePct": 1.95
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 45,
+      "averageDistanceFromBasePct": 2.06
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 50,
+      "averageDistanceFromBasePct": 2.08
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 55,
+      "averageDistanceFromBasePct": 2.13
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 60,
+      "averageDistanceFromBasePct": 2.09
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 65,
+      "averageDistanceFromBasePct": 2.19
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 70,
+      "averageDistanceFromBasePct": 2.29
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 75,
+      "averageDistanceFromBasePct": 2.29
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 80,
+      "averageDistanceFromBasePct": 2.3
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 85,
+      "averageDistanceFromBasePct": 2.29
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 90,
+      "averageDistanceFromBasePct": 2.34
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 95,
+      "averageDistanceFromBasePct": 2.33
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 100,
+      "averageDistanceFromBasePct": 2.34
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 105,
+      "averageDistanceFromBasePct": 2.37
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 110,
+      "averageDistanceFromBasePct": 2.31
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 115,
+      "averageDistanceFromBasePct": 2.22
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 120,
+      "averageDistanceFromBasePct": 2.22
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 125,
+      "averageDistanceFromBasePct": 2.24
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 130,
+      "averageDistanceFromBasePct": 2.29
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 135,
+      "averageDistanceFromBasePct": 2.26
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 140,
+      "averageDistanceFromBasePct": 2.2
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 145,
+      "averageDistanceFromBasePct": 2.2
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 150,
+      "averageDistanceFromBasePct": 2.18
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 155,
+      "averageDistanceFromBasePct": 2.19
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 160,
+      "averageDistanceFromBasePct": 2.2
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 165,
+      "averageDistanceFromBasePct": 2.14
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 170,
+      "averageDistanceFromBasePct": 2.13
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 175,
+      "averageDistanceFromBasePct": 2.19
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 180,
+      "averageDistanceFromBasePct": 2.18
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 185,
+      "averageDistanceFromBasePct": 2.22
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 190,
+      "averageDistanceFromBasePct": 2.2
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 195,
+      "averageDistanceFromBasePct": 2.13
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 200,
+      "averageDistanceFromBasePct": 2.11
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 205,
+      "averageDistanceFromBasePct": 2.2
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 210,
+      "averageDistanceFromBasePct": 2.23
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 215,
+      "averageDistanceFromBasePct": 2.19
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 220,
+      "averageDistanceFromBasePct": 2.15
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 225,
+      "averageDistanceFromBasePct": 2.13
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 230,
+      "averageDistanceFromBasePct": 2.1
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 235,
+      "averageDistanceFromBasePct": 2.13
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 240,
+      "averageDistanceFromBasePct": 2.13
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 245,
+      "averageDistanceFromBasePct": 2.13
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 250,
+      "averageDistanceFromBasePct": 2.09
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 255,
+      "averageDistanceFromBasePct": 2.06
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 260,
+      "averageDistanceFromBasePct": 2.07
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 265,
+      "averageDistanceFromBasePct": 2
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 270,
+      "averageDistanceFromBasePct": 2
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 275,
+      "averageDistanceFromBasePct": 2.03
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 280,
+      "averageDistanceFromBasePct": 2.03
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 285,
+      "averageDistanceFromBasePct": 1.95
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 290,
+      "averageDistanceFromBasePct": 1.9
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 295,
+      "averageDistanceFromBasePct": 1.88
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 300,
+      "averageDistanceFromBasePct": 1.88
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 305,
+      "averageDistanceFromBasePct": 1.81
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 310,
+      "averageDistanceFromBasePct": 1.76
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 315,
+      "averageDistanceFromBasePct": 1.74
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 320,
+      "averageDistanceFromBasePct": 1.63
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 325,
+      "averageDistanceFromBasePct": 1.56
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 330,
+      "averageDistanceFromBasePct": 1.48
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 335,
+      "averageDistanceFromBasePct": 1.36
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 340,
+      "averageDistanceFromBasePct": 1.34
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 345,
+      "averageDistanceFromBasePct": 1.39
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 350,
+      "averageDistanceFromBasePct": 1.42
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 355,
+      "averageDistanceFromBasePct": 1.41
+    },
+    {
+      "scenario": "normal",
+      "category": "Wine",
+      "minute": 360,
+      "averageDistanceFromBasePct": 1.44
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 5,
+      "averageDistanceFromBasePct": 0.15
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 10,
+      "averageDistanceFromBasePct": 0.36
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 15,
+      "averageDistanceFromBasePct": 0.57
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 20,
+      "averageDistanceFromBasePct": 0.8
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 25,
+      "averageDistanceFromBasePct": 0.99
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 30,
+      "averageDistanceFromBasePct": 1.17
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 35,
+      "averageDistanceFromBasePct": 1.24
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 40,
+      "averageDistanceFromBasePct": 1.3
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 45,
+      "averageDistanceFromBasePct": 1.33
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 50,
+      "averageDistanceFromBasePct": 1.36
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 55,
+      "averageDistanceFromBasePct": 1.39
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 60,
+      "averageDistanceFromBasePct": 1.39
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 65,
+      "averageDistanceFromBasePct": 1.42
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 70,
+      "averageDistanceFromBasePct": 1.5
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 75,
+      "averageDistanceFromBasePct": 1.6
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 80,
+      "averageDistanceFromBasePct": 1.63
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 85,
+      "averageDistanceFromBasePct": 1.61
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 90,
+      "averageDistanceFromBasePct": 1.65
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 95,
+      "averageDistanceFromBasePct": 1.65
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 100,
+      "averageDistanceFromBasePct": 1.63
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 105,
+      "averageDistanceFromBasePct": 1.65
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 110,
+      "averageDistanceFromBasePct": 1.65
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 115,
+      "averageDistanceFromBasePct": 1.68
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 120,
+      "averageDistanceFromBasePct": 1.75
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 125,
+      "averageDistanceFromBasePct": 1.8
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 130,
+      "averageDistanceFromBasePct": 1.73
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 135,
+      "averageDistanceFromBasePct": 1.69
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 140,
+      "averageDistanceFromBasePct": 1.63
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 145,
+      "averageDistanceFromBasePct": 1.61
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 150,
+      "averageDistanceFromBasePct": 1.54
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 155,
+      "averageDistanceFromBasePct": 1.49
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 160,
+      "averageDistanceFromBasePct": 1.5
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 165,
+      "averageDistanceFromBasePct": 1.48
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 170,
+      "averageDistanceFromBasePct": 1.49
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 175,
+      "averageDistanceFromBasePct": 1.49
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 180,
+      "averageDistanceFromBasePct": 1.5
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 185,
+      "averageDistanceFromBasePct": 1.51
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 190,
+      "averageDistanceFromBasePct": 1.56
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 195,
+      "averageDistanceFromBasePct": 1.54
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 200,
+      "averageDistanceFromBasePct": 1.51
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 205,
+      "averageDistanceFromBasePct": 1.53
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 210,
+      "averageDistanceFromBasePct": 1.55
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 215,
+      "averageDistanceFromBasePct": 1.46
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 220,
+      "averageDistanceFromBasePct": 1.42
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 225,
+      "averageDistanceFromBasePct": 1.43
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 230,
+      "averageDistanceFromBasePct": 1.42
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 235,
+      "averageDistanceFromBasePct": 1.44
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 240,
+      "averageDistanceFromBasePct": 1.43
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 245,
+      "averageDistanceFromBasePct": 1.42
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 250,
+      "averageDistanceFromBasePct": 1.39
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 255,
+      "averageDistanceFromBasePct": 1.37
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 260,
+      "averageDistanceFromBasePct": 1.42
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 265,
+      "averageDistanceFromBasePct": 1.44
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 270,
+      "averageDistanceFromBasePct": 1.42
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 275,
+      "averageDistanceFromBasePct": 1.44
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 280,
+      "averageDistanceFromBasePct": 1.41
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 285,
+      "averageDistanceFromBasePct": 1.37
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 290,
+      "averageDistanceFromBasePct": 1.31
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 295,
+      "averageDistanceFromBasePct": 1.31
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 300,
+      "averageDistanceFromBasePct": 1.32
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 305,
+      "averageDistanceFromBasePct": 1.33
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 310,
+      "averageDistanceFromBasePct": 1.29
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 315,
+      "averageDistanceFromBasePct": 1.22
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 320,
+      "averageDistanceFromBasePct": 1.18
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 325,
+      "averageDistanceFromBasePct": 1.13
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 330,
+      "averageDistanceFromBasePct": 1.08
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 335,
+      "averageDistanceFromBasePct": 0.99
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 340,
+      "averageDistanceFromBasePct": 0.96
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 345,
+      "averageDistanceFromBasePct": 0.94
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 350,
+      "averageDistanceFromBasePct": 0.87
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 355,
+      "averageDistanceFromBasePct": 0.85
+    },
+    {
+      "scenario": "quiet",
+      "category": "Beer",
+      "minute": 360,
+      "averageDistanceFromBasePct": 0.9
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 5,
+      "averageDistanceFromBasePct": 0.05
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 10,
+      "averageDistanceFromBasePct": 0.08
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 15,
+      "averageDistanceFromBasePct": 0.12
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 20,
+      "averageDistanceFromBasePct": 0.19
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 25,
+      "averageDistanceFromBasePct": 0.23
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 30,
+      "averageDistanceFromBasePct": 0.28
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 35,
+      "averageDistanceFromBasePct": 0.33
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 40,
+      "averageDistanceFromBasePct": 0.34
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 45,
+      "averageDistanceFromBasePct": 0.34
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 50,
+      "averageDistanceFromBasePct": 0.34
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 55,
+      "averageDistanceFromBasePct": 0.35
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 60,
+      "averageDistanceFromBasePct": 0.37
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 65,
+      "averageDistanceFromBasePct": 0.38
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 70,
+      "averageDistanceFromBasePct": 0.44
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 75,
+      "averageDistanceFromBasePct": 0.47
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 80,
+      "averageDistanceFromBasePct": 0.48
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 85,
+      "averageDistanceFromBasePct": 0.51
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 90,
+      "averageDistanceFromBasePct": 0.56
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 95,
+      "averageDistanceFromBasePct": 0.61
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 100,
+      "averageDistanceFromBasePct": 0.59
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 105,
+      "averageDistanceFromBasePct": 0.6
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 110,
+      "averageDistanceFromBasePct": 0.64
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 115,
+      "averageDistanceFromBasePct": 0.62
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 120,
+      "averageDistanceFromBasePct": 0.64
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 125,
+      "averageDistanceFromBasePct": 0.65
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 130,
+      "averageDistanceFromBasePct": 0.64
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 135,
+      "averageDistanceFromBasePct": 0.66
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 140,
+      "averageDistanceFromBasePct": 0.68
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 145,
+      "averageDistanceFromBasePct": 0.67
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 150,
+      "averageDistanceFromBasePct": 0.68
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 155,
+      "averageDistanceFromBasePct": 0.67
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 160,
+      "averageDistanceFromBasePct": 0.69
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 165,
+      "averageDistanceFromBasePct": 0.68
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 170,
+      "averageDistanceFromBasePct": 0.68
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 175,
+      "averageDistanceFromBasePct": 0.67
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 180,
+      "averageDistanceFromBasePct": 0.63
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 185,
+      "averageDistanceFromBasePct": 0.6
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 190,
+      "averageDistanceFromBasePct": 0.63
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 195,
+      "averageDistanceFromBasePct": 0.63
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 200,
+      "averageDistanceFromBasePct": 0.64
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 205,
+      "averageDistanceFromBasePct": 0.66
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 210,
+      "averageDistanceFromBasePct": 0.66
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 215,
+      "averageDistanceFromBasePct": 0.64
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 220,
+      "averageDistanceFromBasePct": 0.62
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 225,
+      "averageDistanceFromBasePct": 0.62
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 230,
+      "averageDistanceFromBasePct": 0.63
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 235,
+      "averageDistanceFromBasePct": 0.61
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 240,
+      "averageDistanceFromBasePct": 0.61
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 245,
+      "averageDistanceFromBasePct": 0.62
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 250,
+      "averageDistanceFromBasePct": 0.6
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 255,
+      "averageDistanceFromBasePct": 0.62
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 260,
+      "averageDistanceFromBasePct": 0.64
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 265,
+      "averageDistanceFromBasePct": 0.64
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 270,
+      "averageDistanceFromBasePct": 0.64
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 275,
+      "averageDistanceFromBasePct": 0.66
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 280,
+      "averageDistanceFromBasePct": 0.65
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 285,
+      "averageDistanceFromBasePct": 0.61
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 290,
+      "averageDistanceFromBasePct": 0.61
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 295,
+      "averageDistanceFromBasePct": 0.59
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 300,
+      "averageDistanceFromBasePct": 0.56
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 305,
+      "averageDistanceFromBasePct": 0.56
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 310,
+      "averageDistanceFromBasePct": 0.51
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 315,
+      "averageDistanceFromBasePct": 0.46
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 320,
+      "averageDistanceFromBasePct": 0.41
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 325,
+      "averageDistanceFromBasePct": 0.4
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 330,
+      "averageDistanceFromBasePct": 0.38
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 335,
+      "averageDistanceFromBasePct": 0.35
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 340,
+      "averageDistanceFromBasePct": 0.33
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 345,
+      "averageDistanceFromBasePct": 0.32
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 350,
+      "averageDistanceFromBasePct": 0.31
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 355,
+      "averageDistanceFromBasePct": 0.3
+    },
+    {
+      "scenario": "quiet",
+      "category": "Cocktails",
+      "minute": 360,
+      "averageDistanceFromBasePct": 0.33
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 5,
+      "averageDistanceFromBasePct": 0.04
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 10,
+      "averageDistanceFromBasePct": 0.07
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 15,
+      "averageDistanceFromBasePct": 0.11
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 20,
+      "averageDistanceFromBasePct": 0.14
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 25,
+      "averageDistanceFromBasePct": 0.16
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 30,
+      "averageDistanceFromBasePct": 0.2
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 35,
+      "averageDistanceFromBasePct": 0.22
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 40,
+      "averageDistanceFromBasePct": 0.23
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 45,
+      "averageDistanceFromBasePct": 0.23
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 50,
+      "averageDistanceFromBasePct": 0.23
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 55,
+      "averageDistanceFromBasePct": 0.26
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 60,
+      "averageDistanceFromBasePct": 0.27
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 65,
+      "averageDistanceFromBasePct": 0.3
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 70,
+      "averageDistanceFromBasePct": 0.31
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 75,
+      "averageDistanceFromBasePct": 0.33
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 80,
+      "averageDistanceFromBasePct": 0.32
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 85,
+      "averageDistanceFromBasePct": 0.3
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 90,
+      "averageDistanceFromBasePct": 0.31
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 95,
+      "averageDistanceFromBasePct": 0.31
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 100,
+      "averageDistanceFromBasePct": 0.31
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 105,
+      "averageDistanceFromBasePct": 0.33
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 110,
+      "averageDistanceFromBasePct": 0.35
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 115,
+      "averageDistanceFromBasePct": 0.36
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 120,
+      "averageDistanceFromBasePct": 0.36
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 125,
+      "averageDistanceFromBasePct": 0.42
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 130,
+      "averageDistanceFromBasePct": 0.43
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 135,
+      "averageDistanceFromBasePct": 0.42
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 140,
+      "averageDistanceFromBasePct": 0.42
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 145,
+      "averageDistanceFromBasePct": 0.43
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 150,
+      "averageDistanceFromBasePct": 0.43
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 155,
+      "averageDistanceFromBasePct": 0.41
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 160,
+      "averageDistanceFromBasePct": 0.4
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 165,
+      "averageDistanceFromBasePct": 0.38
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 170,
+      "averageDistanceFromBasePct": 0.4
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 175,
+      "averageDistanceFromBasePct": 0.41
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 180,
+      "averageDistanceFromBasePct": 0.44
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 185,
+      "averageDistanceFromBasePct": 0.45
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 190,
+      "averageDistanceFromBasePct": 0.46
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 195,
+      "averageDistanceFromBasePct": 0.45
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 200,
+      "averageDistanceFromBasePct": 0.41
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 205,
+      "averageDistanceFromBasePct": 0.39
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 210,
+      "averageDistanceFromBasePct": 0.4
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 215,
+      "averageDistanceFromBasePct": 0.37
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 220,
+      "averageDistanceFromBasePct": 0.34
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 225,
+      "averageDistanceFromBasePct": 0.39
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 230,
+      "averageDistanceFromBasePct": 0.39
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 235,
+      "averageDistanceFromBasePct": 0.4
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 240,
+      "averageDistanceFromBasePct": 0.41
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 245,
+      "averageDistanceFromBasePct": 0.44
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 250,
+      "averageDistanceFromBasePct": 0.48
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 255,
+      "averageDistanceFromBasePct": 0.48
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 260,
+      "averageDistanceFromBasePct": 0.51
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 265,
+      "averageDistanceFromBasePct": 0.53
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 270,
+      "averageDistanceFromBasePct": 0.54
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 275,
+      "averageDistanceFromBasePct": 0.57
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 280,
+      "averageDistanceFromBasePct": 0.59
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 285,
+      "averageDistanceFromBasePct": 0.58
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 290,
+      "averageDistanceFromBasePct": 0.54
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 295,
+      "averageDistanceFromBasePct": 0.52
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 300,
+      "averageDistanceFromBasePct": 0.51
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 305,
+      "averageDistanceFromBasePct": 0.49
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 310,
+      "averageDistanceFromBasePct": 0.48
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 315,
+      "averageDistanceFromBasePct": 0.47
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 320,
+      "averageDistanceFromBasePct": 0.42
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 325,
+      "averageDistanceFromBasePct": 0.39
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 330,
+      "averageDistanceFromBasePct": 0.37
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 335,
+      "averageDistanceFromBasePct": 0.35
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 340,
+      "averageDistanceFromBasePct": 0.37
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 345,
+      "averageDistanceFromBasePct": 0.36
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 350,
+      "averageDistanceFromBasePct": 0.33
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 355,
+      "averageDistanceFromBasePct": 0.32
+    },
+    {
+      "scenario": "quiet",
+      "category": "Spirits",
+      "minute": 360,
+      "averageDistanceFromBasePct": 0.35
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 5,
+      "averageDistanceFromBasePct": 0.06
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 10,
+      "averageDistanceFromBasePct": 0.15
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 15,
+      "averageDistanceFromBasePct": 0.27
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 20,
+      "averageDistanceFromBasePct": 0.38
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 25,
+      "averageDistanceFromBasePct": 0.49
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 30,
+      "averageDistanceFromBasePct": 0.55
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 35,
+      "averageDistanceFromBasePct": 0.58
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 40,
+      "averageDistanceFromBasePct": 0.6
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 45,
+      "averageDistanceFromBasePct": 0.56
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 50,
+      "averageDistanceFromBasePct": 0.55
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 55,
+      "averageDistanceFromBasePct": 0.57
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 60,
+      "averageDistanceFromBasePct": 0.57
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 65,
+      "averageDistanceFromBasePct": 0.6
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 70,
+      "averageDistanceFromBasePct": 0.61
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 75,
+      "averageDistanceFromBasePct": 0.63
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 80,
+      "averageDistanceFromBasePct": 0.64
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 85,
+      "averageDistanceFromBasePct": 0.6
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 90,
+      "averageDistanceFromBasePct": 0.63
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 95,
+      "averageDistanceFromBasePct": 0.63
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 100,
+      "averageDistanceFromBasePct": 0.65
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 105,
+      "averageDistanceFromBasePct": 0.7
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 110,
+      "averageDistanceFromBasePct": 0.72
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 115,
+      "averageDistanceFromBasePct": 0.74
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 120,
+      "averageDistanceFromBasePct": 0.73
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 125,
+      "averageDistanceFromBasePct": 0.75
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 130,
+      "averageDistanceFromBasePct": 0.72
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 135,
+      "averageDistanceFromBasePct": 0.73
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 140,
+      "averageDistanceFromBasePct": 0.72
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 145,
+      "averageDistanceFromBasePct": 0.68
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 150,
+      "averageDistanceFromBasePct": 0.64
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 155,
+      "averageDistanceFromBasePct": 0.62
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 160,
+      "averageDistanceFromBasePct": 0.66
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 165,
+      "averageDistanceFromBasePct": 0.68
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 170,
+      "averageDistanceFromBasePct": 0.66
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 175,
+      "averageDistanceFromBasePct": 0.66
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 180,
+      "averageDistanceFromBasePct": 0.7
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 185,
+      "averageDistanceFromBasePct": 0.68
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 190,
+      "averageDistanceFromBasePct": 0.67
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 195,
+      "averageDistanceFromBasePct": 0.66
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 200,
+      "averageDistanceFromBasePct": 0.68
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 205,
+      "averageDistanceFromBasePct": 0.63
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 210,
+      "averageDistanceFromBasePct": 0.65
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 215,
+      "averageDistanceFromBasePct": 0.6
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 220,
+      "averageDistanceFromBasePct": 0.57
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 225,
+      "averageDistanceFromBasePct": 0.57
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 230,
+      "averageDistanceFromBasePct": 0.57
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 235,
+      "averageDistanceFromBasePct": 0.55
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 240,
+      "averageDistanceFromBasePct": 0.59
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 245,
+      "averageDistanceFromBasePct": 0.59
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 250,
+      "averageDistanceFromBasePct": 0.57
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 255,
+      "averageDistanceFromBasePct": 0.53
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 260,
+      "averageDistanceFromBasePct": 0.54
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 265,
+      "averageDistanceFromBasePct": 0.57
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 270,
+      "averageDistanceFromBasePct": 0.57
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 275,
+      "averageDistanceFromBasePct": 0.6
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 280,
+      "averageDistanceFromBasePct": 0.6
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 285,
+      "averageDistanceFromBasePct": 0.59
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 290,
+      "averageDistanceFromBasePct": 0.58
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 295,
+      "averageDistanceFromBasePct": 0.55
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 300,
+      "averageDistanceFromBasePct": 0.54
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 305,
+      "averageDistanceFromBasePct": 0.51
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 310,
+      "averageDistanceFromBasePct": 0.51
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 315,
+      "averageDistanceFromBasePct": 0.48
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 320,
+      "averageDistanceFromBasePct": 0.46
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 325,
+      "averageDistanceFromBasePct": 0.43
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 330,
+      "averageDistanceFromBasePct": 0.39
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 335,
+      "averageDistanceFromBasePct": 0.33
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 340,
+      "averageDistanceFromBasePct": 0.3
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 345,
+      "averageDistanceFromBasePct": 0.29
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 350,
+      "averageDistanceFromBasePct": 0.29
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 355,
+      "averageDistanceFromBasePct": 0.3
+    },
+    {
+      "scenario": "quiet",
+      "category": "Wine",
+      "minute": 360,
+      "averageDistanceFromBasePct": 0.33
+    }
+  ]
+}

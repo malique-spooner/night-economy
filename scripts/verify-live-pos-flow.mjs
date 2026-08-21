@@ -21,7 +21,7 @@ throwIfError(venueError, "load venue");
 const [{ products: simulatorProducts }, { data: posProducts, error: posError }, { data: marketProducts, error: marketError }, { count: salesCount, error: salesError }, { count: snapshotCount, error: snapshotError }, { count: publicationCount, error: publicationError }] = await Promise.all([
   getJson(`${simulatorUrl}/v1/products`),
   supabase.from("pos_products").select("id, external_id, current_price_minor").eq("venue_id", venue.id).eq("is_current", true),
-  supabase.from("market_products").select("id, pos_product_id, current_price_minor, floor_price_minor, ceiling_price_minor, is_live").eq("venue_id", venue.id).not("pos_product_id", "is", null),
+  supabase.from("market_products").select("id, pos_product_id, current_price_minor, floor_price_minor, ceiling_price_minor, is_live").eq("venue_id", venue.id).eq("is_live", true).not("pos_product_id", "is", null),
   supabase.from("pos_sales_events").select("id", { count: "exact", head: true }).eq("venue_id", venue.id),
   supabase.from("market_price_snapshots").select("id", { count: "exact", head: true }).eq("venue_id", venue.id),
   supabase.from("price_publications").select("id", { count: "exact", head: true }).eq("venue_id", venue.id),
@@ -34,7 +34,9 @@ throwIfError(publicationError, "count price publications");
 
 const simulatorById = new Map(simulatorProducts.map(product => [product.id, product]));
 const posById = new Map((posProducts ?? []).map(product => [product.id, product]));
-const posMismatches = (posProducts ?? []).filter(product => simulatorById.get(product.external_id)?.currentPriceMinor !== product.current_price_minor);
+const tradablePosProductIds = new Set((marketProducts ?? []).map(product => product.pos_product_id).filter(Boolean));
+const tradablePosProducts = (posProducts ?? []).filter(product => tradablePosProductIds.has(product.id));
+const posMismatches = tradablePosProducts.filter(product => simulatorProduct(product.external_id)?.currentPriceMinor !== product.current_price_minor);
 const marketMismatches = (marketProducts ?? []).filter(product => {
   const posProduct = posById.get(product.pos_product_id);
   return !posProduct || posProduct.current_price_minor !== product.current_price_minor;
@@ -54,10 +56,18 @@ if (posMismatches.length || marketMismatches.length || rangeMismatches.length ||
 }
 
 console.log(`Live POS flow verified for ${venue.name}.`);
-console.log(`- ${posProducts?.length ?? 0} POS products match the simulator`);
+console.log(`- ${tradablePosProducts.length} live POS products match the simulator`);
 console.log(`- ${marketProducts?.length ?? 0} market products match their POS prices`);
 console.log("- every market price remains within its configured floor and ceiling");
 console.log(`- ${salesCount} imported sales, ${snapshotCount} market rounds, ${publicationCount} price publications`);
+
+function simulatorProduct(externalId) {
+  // The current import stores a stable database prefix before the POS's native
+  // product ID. The simulator exposes that native ID, so compare on either
+  // representation rather than reporting every valid product as a mismatch.
+  const nativeIdStart = externalId.lastIndexOf("_pos_");
+  return simulatorById.get(externalId) ?? simulatorById.get(nativeIdStart >= 0 ? externalId.slice(nativeIdStart + 1) : externalId);
+}
 
 async function getJson(url) {
   const response = await fetch(url);

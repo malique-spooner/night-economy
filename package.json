@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "simulator:dev": "node pos-simulator/server.mjs",
+    "simulator:dev": "node --experimental-strip-types pos-simulator/server.mjs",
     "simulator:market": "node pos-simulator/market-runner.mjs",
     "simulator:verify": "vitest run tests/integration",
     "simulator:reset": "node scripts/reset-demo-service.mjs",
@@ -33,6 +33,7 @@
     "supabase:status": "node scripts/check-supabase-setup.mjs",
     "supabase:functions": "node scripts/verify-supabase-functions.mjs",
     "pricing:sync": "node scripts/verify-pricing-engine-sync.mjs",
+    "pricing:experiment": "node --experimental-strip-types scripts/run-pricing-experiment.ts",
     "preview": "vite preview",
     "smoke:preview": "node scripts/smoke-preview.mjs",
     "lint": "tsc --noEmit",

@@ -7,28 +7,44 @@ const simulatorRunnerSource = readFileSync("pos-simulator/src/marketPricing.mjs"
 
 const sharedSnippets = [
   {
-    label: "range-aware market intensity setting",
-    pattern: /const MARKET_INTENSITY = 1\.25;/,
+    label: "persistent momentum settings",
+    pattern: /MOMENTUM_RETENTION = 0\.75[\s\S]+SALES_SIGNAL_WEIGHT = 0\.45/,
   },
   {
     label: "zero-sum market points",
     pattern: /marketPoints = .*ownUnits - categoryUnits/,
   },
   {
-    label: "activity-aware range movement",
-    pattern: /activityFactor[\s\S]+allowedRange[\s\S]+percentageChange/,
+    label: "buffered range target and capped round movement",
+    pattern: /TARGET_RANGE_UTILISATION = 0\.75[\s\S]+TARGET_APPROACH_RATE = 0\.7[\s\S]+MAX_ROUND_MOVE_PERCENT = 0\.05/,
+  },
+  {
+    label: "confidence-weighted leadership signal",
+    pattern: /SALES_SIGNAL_CURVE_EXPONENT = 0\.5[\s\S]+SALES_CONFIDENCE_SALES = 8[\s\S]+expandedSignal[\s\S]+confidence/,
+  },
+  {
+    label: "volume-adaptive evidence windows",
+    pattern: /fiveMinuteUnits >= SALES_CONFIDENCE_SALES[\s\S]+fifteenMinuteUnits >= SALES_CONFIDENCE_SALES[\s\S]+categoryWindows/,
+  },
+  {
+    label: "fresh-demand gate",
+    pattern: /freshCategoryUnits > 0 && \(ownUnits > 0 \|\| peerRepricingAllowed\)/,
+  },
+  {
+    label: "guarded untraded-peer response",
+    pattern: /MIN_CATEGORY_UNITS_FOR_PEER_REPRICING = 3[\s\S]+UNTRADED_PEER_SIGNAL_WEIGHT = 0\.25/,
+  },
+  {
+    label: "two-sided momentum retention",
+    pattern: /startingMomentum \* controls\.momentumRetention/,
   },
   {
     label: "non-tradable hold reason",
-    pattern: /Product is not currently tradable\./,
+    pattern: /Product is not currently competing in a live category\./,
   },
   {
-    label: "category peer reason",
-    pattern: /category peers/,
-  },
-  {
-    label: "balanced hold reason",
-    pattern: /Orders were evenly balanced within this category, so the price held\./,
+    label: "momentum-driven movement reason",
+    pattern: /Momentum is neutral[\s\S]+buffered market target/,
   },
 ];
 

@@ -5,7 +5,7 @@ import { supabase } from "../api/client";
 export function useMarketState(venueSlug: string, { pollIntervalMs = 0 }: { pollIntervalMs?: number } = {}) {
   const [state, setState] = useState<MarketState | null>(null);
   const [error, setError] = useState<string>("");
-  const refreshInFlight = useRef<Promise<void> | null>(null);
+  const refreshInFlight = useRef<Promise<MarketState | null> | null>(null);
 
   const refresh = useCallback(() => {
     if (refreshInFlight.current) return refreshInFlight.current;
@@ -13,9 +13,11 @@ export function useMarketState(venueSlug: string, { pollIntervalMs = 0 }: { poll
       .then(nextState => {
         setState(nextState);
         setError("");
+        return nextState;
       })
       .catch(refreshError => {
         setError(refreshError instanceof Error ? refreshError.message : "Could not load market state");
+        return null;
       })
       .finally(() => {
         if (refreshInFlight.current === request) refreshInFlight.current = null;

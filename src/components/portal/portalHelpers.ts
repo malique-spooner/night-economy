@@ -1,10 +1,10 @@
 import type { MarketProduct, Venue } from "../../engine/types";
 import type { MarketProductPatch, PosProduct, VenueMarketSettingsPatch } from "../../api/market";
 import type { VenueMemberRole } from "../../api/memberships";
-import { categoryLabel, groupProductsByCategory, TV_CATEGORY_PAGE_LIMIT, TV_FEATURED_PRODUCTS_PER_CATEGORY } from "../tv/tvHelpers";
+import { categoryLabel, groupProductsByCategory, TV_CATEGORY_PAGE_LIMIT } from "../tv/tvHelpers";
 
 export { TV_CATEGORY_PAGE_LIMIT };
-export const PRIORITY_DRINKS_PER_CATEGORY_LIMIT = TV_FEATURED_PRODUCTS_PER_CATEGORY;
+export const PRIORITY_DRINKS_PER_CATEGORY_LIMIT = 3;
 export const TV_DRINK_NAME_MAX_LENGTH = 28;
 
 export function portalCategories(products: MarketProduct[]) { return groupProductsByCategory(products).map(([category]) => category); }
@@ -44,8 +44,10 @@ export function applyMarketProductPatch(products: MarketProduct[], productId: st
 export function wouldNeedAnotherTvPage(products: MarketProduct[], product: MarketProduct, patch: MarketProductPatch) {
   const nextCategory = patch.category ?? product.category;
   const willBeLive = patch.isLive ?? product.isLive;
-  if (!willBeLive || product.isSoldOut) return false;
-  const otherLiveProducts = products.filter(candidate => candidate.id !== product.id && candidate.category === nextCategory && candidate.isLive && !candidate.isSoldOut).length;
+  const willBeArchived = patch.isArchived ?? product.isArchived ?? false;
+  const alreadyOccupiesThisCategory = product.isLive && !product.isArchived && product.category === nextCategory;
+  if (!willBeLive || willBeArchived || alreadyOccupiesThisCategory) return false;
+  const otherLiveProducts = products.filter(candidate => candidate.id !== product.id && candidate.category === nextCategory && candidate.isLive && !candidate.isArchived).length;
   return otherLiveProducts >= TV_CATEGORY_PAGE_LIMIT;
 }
 export function wouldExceedPriorityLimit(products: MarketProduct[], product: MarketProduct, patch: MarketProductPatch) {

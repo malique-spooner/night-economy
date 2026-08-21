@@ -19,13 +19,18 @@ type Props = {
 };
 
 export function PortalDrinkGroup({ allProducts, category, marketLive, onLogoRemove, onLogoUpload, onProductChange, onSelectProduct, posProducts, priceHistory, priceHistoryLoading, products, selectedProductId }: Props) {
-  const liveProducts = products.filter(product => product.isLive && !product.isSoldOut).length;
+  const liveProducts = products.filter(product => product.isLive && !product.isArchived).length;
+  const tvPages = Math.ceil(liveProducts / TV_CATEGORY_PAGE_LIMIT);
+  const isOverTvPageLimit = liveProducts > TV_CATEGORY_PAGE_LIMIT;
   return (
     <section className="portal-drink-group">
       <div className="portal-drink-sticky-head">
         <div className="portal-drink-group-head">
           <strong>{portalCategoryLabel(category)}</strong>
-          <span>{liveProducts} live · {products.length} drinks{liveProducts > TV_CATEGORY_PAGE_LIMIT ? ` · TV pages: ${Math.ceil(liveProducts / TV_CATEGORY_PAGE_LIMIT)}` : ""}</span>
+          <div className="portal-drink-group-status">
+            <span>{liveProducts} live · {products.length} drinks</span>
+            {isOverTvPageLimit && <em>Over 10 live drinks · TV will use {tvPages} pages</em>}
+          </div>
         </div>
         <div className="portal-drink-column-head" aria-hidden="true">
           <span>Image</span>

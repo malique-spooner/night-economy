@@ -1,4 +1,6 @@
-export const QUICK_START_TICK_SECONDS = 10;
+// Match the TV’s 15-second rotation: one cloud tick equals one five-minute round.
+export const QUICK_START_TICK_SECONDS = 15;
+const QUICK_START_EARLY_TOLERANCE_SECONDS = 3;
 
 type SimulationProgress = {
   minute: number;
@@ -17,11 +19,21 @@ export function simulationProgress(
   const tickedAtMs = tickedAt.getTime();
   const parsedLastTickAt = lastTickAt ? Date.parse(lastTickAt) : tickedAtMs;
   const lastTickAtMs = Number.isFinite(parsedLastTickAt) ? Math.min(parsedLastTickAt, tickedAtMs) : tickedAtMs;
-  const availableMinutes = Math.max(0, Math.floor(((tickedAtMs - lastTickAtMs) / 60_000) * safeSpeed));
-  const quickStartLimit = Math.max(1, Math.ceil((safeSpeed * QUICK_START_TICK_SECONDS) / 60));
+  const elapsedMilliseconds = tickedAtMs - lastTickAtMs;
+  if (isQuickStart) {
+    const roundMinutes = Math.max(1, Math.ceil((safeSpeed * QUICK_START_TICK_SECONDS) / 60));
+    if (elapsedMilliseconds < (QUICK_START_TICK_SECONDS - QUICK_START_EARLY_TOLERANCE_SECONDS) * 1_000) {
+      return { minute: currentMinute, lastTickAt: new Date(lastTickAtMs).toISOString() };
+    }
+    return {
+      minute: Math.min(serviceMinutes, currentMinute + roundMinutes),
+      lastTickAt: new Date(tickedAtMs).toISOString(),
+    };
+  }
+  const availableMinutes = Math.max(0, Math.floor((elapsedMilliseconds / 60_000) * safeSpeed));
   const appliedMinutes = Math.min(
     serviceMinutes - currentMinute,
-    isQuickStart ? Math.min(availableMinutes, quickStartLimit) : availableMinutes,
+    availableMinutes,
   );
 
   // Advance the cursor only by the time actually consumed. A delayed cron call

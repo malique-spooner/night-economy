@@ -75,8 +75,8 @@ for (const file of functionFiles) {
   }
 }
 
-if (!/MARKET_INTENSITY = 1\.25[\s\S]+activityFactor[\s\S]+allowedRange/.test(sharedPricingSource)) {
-  console.error("Supabase function verification failed:\n- shared pricing engine is missing its range-aware market calculation");
+if (!/MOMENTUM_RETENTION = 0\.75[\s\S]+SALES_SIGNAL_WEIGHT = 0\.45[\s\S]+TARGET_RANGE_UTILISATION = 0\.75[\s\S]+TARGET_APPROACH_RATE = 0\.7[\s\S]+MAX_ROUND_MOVE_PERCENT = 0\.05[\s\S]+SALES_SIGNAL_CURVE_EXPONENT = 0\.5[\s\S]+SALES_CONFIDENCE_SALES = 8/.test(sharedPricingSource)) {
+  console.error("Supabase function verification failed:\n- shared pricing engine is missing its buffered momentum calculation");
   process.exit(1);
 }
 
@@ -94,9 +94,12 @@ const simulatorChecks = [
   ["keeps running run-history totals current", /syncRunProgress[\s\S]+sales_count[\s\S]+revenue_minor/],
   ["keeps public state reads separate from scheduler-owned ticks", /action === "state"[\s\S]+action === "tick" && state\.status === "running"/],
   ["anchors service simulation time in the venue timezone", /simulationStart\(venue\.timezone/],
-  ["writes each scheduler tick's simulated sales in one batch", /salesRows\.push[\s\S]+JSON\.stringify\(salesRows\)/],
+  ["writes basket sales before each elapsed market round", /simulateDemandMinute[\s\S]+pendingSalesRows\.push[\s\S]+writeRowsInChunks[\s\S]+runMarketCycle/],
+  ["seeds each simulated night from its run ID", /seed: state\.active_run_id \?\? venueId/],
+  ["feeds published prices back into later customer choices", /runMarketCycle[\s\S]+product\.current_price_minor = decision\.newPriceMinor/],
+  ["applies rush and slowdown to expected arrivals", /eventMultiplier[\s\S]+simulateDemandMinute/],
   ["runs every elapsed five-minute price round", /marketCycleMinutes\(state\.simulated_minute, nextMinute\)/],
-  ["links each price round to the active run", /runMarketCycle\(venueSlug[\s\S]+state\.active_run_id[\s\S]+JSON\.stringify\(\{ venueSlug, reason: "venue_test_service", cycleEnd, runId \}\)/],
+  ["links each price round to the active run", /runMarketCycle\(venueSlug[\s\S]+state\.active_run_id[\s\S]+JSON\.stringify\(\{ venueSlug, reason: "venue_test_service", cycleEnd, runId, serviceMinute \}\)/],
   ["completes an instant run in batched local computation", /action === "instant_run"[\s\S]+completeInstantRun[\s\S]+buildInstantSimulation[\s\S]+writeRowsInChunks/],
   ["locks the scheduler out while an instant run is built", /status: action === "instant_run" \? "paused" : "running"/],
   ["paces quick-start progress through the shared simulation clock", /simulationProgress\(state\.simulated_minute[\s\S]+last_tick_at: progress\.lastTickAt/],

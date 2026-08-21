@@ -8,6 +8,7 @@ describe("defaultVenueMarketSettings", () => {
       tvStoryCategories: ["Cocktails"],
       marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }],
       crashIntervalMinutes: 30,
+      crashSettings: { durationMinutes: 10, categoryCrashCounts: {} },
       launchDate: "2026-07-08",
       launchStartTime: "20:15",
       launchEndTime: "21:15",

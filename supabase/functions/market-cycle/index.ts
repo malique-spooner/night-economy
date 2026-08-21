@@ -1,15 +1,22 @@
 import {
+  applyCategoryCrash,
+  momentumFromDecisions,
   priceMarket,
-  type MarketPricingSale,
+  selectAdaptiveMarketSales,
+  type MarketMomentum,
+  type TimedMarketPricingSale,
   type PriceableMarketProduct,
 } from "../_shared/marketPricing.ts";
+import { activeMarketCrash, parseMarketCrashSettings } from "../_shared/marketCrash.ts";
 
 type Venue = {
   id: string;
   market_live: boolean;
+  crash_settings: unknown;
 };
 
 const MARKET_CYCLE_MS = 5 * 60_000;
+const MAX_MARKET_EVIDENCE_MS = 30 * 60_000;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,14 +45,14 @@ async function handleRequest(request: Request) {
   const serviceRoleKey = getServerKey();
   if (!supabaseUrl || !serviceRoleKey) return json({ error: "Supabase function secrets are missing" }, 500);
 
-  const { venueSlug = "demo-venue", reason = "manual_cycle", cycleEnd: requestedCycleEnd, runId = null } = await request.json().catch(() => ({}));
+  const { venueSlug = "demo-venue", reason = "manual_cycle", cycleEnd: requestedCycleEnd, runId = null, serviceMinute } = await request.json().catch(() => ({}));
   const headers = {
     apikey: serviceRoleKey,
     "content-type": "application/json",
   };
 
   const venues = await restJson<Venue[]>(
-    `${supabaseUrl}/rest/v1/venues?slug=eq.${encodeURIComponent(venueSlug)}&select=id,market_live`,
+    `${supabaseUrl}/rest/v1/venues?slug=eq.${encodeURIComponent(venueSlug)}&select=id,market_live,crash_settings`,
     { headers },
     "load venue",
   );
@@ -71,7 +78,8 @@ async function handleRequest(request: Request) {
   const cycleEnd = requestedCycleEnd ? new Date(requestedCycleEnd) : new Date();
   if (Number.isNaN(cycleEnd.getTime())) return json({ error: "cycleEnd must be a valid ISO timestamp" }, 400);
   const cycleStart = new Date(cycleEnd.getTime() - MARKET_CYCLE_MS);
-  const latestSnapshots = await restJson<Array<{ snapshot: { roundEnd?: string } | null }>>(
+  const evidenceStart = new Date(cycleEnd.getTime() - MAX_MARKET_EVIDENCE_MS);
+  const latestSnapshots = await restJson<Array<{ snapshot: { roundEnd?: string; momentum?: MarketMomentum } | null }>>(
     `${supabaseUrl}/rest/v1/market_price_snapshots?venue_id=eq.${encodeURIComponent(venue.id)}&run_id=${runId ? `eq.${encodeURIComponent(runId)}` : "is.null"}&select=snapshot&order=created_at.desc&limit=1`,
     { headers },
     "load latest market snapshot",
@@ -84,12 +92,24 @@ async function handleRequest(request: Request) {
       snapshot: latestSnapshots[0].snapshot,
     });
   }
-  const sales = await restJson<MarketPricingSale[]>(
-    `${supabaseUrl}/rest/v1/pos_sales_events?venue_id=eq.${encodeURIComponent(venue.id)}&occurred_at=gte.${encodeURIComponent(cycleStart.toISOString())}&occurred_at=lt.${encodeURIComponent(cycleEnd.toISOString())}&select=pos_product_id,quantity`,
+  const sales = await restJson<Array<{ pos_product_id: string; quantity: number; occurred_at: string }>>(
+    `${supabaseUrl}/rest/v1/pos_sales_events?venue_id=eq.${encodeURIComponent(venue.id)}&occurred_at=gte.${encodeURIComponent(evidenceStart.toISOString())}&occurred_at=lt.${encodeURIComponent(cycleEnd.toISOString())}&select=pos_product_id,quantity,occurred_at`,
     { headers },
     "load recent POS sales",
   );
-  const decisions = priceMarket(products, sales);
+  const timedSales: TimedMarketPricingSale[] = sales.map(sale => ({
+    pos_product_id: sale.pos_product_id,
+    quantity: sale.quantity,
+    minutesAgo: Math.max(0, (cycleEnd.getTime() - new Date(sale.occurred_at).getTime()) / 60_000),
+  }));
+  const adaptiveSales = selectAdaptiveMarketSales(products, timedSales);
+  const freshImportedLines = timedSales.filter(sale => sale.minutesAgo <= 5).length;
+  const previousMomentum = latestSnapshots[0]?.snapshot?.momentum ?? {};
+  const normalDecisions = priceMarket(products, adaptiveSales.signalSales, previousMomentum, {}, adaptiveSales.freshSales);
+  const crash = Number.isFinite(serviceMinute) ? activeMarketCrash(Math.max(0, Math.floor(serviceMinute)), parseMarketCrashSettings(venue.crash_settings)) : null;
+  const decisions = crash
+    ? applyCategoryCrash(normalDecisions, products, crash.category, serviceMinute === crash.startMinute)
+    : normalDecisions;
   const updatedAt = new Date().toISOString();
 
   await Promise.all(
@@ -106,11 +126,14 @@ async function handleRequest(request: Request) {
     venueId: venue.id,
     venueSlug,
     runId,
-    reason,
-    salesWindow: { start: cycleStart.toISOString(), end: cycleEnd.toISOString(), importedLines: sales.length },
+    reason: crash ? "market_crash" : reason,
+    salesWindow: { start: cycleStart.toISOString(), end: cycleEnd.toISOString(), importedLines: freshImportedLines },
+    evidenceWindow: { start: evidenceStart.toISOString(), end: cycleEnd.toISOString(), categoryMinutes: adaptiveSales.categoryWindows },
     roundStart: cycleStart.toISOString(),
     roundEnd: cycleEnd.toISOString(),
     decisions,
+    momentum: momentumFromDecisions(decisions),
+    ...(crash ? { crash } : {}),
   };
 
   await restRequest(`${supabaseUrl}/rest/v1/market_price_snapshots`, {
@@ -120,7 +143,7 @@ async function handleRequest(request: Request) {
       id: crypto.randomUUID(),
       venue_id: venue.id,
       run_id: runId,
-      reason,
+      reason: crash ? "market_crash" : reason,
       status: "published",
       snapshot,
     }),

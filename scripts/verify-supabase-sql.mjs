@@ -49,6 +49,14 @@ const expectedMigrations = [
   "20260807074706_portal_pos_connection_status.sql",
   "20260808151406_enforce_market_product_categories.sql",
   "20260808153024_add_tv_story_categories.sql",
+  "20260810013000_rename_legacy_demo_venue.sql",
+  "20260815090000_market_product_price_history.sql",
+  "20260815110000_add_market_crash_settings.sql",
+  "20260815190000_park_market_view_2.sql",
+  "20260816170000_default_market_crash_discount.sql",
+  "20260817010000_remove_legacy_crash_discount.sql",
+  "20260817170000_sync_quick_start_with_tv_rotation.sql",
+  "20260818074802_enable_market_round_realtime.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -83,6 +91,11 @@ function checkMigrationOrder() {
 
 function checkRequiredPatterns() {
   const required = [
+    {
+      label: "venue crash settings are stored as a JSON object and editable by venue members",
+      source: migrationSql["20260815110000_add_market_crash_settings.sql"],
+      pattern: /add column if not exists crash_settings jsonb not null[\s\S]+venues_crash_settings_is_object[\s\S]+grant update \(crash_settings, updated_at\) on public\.venues to authenticated/i,
+    },
     {
       label: "platform admin access is private to the signed-in admin",
       source: migrationSql["20260729200000_add_platform_admins.sql"],
@@ -142,6 +155,21 @@ function checkRequiredPatterns() {
       label: "quick-start scheduler advances in ten-second slices",
       source: migrationSql["20260730134436_pace_quick_start_ticks.sql"],
       pattern: /cron\.alter_job[\s\S]+schedule := '10 seconds'/i,
+    },
+    {
+      label: "quick-start scheduler ultimately matches the fifteen-second TV rotation",
+      source: migrationSql["20260817170000_sync_quick_start_with_tv_rotation.sql"],
+      pattern: /cron\.alter_job[\s\S]+schedule := '15 seconds'/i,
+    },
+    {
+      label: "parked market view history function is removed from production",
+      source: migrationSql["20260815190000_park_market_view_2.sql"],
+      pattern: /drop function if exists public\.market_product_price_history/i,
+    },
+    {
+      label: "market price rounds are published over Supabase Realtime",
+      source: migrationSql["20260818074802_enable_market_round_realtime.sql"],
+      pattern: /alter publication supabase_realtime add table public\.market_price_snapshots/i,
     },
     {
       label: "market price rounds are linked to their owning run",

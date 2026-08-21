@@ -30,7 +30,7 @@ export function MarketProductRow({ currency, product }: Props) {
         <div className="decay-bar">
           <div className="decay-fill" style={{ width: `${decayWidth}%` }}></div>
         </div>
-        <div className={`darr ${trend}`}>{trend === "up" ? "▲" : "▼"}</div>
+        <div className={`darr ${trend}`}>{trend === "up" ? "▲" : trend === "dn" ? "▼" : "—"}</div>
       </div>
     </div>
   );

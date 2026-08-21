@@ -1,3 +1,5 @@
+import { buildLondonFridayRevenuePlan, simulateDemandMinute } from "../../supabase/functions/_shared/instantSimulation.ts";
+
 const SERVICE_MINUTES = 6 * 60;
 const FRIDAY_EVENING_REVENUE_TARGET_MINOR = 1_000_000;
 
@@ -5,12 +7,7 @@ import { tljCatalogue } from "./tljCatalogue.mjs";
 
 const defaultProducts = tljCatalogue;
 
-const demandCurve = [[0, 0.3], [60, 0.55], [120, 0.9], [180, 1.35], [240, 1.8], [300, 2.05], [360, 1.55], [420, 0.7], [480, 0.2]];
-const categoryMix = { Beer: 0.45, Wine: 0.18, Cocktails: 0.16, Spirits: 0.13, "Other Drinks": 0.08 };
-const revenuePlan = buildRevenuePlan();
-
 export function createFridayNightSimulation({ seed = 20260717 } = {}) {
-  let random = createRandom(seed);
   let products = cloneProducts();
   let sales = [];
   let publications = [];
@@ -24,7 +21,6 @@ export function createFridayNightSimulation({ seed = 20260717 } = {}) {
   let carryMinutes = 0;
   let rushUntilMinute = 0;
   let slowdownUntilMinute = 0;
-  let plannedRevenueMinor = 0;
   let resetId = 0;
 
   function getState() {
@@ -168,7 +164,6 @@ export function createFridayNightSimulation({ seed = 20260717 } = {}) {
   }
 
   function reset() {
-    random = createRandom(seed);
     products = cloneProducts();
     sales = [];
     publications = [];
@@ -182,7 +177,6 @@ export function createFridayNightSimulation({ seed = 20260717 } = {}) {
     carryMinutes = 0;
     rushUntilMinute = 0;
     slowdownUntilMinute = 0;
-    plannedRevenueMinor = 0;
     resetId += 1;
   }
 
@@ -195,24 +189,36 @@ export function createFridayNightSimulation({ seed = 20260717 } = {}) {
 
   function generateSalesForMinute(serviceMinute) {
     const eventMultiplier = serviceMinute < rushUntilMinute ? 2.1 : serviceMinute < slowdownUntilMinute ? 0.38 : 1;
-    plannedRevenueMinor = Math.min(targetRevenueMinor, plannedRevenueMinor + revenuePlan[serviceMinute] * (targetRevenueMinor / FRIDAY_EVENING_REVENUE_TARGET_MINOR) * eventMultiplier);
-    let actualRevenueMinor = sales.reduce((total, sale) => total + sale.quantity * sale.unitPriceMinor, 0);
-
-    // A real Friday is calibrated by takings first. Products are then chosen from
-    // a pub-oriented category mix and a modest within-category popularity weight.
-    while (actualRevenueMinor < plannedRevenueMinor) {
-      const product = chooseProduct(products, random);
-      if (!product) return;
-      const quantity = random() < 0.18 && actualRevenueMinor + product.currentPriceMinor * 2 <= plannedRevenueMinor ? 2 : 1;
+    const demandProducts = products.map(product => ({
+      id: product.id,
+      pos_product_id: product.id,
+      category: product.category,
+      base_price_minor: product.basePriceMinor,
+      current_price_minor: product.currentPriceMinor,
+      is_live: product.isAvailable,
+      is_sold_out: !product.isAvailable,
+      demand_weight: product.demandWeight,
+    }));
+    const history = sales.map(sale => ({
+      minute: Math.max(0, Math.floor((Date.parse(sale.occurredAt) - Date.parse(serviceTime(0))) / 60_000)),
+      posProductId: sale.productId,
+      quantity: sale.quantity,
+    }));
+    const revenuePlan = buildLondonFridayRevenuePlan(targetRevenueMinor, SERVICE_MINUTES);
+    const minuteSales = simulateDemandMinute(demandProducts, revenuePlan[serviceMinute], serviceMinute, history, {
+      seed,
+      serviceMinutes: SERVICE_MINUTES,
+      eventMultiplier,
+    });
+    for (const line of minuteSales) {
       sales.push({
         id: `sale_${String(serviceMinute).padStart(3, "0")}_${String(sales.length + 1).padStart(4, "0")}`,
         occurredAt: serviceTime(serviceMinute),
-        productId: product.id,
-        quantity,
-        unitPriceMinor: product.currentPriceMinor,
+        productId: line.posProductId,
+        quantity: line.quantity,
+        unitPriceMinor: line.unitPriceMinor,
         currency: "GBP",
       });
-      actualRevenueMinor += quantity * product.currentPriceMinor;
     }
   }
 
@@ -246,63 +252,7 @@ function toPublicProduct(product) {
   };
 }
 
-function serviceDemand(minute) {
-  for (let index = 1; index < demandCurve.length; index += 1) {
-    const [endMinute, endValue] = demandCurve[index];
-    const [startMinute, startValue] = demandCurve[index - 1];
-    if (minute > endMinute) continue;
-    const progress = (minute - startMinute) / (endMinute - startMinute);
-    return startValue + (endValue - startValue) * progress;
-  }
-
-  return demandCurve.at(-1)[1];
-}
-
-function buildRevenuePlan() {
-  const weights = Array.from({ length: SERVICE_MINUTES }, (_, minute) => serviceDemand(minute));
-  const total = weights.reduce((sum, value) => sum + value, 0);
-  return weights.map(weight => FRIDAY_EVENING_REVENUE_TARGET_MINOR * weight / total);
-}
-
-function chooseProduct(products, random) {
-  const availableByCategory = new Map();
-  for (const product of products) {
-    if (!product.isAvailable) continue;
-    availableByCategory.set(product.category, [...(availableByCategory.get(product.category) ?? []), product]);
-  }
-  const categories = [...availableByCategory.keys()];
-  const category = weightedChoice(categories, item => categoryMix[item] ?? 0.01, random);
-  if (!category) return null;
-  return weightedChoice(availableByCategory.get(category), product => {
-    const priceRatio = product.currentPriceMinor / product.basePriceMinor;
-    const priceMultiplier = Math.max(0.35, 1 - Math.max(0, priceRatio - 1) * 0.65);
-    return product.demandWeight * priceMultiplier;
-  }, random);
-}
-
-function weightedChoice(items, weightOf, random) {
-  const total = items.reduce((sum, item) => sum + Math.max(0, weightOf(item)), 0);
-  if (!total) return items[0] ?? null;
-  let point = random() * total;
-  for (const item of items) {
-    point -= Math.max(0, weightOf(item));
-    if (point <= 0) return item;
-  }
-  return items.at(-1) ?? null;
-}
-
 function serviceTime(minute) {
   // 17:00 UTC is 18:00 in London during British Summer Time.
   return new Date(Date.UTC(2026, 6, 17, 17, 0) + minute * 60_000).toISOString();
-}
-
-function createRandom(seed) {
-  let value = seed >>> 0;
-  return () => {
-    value += 0x6d2b79f5;
-    let result = value;
-    result = Math.imul(result ^ (result >>> 15), result | 1);
-    result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
-    return ((result ^ (result >>> 14)) >>> 0) / 4_294_967_296;
-  };
 }

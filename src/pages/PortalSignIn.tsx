@@ -1,10 +1,10 @@
 import { type FormEvent, useEffect, useState } from "react";
-import { getCurrentSession, onAuthStateChange, sendPasswordReset, signInWithEmail, updatePassword } from "../api/auth";
+import { getCurrentSession, onAuthStateChange, sendPasswordReset, signInWithEmail, signOut, updatePassword } from "../api/auth";
 import { supabaseStatus } from "../api/client";
 import { getMyAccessibleVenues } from "../api/memberships";
 
 type Props = {
-  venueSlug: string;
+  venueSlug?: string;
 };
 
 export function PortalSignIn({ venueSlug }: Props) {
@@ -16,12 +16,17 @@ export function PortalSignIn({ venueSlug }: Props) {
   const [status, setStatus] = useState<"idle" | "signing-in" | "resetting" | "updating">("idle");
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
+  const [hasNoVenueAccess, setHasNoVenueAccess] = useState(false);
   const requestedTab = new URLSearchParams(window.location.search).get("next");
-  const portalHref = `/app/${encodeURIComponent(venueSlug)}${requestedTab === "runs" ? "?tab=runs" : ""}`;
+  const requestedVenueSlug = venueSlug?.trim() || undefined;
+  const destinationFor = (slug: string) => `/app/${encodeURIComponent(slug)}${requestedTab === "runs" ? "?tab=runs" : ""}`;
 
   useEffect(() => {
     async function continueIfSignedIn() {
-      if (!isRecovery && await getCurrentSession()) window.location.replace(portalHref);
+      if (isRecovery || !await getCurrentSession()) return;
+      const accessibleVenues = await getMyAccessibleVenues();
+      const destination = accessibleVenues.find(venue => venue.slug === requestedVenueSlug) ?? accessibleVenues[0];
+      if (destination) window.location.replace(destinationFor(destination.slug));
     }
 
     void continueIfSignedIn();
@@ -32,23 +37,26 @@ export function PortalSignIn({ venueSlug }: Props) {
       }
       void continueIfSignedIn();
     });
-  }, [isRecovery, portalHref]);
+  }, [isRecovery, requestedVenueSlug, requestedTab]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     try {
       setMessage("");
       setIsError(false);
+      setHasNoVenueAccess(false);
       setStatus("signing-in");
       await signInWithEmail(email, password);
       const accessibleVenues = await getMyAccessibleVenues();
-      const destination = accessibleVenues.find(venue => venue.slug === venueSlug) ?? accessibleVenues[0];
+      const destination = accessibleVenues.find(venue => venue.slug === requestedVenueSlug) ?? accessibleVenues[0];
       if (!destination) throw new Error("This account does not have access to a Night Economy venue.");
-      const destinationHref = `/app/${encodeURIComponent(destination.slug)}${requestedTab === "runs" ? "?tab=runs" : ""}`;
+      const destinationHref = destinationFor(destination.slug);
       window.location.assign(destinationHref);
     } catch (error) {
+      const nextMessage = error instanceof Error ? error.message : "Could not sign in. Check your details and try again.";
       setIsError(true);
-      setMessage(error instanceof Error ? error.message : "Could not sign in. Check your details and try again.");
+      setMessage(nextMessage);
+      setHasNoVenueAccess(nextMessage === "This account does not have access to a Night Economy venue.");
       setStatus("idle");
     }
   }
@@ -64,7 +72,8 @@ export function PortalSignIn({ venueSlug }: Props) {
       setIsError(false);
       setMessage("");
       setStatus("resetting");
-      await sendPasswordReset(email, `${window.location.origin}/sign-in/${encodeURIComponent(venueSlug)}`);
+      const resetPath = requestedVenueSlug ? `/sign-in/${encodeURIComponent(requestedVenueSlug)}` : "/sign-in";
+      await sendPasswordReset(email, `${window.location.origin}${resetPath}`);
       setMessage("Password reset link sent. Check your inbox.");
     } catch (error) {
       setIsError(true);
@@ -91,7 +100,10 @@ export function PortalSignIn({ venueSlug }: Props) {
       setIsError(false);
       setMessage("");
       await updatePassword(password);
-      window.location.replace(portalHref);
+      const accessibleVenues = await getMyAccessibleVenues();
+      const destination = accessibleVenues.find(venue => venue.slug === requestedVenueSlug) ?? accessibleVenues[0];
+      if (!destination) throw new Error("This account does not have access to a Night Economy venue.");
+      window.location.replace(destinationFor(destination.slug));
     } catch (error) {
       setIsError(true);
       setMessage(error instanceof Error ? error.message : "We could not update the password. Request a new reset link.");
@@ -102,7 +114,7 @@ export function PortalSignIn({ venueSlug }: Props) {
   return (
     <main className="portal-signin-page">
       <section className="portal-signin-card" aria-labelledby="portal-signin-title">
-        <a className="portal-signin-back" href={`/venue/${encodeURIComponent(venueSlug)}`}>← Back to site</a>
+        <a className="portal-signin-back" href={requestedVenueSlug ? `/venue/${encodeURIComponent(requestedVenueSlug)}` : "/"}>← Back to site</a>
         <p className="portal-signin-kicker">Night Economy</p>
         <h1 id="portal-signin-title">{isRecovery ? "Choose a new password" : "Portal sign in"}</h1>
         <p>{isRecovery ? "Secure your operator account with a new password." : "Sign in to your Night Economy account. We’ll take you to the venue Portal you can access."}</p>
@@ -141,6 +153,7 @@ export function PortalSignIn({ venueSlug }: Props) {
         <p className={`portal-signin-status ${isError ? "error" : ""}`} aria-live="polite">
           {message || (isRecovery ? "Your reset link is active." : supabaseStatus.ready ? "Need access? Ask your venue administrator or contact support." : "Portal sign-in is not configured yet.")}
         </p>
+        {hasNoVenueAccess && <button className="portal-signin-signout" type="button" onClick={() => { void signOut().finally(() => window.location.assign("/")); }}>Sign out and use another venue account</button>}
         <div className="portal-signin-footer"><a href="mailto:hello@nighteconomy.app?subject=Portal%20access">Contact support</a><span>Encrypted authentication</span></div>
       </section>
     </main>

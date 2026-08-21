@@ -4,16 +4,24 @@ import { marketCycleMinutes, simulationProgress } from "../../../supabase/functi
 describe("simulationProgress", () => {
   const startedAt = "2026-07-30T18:00:00.000Z";
 
-  it("advances a 36x quick start in small ten-second slices", () => {
-    const progress = simulationProgress(0, startedAt, new Date("2026-07-30T18:00:10.000Z"), 36, 360, true);
+  it("advances a 20x quick start in fifteen-second, five-minute rounds", () => {
+    const progress = simulationProgress(0, startedAt, new Date("2026-07-30T18:00:15.000Z"), 20, 360, true);
 
-    expect(progress).toEqual({ minute: 6, lastTickAt: "2026-07-30T18:00:10.000Z" });
+    expect(progress).toEqual({ minute: 5, lastTickAt: "2026-07-30T18:00:15.000Z" });
   });
 
   it("does not instantly finish a quick start after a delayed tick", () => {
-    const progress = simulationProgress(0, startedAt, new Date("2026-07-30T18:10:00.000Z"), 36, 360, true);
+    const progress = simulationProgress(0, startedAt, new Date("2026-07-30T18:10:00.000Z"), 20, 360, true);
 
-    expect(progress).toEqual({ minute: 6, lastTickAt: "2026-07-30T18:00:10.000Z" });
+    expect(progress).toEqual({ minute: 5, lastTickAt: "2026-07-30T18:10:00.000Z" });
+  });
+
+  it("never publishes a partial four-minute quick-start round", () => {
+    const early = simulationProgress(0, startedAt, new Date("2026-07-30T18:00:11.900Z"), 20, 360, true);
+    const due = simulationProgress(0, startedAt, new Date("2026-07-30T18:00:14.700Z"), 20, 360, true);
+
+    expect(early).toEqual({ minute: 0, lastTickAt: startedAt });
+    expect(due).toEqual({ minute: 5, lastTickAt: "2026-07-30T18:00:14.700Z" });
   });
 
   it("preserves ordinary elapsed-time progress for scheduled services", () => {

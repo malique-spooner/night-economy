@@ -66,6 +66,7 @@ export function PortalStartPage({
     marketLive: venue.marketLive,
     tvStoryCategories: venue.tvStoryCategories,
     crashIntervalMinutes: venue.crashIntervalMinutes,
+    crashSettings: venue.crashSettings,
     marketSchedule: venue.marketSchedule,
     launchDate: venue.launchDate,
     launchStartTime: venue.launchStartTime,

@@ -45,6 +45,8 @@ describe("tvHelpers", () => {
     expect(categoryClass("Classic Cocktails!")).toBe("classic-cocktails");
     expect(productTrend(product({ currentPriceMinor: 1100 }))).toBe("up");
     expect(productTrend(product({ currentPriceMinor: 900 }))).toBe("dn");
+    expect(productTrend(product({ currentPriceMinor: 1000 }))).toBe("hold");
+    expect(formatChangePercent(product({ currentPriceMinor: 1000 }))).toBe("0.0%");
     expect(formatChangePercent(product({ currentPriceMinor: 1125 }))).toBe("+12.5%");
     expect(formatChangePercent(product({ currentPriceMinor: 875 }))).toBe("-12.5%");
   });
@@ -55,6 +57,15 @@ describe("tvHelpers", () => {
     expect(defaultDrinkImage("Wine")).toBe("/images/default-drink-art/wine.webp");
     expect(defaultDrinkImage("Cocktails")).toBe("/images/default-drink-art/cocktails.webp");
     expect(defaultDrinkImage("Other drinks")).toBe("/images/default-drink-art/cocktails.webp");
+  });
+
+  it("spreads a category's fallback collection across drinks without changing on rerender", () => {
+    const firstBeer = defaultDrinkImage("Beer", "beer-one");
+    const secondBeer = defaultDrinkImage("Beer", "beer-two");
+
+    expect(firstBeer).toMatch(/^\/images\/default-drink-art\/beer(?:\.webp|\/beer-[2-4]\.webp)$/);
+    expect(secondBeer).toMatch(/^\/images\/default-drink-art\/beer(?:\.webp|\/beer-[2-4]\.webp)$/);
+    expect(defaultDrinkImage("Beer", "beer-one")).toBe(firstBeer);
   });
 
   it("chooses movement labels from product state and price movement", () => {
@@ -114,18 +125,27 @@ describe("tvHelpers", () => {
       product({ id: "inactive", currentPriceMinor: 1500, isLive: false }),
     ]);
 
-    expect(featured.map(item => item.id)).toEqual(["priority", "large-move", "medium-move"]);
+    expect(featured.map(item => item.id)).toEqual(["priority"]);
   });
 
-  it("keeps priorities on the TV cards and rotates other drinks into empty slots", () => {
-    const featured = getCategoryFeaturedProducts([
+  it("rotates the selected priorities through the category's featured position", () => {
+    const products = [
       product({ id: "first", priority: true }),
-      product({ id: "second", priority: false }),
-      product({ id: "third", priority: false }),
-      product({ id: "fourth", priority: false }),
-    ], 1);
+      product({ id: "second", priority: true }),
+      product({ id: "third", priority: true }),
+      product({ id: "filler", priority: false }),
+    ];
 
-    expect(featured.map(item => item.id)).toEqual(["first", "third", "fourth"]);
+    expect(getCategoryFeaturedProducts(products, 0).map(item => item.id)).toEqual(["first"]);
+    expect(getCategoryFeaturedProducts(products, 1).map(item => item.id)).toEqual(["second"]);
+    expect(getCategoryFeaturedProducts(products, 2).map(item => item.id)).toEqual(["third"]);
+    expect(getCategoryFeaturedProducts(products, 3).map(item => item.id)).toEqual(["first"]);
+  });
+
+  it("rotates ordinary live drinks when no priorities are selected", () => {
+    const products = [product({ id: "first" }), product({ id: "second" })];
+    expect(getCategoryFeaturedProducts(products, 0).map(item => item.id)).toEqual(["first"]);
+    expect(getCategoryFeaturedProducts(products, 1).map(item => item.id)).toEqual(["second"]);
   });
 
   it("uses the first featured product as the story product", () => {

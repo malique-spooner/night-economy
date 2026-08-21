@@ -54,7 +54,7 @@ export function PortalLaunchStrip({ instantRunPending, onEnd, onInstantRun, onPa
       <div className="portal-service-actions">
         {!serviceIsOpen ? <>
           <button className="portal-instant-run" disabled={instantRunPending} onClick={onInstantRun} type="button">{instantRunPending ? "Simulating full night…" : "Quick start · instant"}</button>
-          <button className="portal-quick-start" disabled={instantRunPending} onClick={onQuickStart} type="button">Quick start · 10 min live</button>
+          <button className="portal-quick-start" disabled={instantRunPending} onClick={onQuickStart} type="button">Quick start · 18 min live</button>
           <button className="portal-real-time-start" disabled={instantRunPending} onClick={onRealTimeStart} type="button">Quick start · real time</button>
         </> : null}
         {service?.running ? <button className="portal-quick-start is-live" onClick={onPause} type="button">Pause</button> : null}

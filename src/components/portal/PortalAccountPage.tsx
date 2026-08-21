@@ -1,24 +1,21 @@
-import type { Venue } from "../../engine/types";
+import type { MarketCrashSettings, MarketProduct, Venue } from "../../engine/types";
 import type { VenueMemberRole } from "../../api/memberships";
+import { PortalCrashSettings } from "./PortalCrashSettings";
 
 type Props = {
   categories: string[];
-  canEditTvStoryCategories: boolean;
+  canManageCrashSettings: boolean;
   email: string;
   isSignedIn: boolean;
-  onTvStoryCategoriesChange: (categories: string[]) => void;
+  onCrashSettingsChange: (settings: MarketCrashSettings) => void;
+  products: MarketProduct[];
   role: VenueMemberRole | null;
   source: "seed" | "supabase";
   venue: Venue;
 };
 
-export function PortalAccountPage({ categories, canEditTvStoryCategories, email, isSignedIn, onTvStoryCategoriesChange, role, source, venue }: Props) {
+export function PortalAccountPage({ categories, canManageCrashSettings, email, isSignedIn, onCrashSettingsChange, products, role, source, venue }: Props) {
   const access = source === "seed" ? "Demo access" : role ? `${role[0].toUpperCase()}${role.slice(1)} access` : "No venue access";
-  const toggleStoryCategory = (category: string) => {
-    const selected = venue.tvStoryCategories.includes(category);
-    if (selected && venue.tvStoryCategories.length === 1) return;
-    onTvStoryCategoriesChange(selected ? venue.tvStoryCategories.filter(item => item !== category) : [...venue.tvStoryCategories, category]);
-  };
 
   return (
     <section className="portal-page-grid portal-settings-page">
@@ -28,18 +25,8 @@ export function PortalAccountPage({ categories, canEditTvStoryCategories, email,
         <p>Control the details that apply across your venue and its displays.</p>
       </header>
 
-      <article className="portal-account-card portal-tv-story-settings">
-        <span>TV story panel</span>
-        <h2>Featured categories</h2>
-        <p>The right-hand TV panel uses Cocktails only for now. Add other categories here when you want them included.</p>
-        <details>
-          <summary>{venue.tvStoryCategories.join(", ")}</summary>
-          <div className="portal-tv-category-options">
-            {categories.map(category => <label key={category}><input checked={venue.tvStoryCategories.includes(category)} disabled={!canEditTvStoryCategories || (venue.tvStoryCategories.length === 1 && venue.tvStoryCategories.includes(category))} onChange={() => toggleStoryCategory(category)} type="checkbox" /><span>{category}</span></label>)}
-          </div>
-        </details>
-        {!canEditTvStoryCategories && <small>Owner or admin access required to change this.</small>}
-      </article>
+      <PortalCrashSettings categories={categories} currency={venue.currency} disabled={!canManageCrashSettings} onChange={onCrashSettingsChange} products={products} serviceMinutes={serviceMinutesFor(venue.marketSchedule)} settings={venue.crashSettings} />
+      {!canManageCrashSettings && <small className="portal-crash-access-note">Owner or admin access required to change the crash plan.</small>}
 
       <article className="portal-account-card portal-settings-details">
         <h2>Venue</h2>
@@ -59,4 +46,13 @@ export function PortalAccountPage({ categories, canEditTvStoryCategories, email,
       </article>
     </section>
   );
+}
+
+function serviceMinutesFor(schedule: Venue["marketSchedule"]) {
+  const longest = schedule.filter(entry => entry.enabled).reduce((maximum, entry) => {
+    const [startHour, startMinute] = entry.start.split(":").map(Number);
+    const [endHour, endMinute] = entry.end.split(":").map(Number);
+    return Math.max(maximum, ((endHour * 60 + endMinute) - (startHour * 60 + startMinute) + 24 * 60) % (24 * 60));
+  }, 0);
+  return longest || 360;
 }

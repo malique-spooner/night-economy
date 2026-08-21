@@ -2,7 +2,7 @@
 
 Use this run after applying all Supabase migrations and configuring a real Supabase project. It proves the POS boundary and the cloud market engine across one accelerated service.
 
-The deterministic simulator/runner integration suite can run without Supabase credentials:
+The seeded simulator/runner integration suite can run without Supabase credentials:
 
 ```bash
 npm run simulator:verify

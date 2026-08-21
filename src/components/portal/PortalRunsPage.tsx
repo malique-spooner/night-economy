@@ -204,5 +204,5 @@ function uniqueDrinkOptions(options: Array<{ id: string; name: string }>) {
 }
 
 function runLabel(run: MarketRun) {
-  return run.kind === "instant" ? "Instant simulation" : run.kind === "quick" ? "10-minute live rehearsal" : "Scheduled service";
+  return run.kind === "instant" ? "Instant simulation" : run.kind === "quick" ? "18-minute live rehearsal" : "Scheduled service";
 }

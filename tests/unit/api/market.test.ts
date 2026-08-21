@@ -4,6 +4,7 @@ import {
   mapMarketPriceSnapshotRow,
   mapVenueRow,
   requireVenue,
+  selectMarketHistoryRun,
   throwIfSupabaseQueryError,
   toMarketProductRowPatch,
   toVenueMarketSettingsRowPatch,
@@ -51,6 +52,7 @@ describe("mapVenueRow", () => {
       tvStoryCategories: ["Cocktails"],
       marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }],
       crashIntervalMinutes: 60,
+      crashSettings: { durationMinutes: 10, categoryCrashCounts: {} },
       launchDate: "2026-07-08",
       launchStartTime: "20:00",
       launchEndTime: "01:00",
@@ -123,6 +125,20 @@ describe("mapMarketPriceSnapshotRow", () => {
       created_at: "2026-07-22T18:15:00.000Z",
       snapshot: { decisions: [] },
     }, "product_123")).toBeNull();
+  });
+});
+
+describe("selectMarketHistoryRun", () => {
+  const previous = { run_id: "run_previous", created_at: "2026-08-20T23:00:00Z", snapshot: {} };
+  const current = { run_id: "run_current", created_at: "2026-08-21T18:05:00Z", snapshot: {} };
+
+  it("never leaks a previous run into a newly active market", () => {
+    expect(selectMarketHistoryRun([previous], "run_current")).toEqual([]);
+    expect(selectMarketHistoryRun([previous, current], "run_current")).toEqual([current]);
+  });
+
+  it("retains latest-run discovery for markets without simulator run state", () => {
+    expect(selectMarketHistoryRun([current, previous])).toEqual([current]);
   });
 });
 

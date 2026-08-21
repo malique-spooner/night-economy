@@ -3,6 +3,7 @@ import { supabase } from "./client";
 export type SimulatorState = {
   recentPublications: Array<{ publicationId: string; status: string }>;
   service: {
+    activeRunId: string | null;
     isComplete: boolean;
     isOpen: boolean;
     hasStarted: boolean;
@@ -96,6 +97,7 @@ function toSimulatorState(data: unknown): SimulatorState {
     recentPublications: [],
     service: {
       ...service,
+      activeRunId: service.activeRunId ?? null,
       hasStarted: service.minute > 0 || service.running || service.paused || service.ended,
       isComplete: service.minute >= 360,
       targetRevenueMinor: service.targetRevenueMinor ?? 0,

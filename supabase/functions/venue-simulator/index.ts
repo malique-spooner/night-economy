@@ -1,5 +1,6 @@
 import { simulationStart } from "../_shared/serviceSchedule.ts";
-import { buildInstantSimulation, buildLondonFridayRevenuePlan, selectTargetedMinuteProducts } from "../_shared/instantSimulation.ts";
+import { buildInstantSimulation, buildLondonFridayRevenuePlan, simulateDemandMinute, type DemandHistorySale } from "../_shared/instantSimulation.ts";
+import { parseMarketCrashSettings } from "../_shared/marketCrash.ts";
 import { marketCycleMinutes, simulationProgress } from "../_shared/simulationClock.ts";
 
 /**
@@ -14,7 +15,8 @@ type Product = { id: string; display_name: string; category: string; base_price_
 type SimulatedSale = { occurred_at: string; quantity: number; unit_price_minor: number };
 
 const SERVICE_MINUTES = 360;
-const QUICK_START_SPEED = 36;
+// Five simulated minutes take fifteen real seconds, matching the TV rotation.
+const QUICK_START_SPEED = 20;
 const SERVICE_START = Date.UTC(2026, 6, 28, 17, 0, 0);
 const corsHeaders = { "access-control-allow-origin": "*", "access-control-allow-headers": "authorization, x-client-info, apikey, content-type", "access-control-allow-methods": "POST, OPTIONS" };
 
@@ -35,7 +37,7 @@ Deno.serve(async request => {
     if (!isScheduler && !isPublicRead && !userId) return response({ error: "Unauthorized" }, 401);
     const headers = { apikey: key, "content-type": "application/json" };
 
-    const venues = await restJson<Array<{ id: string; slug: string; timezone: string; currency: string }>>(url, `/venues?slug=eq.${encodeURIComponent(venueSlug)}&select=id,slug,timezone,currency`, { headers }, "load venue");
+    const venues = await restJson<Array<{ id: string; slug: string; timezone: string; currency: string; crash_settings: unknown }>>(url, `/venues?slug=eq.${encodeURIComponent(venueSlug)}&select=id,slug,timezone,currency,crash_settings`, { headers }, "load venue");
     const venue = venues[0];
     if (!venue) return response({ error: "Venue not found" }, 404);
     if (!isScheduler && !isPublicRead) {
@@ -60,7 +62,7 @@ Deno.serve(async request => {
       state = await save(url, headers, venue.id, { status: action === "instant_run" ? "paused" : "running", simulated_minute: 0, speed: action === "scheduled_start" ? 1 : (Number.isFinite(speed) ? nextSpeed : QUICK_START_SPEED), target_revenue_minor: nextTargetRevenueMinor, rush_until_minute: 0, slowdown_until_minute: 0, last_tick_at: runStartedAt, started_at: simulatedStartedAt, scheduled_slot_key: action === "scheduled_start" ? scheduledSlotKey ?? null : null, active_run_id: runId });
       if (action === "instant_run") {
         try {
-          state = await completeInstantRun(url, headers, venue.id, venue.currency || "GBP", state);
+          state = await completeInstantRun(url, headers, venue.id, venue.currency || "GBP", parseMarketCrashSettings(venue.crash_settings), state);
         } catch (error) {
           await resetPrices(url, headers, venue.id).catch(() => undefined);
           await setMarketLive(url, headers, venue.id, false).catch(() => undefined);
@@ -120,30 +122,42 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
     return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
   }
   const connectionId = `test_sim_${venueId}`;
-  const salesRows: Array<Record<string, unknown>> = [];
+  let pendingSalesRows: Array<Record<string, unknown>> = [];
   const revenuePlan = buildLondonFridayRevenuePlan(state.target_revenue_minor, SERVICE_MINUTES);
-  const existingSales = state.active_run_id ? await loadRunSales(url, headers, state.active_run_id, "load running revenue") : [];
-  let generatedRevenueMinor = existingSales.reduce((total, sale) => total + sale.quantity * sale.unit_price_minor, 0);
-  let cumulativeTargetRevenueMinor = revenuePlan.slice(0, state.simulated_minute).reduce((total, revenue) => total + revenue, 0);
+  const demandHistory = state.active_run_id ? await loadDemandHistory(url, headers, state.active_run_id, state.started_at, state.simulated_minute) : [];
+  const cycleMinutes = new Set(marketCycleMinutes(state.simulated_minute, nextMinute));
   for (let minute = state.simulated_minute; minute < nextMinute; minute += 1) {
     const eventMultiplier = minute < state.rush_until_minute ? 2.1 : minute < state.slowdown_until_minute ? 0.38 : 1;
-    cumulativeTargetRevenueMinor += revenuePlan[minute];
-    const eventAdjustedTarget = minute === SERVICE_MINUTES - 1
-      ? state.target_revenue_minor
-      : cumulativeTargetRevenueMinor + Math.round(revenuePlan[minute] * (eventMultiplier - 1));
-    const minuteProducts = selectTargetedMinuteProducts(active, minute, generatedRevenueMinor, eventAdjustedTarget);
-    salesRows.push(...minuteProducts.map((product, index) => {
-      generatedRevenueMinor += product.current_price_minor;
-      return { id: `test_${venueId}_${state.active_run_id ?? "legacy"}_${minute}_${index}`, venue_id: venueId, pos_connection_id: connectionId, pos_product_id: product.pos_product_id, run_id: state.active_run_id, occurred_at: simulatedTime(minute, state.started_at), quantity: 1, unit_price_minor: product.current_price_minor, currency: "GBP" };
-    }));
-  }
-  if (salesRows.length) {
-    await restRequest(url, "/pos_sales_events?on_conflict=id", { method: "POST", headers: { ...headers, Prefer: "resolution=ignore-duplicates" }, body: JSON.stringify(salesRows) }, "write simulated sales");
-  }
-  for (const cycleMinute of marketCycleMinutes(state.simulated_minute, nextMinute)) {
-    const decisions = await runMarketCycle(venueSlug, simulatedTime(cycleMinute, state.started_at), state.active_run_id);
+    const minuteSales = simulateDemandMinute(active, revenuePlan[minute], minute, demandHistory, {
+      seed: state.active_run_id ?? venueId,
+      serviceMinutes: SERVICE_MINUTES,
+      eventMultiplier,
+    });
+    demandHistory.push(...minuteSales);
+    pendingSalesRows.push(...minuteSales.map(sale => ({
+      id: `test_${venueId}_${state.active_run_id ?? "legacy"}_${minute}_${sale.sequence}`,
+      venue_id: venueId,
+      pos_connection_id: connectionId,
+      pos_product_id: sale.posProductId,
+      run_id: state.active_run_id,
+      occurred_at: simulatedTime(minute, state.started_at),
+      quantity: sale.quantity,
+      unit_price_minor: sale.unitPriceMinor,
+      currency: "GBP",
+    })));
+
+    const cycleMinute = minute + 1;
+    if (!cycleMinutes.has(cycleMinute)) continue;
+    await writeRowsInChunks(url, headers, "/pos_sales_events?on_conflict=id", pendingSalesRows, "write simulated basket sales", 1_000, { Prefer: "resolution=ignore-duplicates" });
+    pendingSalesRows = [];
+    const decisions = await runMarketCycle(venueSlug, simulatedTime(cycleMinute, state.started_at), state.active_run_id, cycleMinute);
     await publishInternalPrices(url, headers, venueId, connectionId, decisions);
+    for (const decision of decisions) {
+      const product = active.find(item => item.id === decision.productId);
+      if (product) product.current_price_minor = decision.newPriceMinor;
+    }
   }
+  await writeRowsInChunks(url, headers, "/pos_sales_events?on_conflict=id", pendingSalesRows, "write simulated basket sales", 1_000, { Prefer: "resolution=ignore-duplicates" });
   const status = nextMinute >= SERVICE_MINUTES ? "ended" : "running";
   if (status === "ended") {
     await resetPrices(url, headers, venueId);
@@ -155,9 +169,9 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
   return save(url, headers, venueId, { status, simulated_minute: nextMinute, speed, last_tick_at: progress.lastTickAt, ...(status === "ended" ? { active_run_id: null } : {}) });
 }
 
-async function completeInstantRun(url: string, headers: HeadersInit, venueId: string, currency: string, state: Service) {
+async function completeInstantRun(url: string, headers: HeadersInit, venueId: string, currency: string, crashSettings: ReturnType<typeof parseMarketCrashSettings>, state: Service) {
   const products = await restJson<Product[]>(url, `/market_products?venue_id=eq.${encodeURIComponent(venueId)}&select=id,display_name,category,base_price_minor,current_price_minor,floor_price_minor,ceiling_price_minor,pos_product_id,is_live,is_sold_out`, { headers }, "load instant-run products");
-  const plan = buildInstantSimulation(products, state.target_revenue_minor, SERVICE_MINUTES);
+  const plan = buildInstantSimulation(products, state.target_revenue_minor, SERVICE_MINUTES, crashSettings, { seed: state.active_run_id ?? venueId });
   const runId = state.active_run_id;
   const connectionId = `test_sim_${venueId}`;
   const salesRows = plan.sales.map(sale => ({
@@ -180,9 +194,9 @@ async function completeInstantRun(url: string, headers: HeadersInit, venueId: st
       id: crypto.randomUUID(),
       venue_id: venueId,
       run_id: runId,
-      reason: "venue_test_service",
+      reason: round.decisions.some(decision => decision.reason.startsWith("Market crash:")) ? "market_crash" : "venue_test_service",
       status: "published",
-      snapshot: { venueId, reason: "venue_test_service", runId, salesWindow: { start: roundStart, end: roundEnd, importedLines: round.importedLines }, roundStart, roundEnd, decisions: round.decisions },
+      snapshot: { venueId, reason: round.decisions.some(decision => decision.reason.startsWith("Market crash:")) ? "market_crash" : "venue_test_service", runId, salesWindow: { start: roundStart, end: roundEnd, importedLines: round.importedLines }, roundStart, roundEnd, decisions: round.decisions, momentum: round.momentum, ...(round.crash ? { crash: round.crash } : {}) },
     };
   });
   await writeRowsInChunks(url, headers, "/market_price_snapshots", snapshotRows, "write instant-run price rounds", 100);
@@ -195,9 +209,9 @@ async function completeInstantRun(url: string, headers: HeadersInit, venueId: st
   return save(url, headers, venueId, { status: "ended", simulated_minute: SERVICE_MINUTES, last_tick_at: new Date().toISOString(), active_run_id: null });
 }
 
-async function runMarketCycle(venueSlug: string, cycleEnd: string, runId: string | null) {
+async function runMarketCycle(venueSlug: string, cycleEnd: string, runId: string | null, serviceMinute: number) {
   const url = Deno.env.get("SUPABASE_URL")!;
-  const res = await fetch(`${url}/functions/v1/market-cycle`, { method: "POST", headers: { apikey: serverKey()!, "content-type": "application/json", "x-night-economy-scheduler-secret": Deno.env.get("SCHEDULER_SECRET") ?? "" }, body: JSON.stringify({ venueSlug, reason: "venue_test_service", cycleEnd, runId }) });
+  const res = await fetch(`${url}/functions/v1/market-cycle`, { method: "POST", headers: { apikey: serverKey()!, "content-type": "application/json", "x-night-economy-scheduler-secret": Deno.env.get("SCHEDULER_SECRET") ?? "" }, body: JSON.stringify({ venueSlug, reason: "venue_test_service", cycleEnd, runId, serviceMinute }) });
   if (!res.ok) throw new Error(`Market cycle failed: ${await res.text()}`);
   const result = await res.json() as { snapshot?: { decisions?: Array<{ productId: string; oldPriceMinor: number; newPriceMinor: number }> } };
   return result.snapshot?.decisions ?? [];
@@ -334,6 +348,28 @@ async function save(url: string, headers: HeadersInit, venueId: string, patch: R
   return rows[0];
 }
 
+async function loadDemandHistory(
+  url: string,
+  headers: HeadersInit,
+  runId: string,
+  startedAt: string | null,
+  simulatedMinute: number,
+): Promise<DemandHistorySale[]> {
+  const windowStart = simulatedTime(Math.max(0, simulatedMinute - 30), startedAt);
+  const rows = await restJson<Array<{ pos_product_id: string; quantity: number; occurred_at: string }>>(
+    url,
+    `/pos_sales_events?run_id=eq.${encodeURIComponent(runId)}&occurred_at=gte.${encodeURIComponent(windowStart)}&select=pos_product_id,quantity,occurred_at&order=occurred_at.asc&limit=5000`,
+    { headers },
+    "load recent customer demand",
+  );
+  const start = Date.parse(startedAt ?? "");
+  return rows.map(row => ({
+    minute: Math.max(0, Math.floor((Date.parse(row.occurred_at) - start) / 60_000)),
+    posProductId: row.pos_product_id,
+    quantity: row.quantity,
+  }));
+}
+
 async function loadRunSales(url: string, headers: HeadersInit, runId: string, action: string) {
   const pageSize = 1_000;
   const sales: Array<{ quantity: number; unit_price_minor: number }> = [];
@@ -365,7 +401,7 @@ async function restRequest(url: string, path: string, init: RequestInit, action:
   return res;
 }
 function simulatedTime(minute: number, startedAt?: string | null) { const start = startedAt ? Date.parse(startedAt) : SERVICE_START; return new Date((Number.isNaN(start) ? SERVICE_START : start) + minute * 60_000).toISOString(); }
-function publicState(state: Service) { return { running: state.status === "running", paused: state.status === "paused", ended: state.status === "ended", minute: state.simulated_minute, speed: state.speed, targetRevenueMinor: state.target_revenue_minor, rushUntilMinute: state.rush_until_minute, slowdownUntilMinute: state.slowdown_until_minute, simulatedTime: simulatedTime(state.simulated_minute, state.started_at), isOpen: state.status === "running" || state.status === "paused" }; }
+function publicState(state: Service) { return { activeRunId: state.active_run_id, running: state.status === "running", paused: state.status === "paused", ended: state.status === "ended", minute: state.simulated_minute, speed: state.speed, targetRevenueMinor: state.target_revenue_minor, rushUntilMinute: state.rush_until_minute, slowdownUntilMinute: state.slowdown_until_minute, simulatedTime: simulatedTime(state.simulated_minute, state.started_at), isOpen: state.status === "running" || state.status === "paused" }; }
 function serverKey() { const keys = Deno.env.get("SUPABASE_SECRET_KEYS"); if (keys) try { const parsed = JSON.parse(keys) as Record<string, string>; return parsed.default ?? Object.values(parsed)[0]; } catch { return undefined; } return Deno.env.get("SUPABASE_SECRET_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"); }
 async function authenticatedUserId(url: string, key: string, token: string | null) { if (!token) return undefined; const res = await fetch(`${url}/auth/v1/user`, { headers: { apikey: key, authorization: token } }); if (!res.ok) return undefined; return (await res.json().catch(() => null) as { id?: string } | null)?.id; }
 function response(body: unknown, status = 200) { return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "content-type": "application/json" } }); }

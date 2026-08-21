@@ -1,31 +1,59 @@
 import type { MarketProduct, Venue } from "../../engine/types";
 
-export type ProductTrend = "up" | "dn";
+export type ProductTrend = "up" | "dn" | "hold";
 
-// One TV view is intentionally capped at twelve distinct drinks: three
-// featured cards plus nine rows. Keeping this shared makes the Portal's
+// One TV view is intentionally capped at ten distinct drinks: one featured
+// market row plus nine rows. Keeping this shared makes the Portal's
 // paging warning match what guests see on screen.
-export const TV_CATEGORY_PAGE_LIMIT = 12;
-export const TV_FEATURED_PRODUCTS_PER_CATEGORY = 3;
+export const TV_CATEGORY_PAGE_LIMIT = 10;
+export const TV_FEATURED_PRODUCTS_PER_CATEGORY = 1;
 
 const defaultDrinkArtwork = {
-  beer: "/images/default-drink-art/beer.webp",
-  cocktails: "/images/default-drink-art/cocktails.webp",
-  spirits: "/images/default-drink-art/spirits.webp",
-  wine: "/images/default-drink-art/wine.webp",
+  beer: [
+    "/images/default-drink-art/beer.webp",
+    "/images/default-drink-art/beer/beer-2.webp",
+    "/images/default-drink-art/beer/beer-3.webp",
+    "/images/default-drink-art/beer/beer-4.webp",
+  ],
+  cocktails: ["/images/default-drink-art/cocktails.webp"],
+  spirits: [
+    "/images/default-drink-art/spirits.webp",
+    "/images/default-drink-art/spirits/spirits-2.webp",
+    "/images/default-drink-art/spirits/spirits-3.webp",
+    "/images/default-drink-art/spirits/spirits-4.webp",
+  ],
+  wine: [
+    "/images/default-drink-art/wine.webp",
+    "/images/default-drink-art/wine/wine-2.webp",
+    "/images/default-drink-art/wine/wine-3.webp",
+    "/images/default-drink-art/wine/wine-4.webp",
+  ],
 } as const;
 
-/** The venue's category photography fills in whenever an individual drink has no image. */
-export function defaultDrinkImage(category: string) {
+/** The venue's category photography fills in whenever an individual drink has no image.
+ * A stable per-drink key spreads the category collection across the board without
+ * flickering to a new image on every render. */
+export function defaultDrinkImage(category: string, key?: string) {
   const normalized = category.trim().toLowerCase();
-  if (normalized.includes("beer")) return defaultDrinkArtwork.beer;
-  if (normalized.includes("spirit")) return defaultDrinkArtwork.spirits;
-  if (normalized.includes("wine")) return defaultDrinkArtwork.wine;
-  return defaultDrinkArtwork.cocktails;
+  const collection = normalized.includes("beer")
+    ? defaultDrinkArtwork.beer
+    : normalized.includes("spirit")
+      ? defaultDrinkArtwork.spirits
+      : normalized.includes("wine")
+        ? defaultDrinkArtwork.wine
+        : defaultDrinkArtwork.cocktails;
+  if (!key) return collection[0];
+  return collection[stableImageIndex(key, collection.length)];
+}
+
+function stableImageIndex(key: string, count: number) {
+  return [...key].reduce((total, character) => (total * 31 + character.charCodeAt(0)) >>> 0, 0) % count;
 }
 
 export function productTrend(product: MarketProduct): ProductTrend {
-  return product.currentPriceMinor >= product.basePriceMinor ? "up" : "dn";
+  if (product.currentPriceMinor > product.basePriceMinor) return "up";
+  if (product.currentPriceMinor < product.basePriceMinor) return "dn";
+  return "hold";
 }
 
 export function productChangePercent(product: MarketProduct) {
@@ -35,6 +63,7 @@ export function productChangePercent(product: MarketProduct) {
 
 export function formatChangePercent(product: MarketProduct) {
   const change = productChangePercent(product);
+  if (Math.abs(change) < 0.05) return "0.0%";
   return `${change >= 0 ? "+" : ""}${change.toFixed(1)}%`;
 }
 
@@ -127,16 +156,19 @@ export function getStoryProducts(products: MarketProduct[]) {
     });
 }
 
-// Each category owns its three top TV cards. Operator priorities stay fixed;
-// any empty slots rotate through the other live drinks each time that category
-// comes back on screen.
+// Each category owns one featured TV row. When operators select priority
+// drinks, those choices rotate through that position each time the category
+// returns. Without priorities, the rest of the live category rotates instead.
 export function getCategoryFeaturedProducts(products: MarketProduct[], rotation = 0) {
   const activeProducts = products.filter(product => product.isLive && !product.isSoldOut);
-  const priorities = activeProducts.filter(product => product.priority).slice(0, TV_FEATURED_PRODUCTS_PER_CATEGORY);
+  const priorities = activeProducts.filter(product => product.priority);
+  if (priorities.length) {
+    return [priorities[rotation % priorities.length]];
+  }
   const availableFillers = activeProducts.filter(product => !product.priority);
   const fillerOffset = availableFillers.length ? rotation % availableFillers.length : 0;
   const rotatedFillers = [...availableFillers.slice(fillerOffset), ...availableFillers.slice(0, fillerOffset)];
-  return [...priorities, ...rotatedFillers].slice(0, TV_FEATURED_PRODUCTS_PER_CATEGORY);
+  return rotatedFillers.slice(0, TV_FEATURED_PRODUCTS_PER_CATEGORY);
 }
 
 export function getStoryProduct(products: MarketProduct[]) {

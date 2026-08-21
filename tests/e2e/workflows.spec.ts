@@ -14,7 +14,7 @@ const user = {
 const venue = {
   id: "ven_demo",
   slug: "demo-venue",
-  name: "The Last Judgment",
+  name: "Night Economy Demo",
   currency: "GBP",
   timezone: "Europe/London",
   market_live: true,
@@ -33,28 +33,12 @@ const products = [
   { id: "mp_riesling", pos_product_id: "pos_riesling", market_symbol: "RSL", display_name: "House Riesling", category: "Wine", base_price_minor: 900, current_price_minor: 850, floor_price_minor: 700, ceiling_price_minor: 1100, sales_velocity: 4, is_live: true, is_sold_out: false, priority: false },
 ];
 
-test("site carousel and discovery-call buttons produce their intended outcomes", async ({ page }) => {
-  const writes: Array<{ path: string; body: unknown }> = [];
-  await mockSupabase(page, writes);
+test("the public venue route uses the intentional coming-soon landing page", async ({ page }) => {
+  await mockSupabase(page);
   await page.goto("/venue/demo-venue");
-
-  for (const label of ["Room display", "Guest menu", "Operator controls", "Market moment"]) {
-    const button = page.getByRole("button", { name: `Show ${label}` });
-    await button.click();
-    await expect(button).toHaveAttribute("aria-current", "true");
-  }
-  await page.getByRole("button", { name: "Show Room display" }).click();
-  await page.getByRole("button", { name: "Next product view" }).click();
-  await expect(page.getByRole("button", { name: "Show Guest menu" })).toHaveAttribute("aria-current", "true");
-  await page.getByRole("button", { name: "Previous product view" }).click();
-  await expect(page.getByRole("button", { name: "Show Room display" })).toHaveAttribute("aria-current", "true");
-
-  await page.getByLabel("Venue name").fill("E2E Venue");
-  await page.getByLabel("Your name").fill("Alex Owner");
-  await page.getByLabel("Email").fill("alex@example.com");
-  await page.getByRole("button", { name: "Book the discovery call" }).click();
-  await expect(page.getByText("Request received. We will help you set up the venue.")).toBeVisible();
-  expect(writes.some(write => write.path === "/rest/v1/site_leads" && JSON.stringify(write.body).includes("alex@example.com"))).toBe(true);
+  await expect(page.getByRole("heading", { name: "Coming soon." })).toBeVisible();
+  await expect(page.getByText("We’re building a new home for the market.")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Sign in to Portal/ })).toHaveAttribute("href", "/sign-in/demo-venue");
 });
 
 test("a guest can move through the venue, TV, and mobile market surfaces", async ({ page }) => {
@@ -62,12 +46,10 @@ test("a guest can move through the venue, TV, and mobile market surfaces", async
 
   await page.goto("/venue/demo-venue");
   await expect(page.locator("body")).toHaveAttribute("data-app-view", "site");
-  await expect(page.getByRole("link", { name: "Market", exact: true })).toBeVisible();
-
-  await page.getByRole("link", { name: "Market", exact: true }).click();
+  await page.goto("/tv/demo-venue");
   await expect(page).toHaveURL(/\/tv\/demo-venue$/);
-  await expect(page.getByText("Live data", { exact: true })).toBeVisible();
-  await expect(page.getByText("The Last Judgment", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Live Market Board", { exact: true })).toBeVisible();
+  await expect(page.getByText("Night Economy Demo", { exact: true }).first()).toBeVisible();
 
   await page.goto("/menu/demo-venue");
   await expect(page.locator("body")).toHaveAttribute("data-app-view", "mobile");
@@ -98,6 +80,15 @@ test("sign-in help buttons reveal passwords and request recovery with visible fe
   expect(cloud.authRequests).toContain("recover");
 });
 
+test("the neutral sign-in route sends an operator to their accessible venue", async ({ page }) => {
+  await mockSupabase(page);
+  await page.goto("/sign-in");
+  await page.getByLabel("Email").fill("owner@example.com");
+  await page.getByLabel("Password", { exact: true }).fill("correct horse battery staple");
+  await page.getByRole("button", { name: "Sign in securely" }).click();
+  await expect(page).toHaveURL(/\/app\/demo-venue$/);
+});
+
 test("password update and portal sign-out buttons complete their secure workflows", async ({ page }) => {
   const cloud = await mockSupabase(page);
   await signIn(page);
@@ -119,7 +110,7 @@ test("an account without venue membership can use the access-denied sign-out but
   await page.getByLabel("Email").fill("owner@example.com");
   await page.getByLabel("Password", { exact: true }).fill("correct horse battery staple");
   await page.getByRole("button", { name: "Sign in securely" }).click();
-  await expect(page.getByRole("heading", { name: "This account cannot access this venue." })).toBeVisible();
+  await expect(page.getByText("This account does not have access to a Night Economy venue.")).toBeVisible();
   await page.getByRole("button", { name: "Sign out and use another venue account" }).click();
   await expect(page).toHaveURL(/\/$/);
   expect(cloud.authRequests).toContain("logout");
@@ -137,7 +128,7 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect(page).toHaveURL(/\/app\/demo-venue$/);
   await expect(page.getByRole("heading", { name: "Portal" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Keep navigation open" }).click();
+  await page.getByRole("button", { name: "Open navigation" }).click();
   await expect(page.getByRole("button", { name: "Collapse navigation" })).toBeVisible();
   await page.getByRole("button", { name: "Collapse navigation" }).click();
 
@@ -211,11 +202,11 @@ test("an owner signs in and clicks through scheduling, service controls, history
 
   await page.getByRole("button", { name: /Start/ }).click();
   await expect(page.getByRole("button", { name: "Quick start · instant" })).toBeVisible();
-  await page.getByRole("button", { name: "Quick start · 10 min live" }).click();
+  await page.getByRole("button", { name: "Quick start · 18 min live" }).click();
   await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
   await expect(page.getByText(/Market open · 18:00/)).toBeVisible();
   await expect(page.getByText(/Market open · 00:00/)).not.toBeVisible();
-  await expect(page.getByRole("button", { name: "Quick start · 10 min live" })).not.toBeVisible();
+  await expect(page.getByRole("button", { name: "Quick start · 18 min live" })).not.toBeVisible();
   expect(cloud.actions).toContain("quick_start");
 
   await page.getByRole("button", { name: "Pause" }).click();
@@ -232,14 +223,14 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect(page.getByRole("dialog", { name: "End this service early?" })).not.toBeVisible();
   await page.getByRole("button", { name: "End", exact: true }).click();
   await page.getByRole("button", { name: "End service" }).click();
-  await expect(page.getByRole("button", { name: "Quick start · 10 min live" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Quick start · 18 min live" })).toBeVisible();
   expect(cloud.actions).toContain("end");
 
   await page.getByRole("button", { name: /Run history/ }).click();
   await expect(page.getByRole("heading", { name: "Previous runs" })).toBeVisible();
-  await expect(page.getByText("10-minute live rehearsal", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Open dashboard for 10-minute live rehearsal" }).click();
-  await expect(page.getByRole("heading", { name: "10-minute live rehearsal dashboard" })).toBeVisible();
+  await expect(page.getByText("18-minute live rehearsal", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Open dashboard for 18-minute live rehearsal" }).click();
+  await expect(page.getByRole("heading", { name: "18-minute live rehearsal dashboard" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Sales through the night" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Top drinks" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Every price and percentage change" })).toBeVisible();
@@ -247,10 +238,10 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect(page.getByRole("table", { name: "Five-minute price history" }).getByText("+5.00%")).toBeVisible();
   const espressoDrilldown = page.getByRole("button", { name: /Espresso Martini 3 sold/ });
   await espressoDrilldown.click();
-  await expect(page.getByRole("heading", { name: "Espresso Martini: every five-minute price" })).toBeVisible();
-  await expect(page.getByRole("table", { name: "Five-minute price history for Espresso Martini" }).getByRole("row")).toHaveCount(2);
-  await expect(page.getByRole("table", { name: "Five-minute price history for Espresso Martini" })).not.toContainText("Margarita");
+  await expect(page.getByText("1 selected", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("table", { name: "Five-minute price history" })).not.toContainText("Margarita");
   await espressoDrilldown.click();
+  await expect(page.getByText("All drinks", { exact: true }).last()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Every price and percentage change" })).toBeVisible();
   await expect(page.getByRole("table", { name: "Every order" }).getByRole("row")).toHaveCount(4);
   await expect(page.getByText("Espresso Martini", { exact: true }).first()).toBeVisible();
@@ -261,6 +252,19 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await page.getByRole("button", { name: /Settings/ }).click();
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await expect(page.getByText("Owner access", { exact: true })).toBeVisible();
+  const writesBeforePreview = writes.length;
+  await page.getByRole("button", { name: "Preview market crash" }).click();
+  const crashPreview = page.getByRole("dialog", { name: "Cocktails market crash" });
+  await expect(crashPreview).toBeVisible();
+  await expect(crashPreview.locator(".market-crash-hero.is-cocktails")).toBeVisible();
+  await expect(crashPreview.getByText("Espresso Martini", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Close market crash preview" }).click();
+  await expect(page.getByRole("dialog", { name: "Cocktails market crash" })).not.toBeVisible();
+  await page.getByRole("button", { name: "Preview closing soon" }).click();
+  await expect(page.getByRole("dialog", { name: "Closing soon preview" })).toBeVisible();
+  await page.getByRole("button", { name: "Close closing soon preview" }).click();
+  await expect(page.getByRole("dialog", { name: "Closing soon preview" })).not.toBeVisible();
+  expect(writes).toHaveLength(writesBeforePreview);
 
   await page.getByRole("button", { name: /Start/ }).click();
   await expect(page.getByRole("heading", { name: "Portal" })).toBeVisible();
@@ -279,7 +283,7 @@ test("an owner signs in and clicks through scheduling, service controls, history
   expect(cloud.authRequests).toContain("logout");
 });
 
-test("conditional portal warning buttons cancel or confirm the guarded action", async ({ page }) => {
+test("the portal blocks a fourth priority drink in a category", async ({ page }) => {
   const crowded = Array.from({ length: 14 }, (_, index) => ({
     id: `mp_crowded_${index}`,
     pos_product_id: `pos_crowded_${index}`,
@@ -297,21 +301,40 @@ test("conditional portal warning buttons cancel or confirm the guarded action", 
   }));
   await mockSupabase(page, [], { products: crowded });
   await signIn(page);
+  await expect(page.getByText("Over 10 live drinks · TV will use 2 pages")).toBeVisible();
 
-  const inactive = page.locator(".portal-drink-row").filter({ has: page.locator('input[value="Crowded Drink 14"]') });
-  await inactive.getByRole("button", { name: "Off", exact: true }).click();
-  await expect(page.getByRole("dialog", { name: /Add another Cocktails TV page/ })).toBeVisible();
-  await page.getByRole("button", { name: "Keep one page" }).click();
-  await expect(inactive.getByRole("button", { name: "Off", exact: true })).toBeVisible();
-  await inactive.getByRole("button", { name: "Off", exact: true }).click();
-  await page.getByRole("button", { name: "Add drink" }).click();
-  await expect(inactive.getByRole("button", { name: "Live", exact: true })).toBeVisible();
-
-  const fourth = page.locator(".portal-drink-row").filter({ has: page.locator('input[value="Crowded Drink 4"]') });
+  const fourth = page.locator(".portal-drink-row").nth(3);
+  await fourth.scrollIntoViewIfNeeded();
   await fourth.getByRole("checkbox").click();
   await expect(page.getByRole("dialog", { name: "Three priority drinks per category" })).toBeVisible();
   await page.getByRole("button", { name: "Okay" }).click();
   await expect(page.getByRole("dialog", { name: "Three priority drinks per category" })).not.toBeVisible();
+});
+
+test("the portal warns before an eleventh live drink creates another TV page", async ({ page }) => {
+  const crowded = Array.from({ length: 11 }, (_, index) => ({
+    id: `mp_page_${index}`,
+    pos_product_id: `pos_page_${index}`,
+    market_symbol: `P${index}`,
+    display_name: `Page Drink ${index + 1}`,
+    category: "Cocktails",
+    base_price_minor: 1000,
+    current_price_minor: 1000,
+    floor_price_minor: 800,
+    ceiling_price_minor: 1200,
+    sales_velocity: 4,
+    is_live: index < 10,
+    is_sold_out: index === 0,
+    priority: false,
+  }));
+  await mockSupabase(page, [], { products: crowded });
+  await signIn(page);
+
+  await page.getByRole("button", { name: "Make Page Drink 11 live" }).click();
+  const warning = page.getByRole("dialog", { name: "Add another Cocktails TV page?" });
+  await expect(warning).toBeVisible();
+  await expect(warning).toContainText("up to 10 drinks");
+  await expect(warning).toContainText("one featured drink and nine market rows");
 });
 
 test("previous runs stay visible during a slow background refresh", async ({ page }) => {
@@ -320,12 +343,12 @@ test("previous runs stay visible during a slow background refresh", async ({ pag
 
   await page.getByRole("button", { name: /Run history/ }).click();
   await expect(page.getByRole("heading", { name: "Previous runs" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Open dashboard for 10-minute live rehearsal" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open dashboard for 18-minute live rehearsal" })).toBeVisible();
 
   await expect.poll(cloud.marketRunsRequestCount, { timeout: 7_000 }).toBeGreaterThan(1);
   await page.waitForTimeout(100);
   await expect(page.getByText("Loading run history…")).not.toBeVisible();
-  await expect(page.getByRole("button", { name: "Open dashboard for 10-minute live rehearsal" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open dashboard for 18-minute live rehearsal" })).toBeVisible();
 });
 
 async function mockSupabase(

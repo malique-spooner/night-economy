@@ -7,6 +7,7 @@ This folder holds the notes that explain how Night Economy runs, plus visual ref
 - [Deployment checklist](deployment.md) — how the frontend and Supabase services are released.
 - [Testing guide](testing.md) — the checks to run before publishing changes.
 - [Pricing engine rules](pricing-engine-rules.md) — how drink prices are calculated and kept fair.
+- [Simulation engine](simulation-engine.md) — how rehearsal customers, baskets, trends, and price response are generated.
 - [POS integration contract](pos-integration-contract.md) — how a point-of-sale system connects to Night Economy.
 - [Friday service acceptance](friday-service-acceptance.md) — a short local end-to-end service test.
 
