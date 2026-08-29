@@ -195,18 +195,13 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/market_products" && write.body !== null)).toBe(true);
   await expect(page.getByText("New POS Drink", { exact: true })).not.toBeVisible();
 
-  await page.getByRole("button", { name: "Quick start · instant" }).click();
-  await expect(page.getByRole("heading", { name: "Previous runs" })).toBeVisible();
-  await expect(page.getByText("Instant simulation", { exact: true })).toBeVisible();
-  expect(cloud.actions).toContain("instant_run");
-
-  await page.getByRole("button", { name: /Start/ }).click();
-  await expect(page.getByRole("button", { name: "Quick start · instant" })).toBeVisible();
-  await page.getByRole("button", { name: "Quick start · 18 min live" }).click();
+  const marketPopup = page.waitForEvent("popup");
+  await page.getByRole("button", { name: "Start 18-min demo" }).click();
+  await expect(await marketPopup).toHaveURL(/\/tv\/demo-venue\?starting=1$/);
   await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
   await expect(page.getByText(/Market open · 18:00/)).toBeVisible();
   await expect(page.getByText(/Market open · 00:00/)).not.toBeVisible();
-  await expect(page.getByRole("button", { name: "Quick start · 18 min live" })).not.toBeVisible();
+  await expect(page.getByRole("button", { name: "Start 18-min demo" })).not.toBeVisible();
   expect(cloud.actions).toContain("quick_start");
 
   await page.getByRole("button", { name: "Pause" }).click();
@@ -223,7 +218,7 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await expect(page.getByRole("dialog", { name: "End this service early?" })).not.toBeVisible();
   await page.getByRole("button", { name: "End", exact: true }).click();
   await page.getByRole("button", { name: "End service" }).click();
-  await expect(page.getByRole("button", { name: "Quick start · 18 min live" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start 18-min demo" })).toBeVisible();
   expect(cloud.actions).toContain("end");
 
   await page.getByRole("button", { name: /Run history/ }).click();
@@ -256,10 +251,12 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await page.getByRole("button", { name: "Preview market crash" }).click();
   const crashPreview = page.getByRole("dialog", { name: "Cocktails market crash" });
   await expect(crashPreview).toBeVisible();
-  await expect(crashPreview.locator(".market-crash-hero.is-cocktails")).toBeVisible();
-  await expect(crashPreview.getByText("Espresso Martini", { exact: true })).toBeVisible();
+  await expect(crashPreview.locator(".board-depth")).toBeVisible();
+  await expect(crashPreview.locator(".market-crash-tension")).toContainText("Category price drop detected");
+  await expect(crashPreview.locator(".market-crash-shards i")).toHaveCount(14);
+  await expect(crashPreview.locator(".market-crash-offers")).toContainText("Espresso Martini");
   await page.getByRole("button", { name: "Close market crash preview" }).click();
-  await expect(page.getByRole("dialog", { name: "Cocktails market crash" })).not.toBeVisible();
+  await expect(crashPreview).not.toBeVisible();
   await page.getByRole("button", { name: "Preview closing soon" }).click();
   await expect(page.getByRole("dialog", { name: "Closing soon preview" })).toBeVisible();
   await page.getByRole("button", { name: "Close closing soon preview" }).click();
@@ -281,6 +278,56 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   expect(cloud.authRequests).toContain("logout");
+});
+
+test("the Portal keeps its navigation and core controls usable on a phone", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockSupabase(page);
+
+  await page.goto("/sign-in/demo-venue");
+  await page.getByLabel("Email").fill("owner@example.com");
+  await page.getByLabel("Password", { exact: true }).fill("correct horse battery staple");
+  await page.getByRole("button", { name: "Sign in securely" }).click();
+
+  await expect(page).toHaveURL(/\/app\/demo-venue$/);
+  await expect(page.getByRole("button", { name: "Open navigation" })).toBeVisible();
+  await page.getByRole("button", { name: "Open navigation" }).click();
+
+  for (const item of ["Start", "Run history", "Settings", "Market", "Mobile market", "Sign out"]) {
+    await expect(page.getByRole(item === "Market" || item === "Mobile market" ? "link" : "button", { name: item, exact: true })).toBeVisible();
+  }
+
+  await page.getByRole("button", { name: "Open Portal tour" }).click();
+  const tour = page.getByRole("dialog", { name: "Run the 18-minute demo" });
+  await expect(tour).toBeVisible();
+  const tourBox = await tour.boundingBox();
+  expect(tourBox).not.toBeNull();
+  expect((tourBox?.y ?? 0) + (tourBox?.height ?? 0)).toBeGreaterThan(800);
+
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+  expect(await page.locator("html").evaluate(element => element.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("the Portal uses a compact tablet drawer instead of a stretched phone header", async ({ page }) => {
+  await page.setViewportSize({ width: 820, height: 1_180 });
+  await mockSupabase(page);
+
+  await page.goto("/sign-in/demo-venue");
+  await page.getByLabel("Email").fill("owner@example.com");
+  await page.getByLabel("Password", { exact: true }).fill("correct horse battery staple");
+  await page.getByRole("button", { name: "Sign in securely" }).click();
+
+  await expect(page).toHaveURL(/\/app\/demo-venue$/);
+  const header = page.locator(".portal-sidebar");
+  await expect(header).toHaveCSS("height", "64px");
+  await expect(page.locator(".portal-drink-column-head").first()).toBeHidden();
+  await expect(page.locator(".portal-drink-row").first().locator(".portal-drink-cat")).toBeHidden();
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  for (const item of ["Start", "Run history", "Settings", "Market", "Mobile market"]) {
+    await expect(page.getByRole(item === "Market" || item === "Mobile market" ? "link" : "button", { name: item, exact: true })).toBeVisible();
+  }
+  expect(await page.locator("html").evaluate(element => element.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
 test("the portal blocks a fourth priority drink in a category", async ({ page }) => {

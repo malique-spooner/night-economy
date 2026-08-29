@@ -6,6 +6,6 @@ export function ClosingSoonCinematic({ onClose }: Props) {
     <button aria-label="Close closing soon preview" className="market-cinematic-close" onClick={onClose} type="button">Close preview</button>
     <div aria-hidden="true" className="market-closing-horizon" />
     <div aria-hidden="true" className="market-closing-orbit"><i /><i /><i /></div>
-    <div className="market-closing-copy"><span>Night Economy presents</span><h1>Closing<em> soon</em></h1><p>Last orders. Final market prices are live now.</p></div>
+    <div className="market-closing-copy"><span>Last orders</span><h1>Market<em> closing soon</em></h1></div>
   </section>;
 }

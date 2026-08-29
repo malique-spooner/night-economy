@@ -16,6 +16,11 @@ export function hasConfiguredCategory(category: string | null | undefined) {
   return Boolean(normalized) && !["uncategorized", "uncategorised"].includes(normalized.toLowerCase());
 }
 
+export function unconfiguredCurrentPosProducts(posProducts: PosProduct[], marketProducts: MarketProduct[]) {
+  const mapped = new Set(marketProducts.flatMap(product => (product.posProductId ? [product.posProductId] : [])));
+  return posProducts.filter(product => product.isCurrent !== false && !mapped.has(product.id));
+}
+
 export function prepareMarketProductConfiguration({ id, posProduct, products }: { id: string; posProduct: PosProduct; products: MarketProduct[] }): MarketProduct {
   if (!hasConfiguredCategory(posProduct.category)) throw new Error("Add a category in the POS before setting up this drink");
   const currentPriceMinor = posProduct.currentPriceMinor;

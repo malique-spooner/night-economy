@@ -10,13 +10,16 @@ type Props = {
   onTabChange: (tab: PortalTab) => void;
   onTogglePinned: () => void;
   onSignOut: () => void;
+  onOpenTour: () => void;
   simulatorHref: string | null;
   totalCount: number;
   venueName: string;
   venueSlug: string;
 };
 
-export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount, onSignOut, onTabChange, onTogglePinned, simulatorHref, totalCount, venueName, venueSlug }: Props) {
+export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount, onSignOut, onOpenTour, onTabChange, onTogglePinned, simulatorHref, totalCount, venueName, venueSlug }: Props) {
+  const canSwitchVenue = accessibleVenues.length > 1;
+
   return (
     <aside className={`portal-sidebar ${isPinned ? "is-pinned" : ""}`}>
       <div className="portal-sidebar-brand">
@@ -28,21 +31,19 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
         </div>
         <span className="portal-sidebar-venue">{venueName}</span>
       </div>
-      {accessibleVenues.length > 1 && (
-        <label className="portal-venue-switcher">
-          <span>Switch venue</span>
-          <select aria-label="Switch venue" onChange={event => window.location.assign(`/app/${encodeURIComponent(event.target.value)}`)} value={venueSlug}>
-            {accessibleVenues.map(venue => <option key={venue.id} value={venue.slug}>{venue.name}</option>)}
-          </select>
-        </label>
-      )}
+      <label className="portal-venue-switcher">
+        <span>{canSwitchVenue ? "Switch venue" : "Venue"}</span>
+        <select aria-label="Switch venue" disabled={!canSwitchVenue} onChange={event => window.location.assign(`/app/${encodeURIComponent(event.target.value)}`)} value={venueSlug}>
+          {accessibleVenues.map(venue => <option key={venue.id} value={venue.slug}>{venue.name}</option>)}
+        </select>
+      </label>
       <div className="portal-sidebar-stat">
         <span>Products live</span>
         <strong>{liveCount}/{totalCount}</strong>
       </div>
       <nav className="portal-nav" aria-label="Portal sections" id="portal-navigation">
         <button
-          className={`portal-nav-item ${activeTab === "start" ? "active" : ""}`}
+          className={`portal-nav-item ${activeTab === "start" ? "active" : ""}`} data-portal-tour="start"
           onClick={() => onTabChange("start")}
           type="button"
         >
@@ -50,7 +51,7 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
           <small>Market controls</small>
         </button>
         <button
-          className={`portal-nav-item ${activeTab === "runs" ? "active" : ""}`}
+          className={`portal-nav-item ${activeTab === "runs" ? "active" : ""}`} data-portal-tour="runs"
           onClick={() => onTabChange("runs")}
           type="button"
         >
@@ -65,20 +66,23 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
           <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="settings" /></span><span className="portal-nav-label">Settings</span>
           <small>Venue and display</small>
         </button>
-        <a className="portal-nav-item portal-nav-link" href={`/tv/${encodeURIComponent(venueSlug)}`} rel="noreferrer" target="_blank">
+        <a className="portal-nav-item portal-nav-link" data-portal-tour="market" href={`/tv/${encodeURIComponent(venueSlug)}`} rel="noreferrer" target="_blank">
           <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="market" /></span><span className="portal-nav-label">Market</span>
           <small>TV display</small>
         </a>
-        <a className="portal-nav-item portal-nav-link" href={`/menu/${encodeURIComponent(venueSlug)}`} rel="noreferrer" target="_blank">
+        <a className="portal-nav-item portal-nav-link" data-portal-tour="mobile" href={`/menu/${encodeURIComponent(venueSlug)}`} rel="noreferrer" target="_blank">
           <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="mobile" /></span><span className="portal-nav-label">Mobile market</span>
           <small>Guest menu</small>
         </a>
       </nav>
       <div className="portal-sidebar-foot">
+        <button aria-label="Open Portal tour" className="portal-nav-item portal-tour-open" onClick={onOpenTour} type="button">
+          <span className="portal-nav-icon" aria-hidden="true">?</span><span className="portal-nav-label">Tour</span><small>How it works</small>
+        </button>
         {simulatorHref && <a className="portal-nav-item portal-nav-link" href={simulatorHref}>
           <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="simulator" /></span><span className="portal-nav-label">Simulator</span>
         </a>}
-        <button className="portal-signout" type="button" onClick={onSignOut}><span aria-hidden="true"><NavIcon name="signout" /></span><b>Sign out</b></button>
+        <button className="portal-signout" type="button" onClick={onSignOut}><span aria-hidden="true" className="portal-signout-icon"><NavIcon name="signout" /></span><b>Sign out</b></button>
       </div>
     </aside>
   );

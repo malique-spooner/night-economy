@@ -3,12 +3,13 @@ import type { Venue } from "../../engine/types";
 import { formatRemainingTime, getNextMarket } from "./nextMarket";
 
 type Props = {
+  isPreparing?: boolean;
   onFullscreen?: () => void;
   surface: "tv" | "mobile";
   venue: Venue;
 };
 
-export function MarketClosedExperience({ onFullscreen, surface, venue }: Props) {
+export function MarketClosedExperience({ isPreparing = false, onFullscreen, surface, venue }: Props) {
   const [now, setNow] = useState(() => new Date());
   const next = getNextMarket(venue.marketSchedule, now, venue.timezone);
   const remaining = next ? formatRemainingTime(next.remainingMs) : null;
@@ -24,9 +25,14 @@ export function MarketClosedExperience({ onFullscreen, surface, venue }: Props) 
       <div className="market-closed-orbit market-closed-orbit-one" aria-hidden="true" />
       <div className="market-closed-orbit market-closed-orbit-two" aria-hidden="true" />
       <section className="market-closed-card">
-        <span className="market-closed-eyebrow"><i /> Market resting</span>
+        <span className="market-closed-eyebrow"><i /> {isPreparing ? "Market preparing" : "Market resting"}</span>
         <p className="market-closed-venue">{venue.name}</p>
-        {next && remaining ? (
+        {isPreparing ? (
+          <>
+            <h1>Preparing<br /><em>live prices.</em></h1>
+            <p className="market-closed-note">The market is starting. This display will update automatically.</p>
+          </>
+        ) : next && remaining ? (
           <>
             <h1>Prices return<br />{next.day} at <em>{next.start}</em></h1>
             <div className="market-closed-countdown" aria-label={`Market opens in ${remaining.days} days, ${remaining.hours} hours, ${remaining.minutes} minutes and ${remaining.seconds} seconds`}>

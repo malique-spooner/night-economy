@@ -12,6 +12,7 @@ import {
   PRIORITY_DRINKS_PER_CATEGORY_LIMIT,
   TV_CATEGORY_PAGE_LIMIT,
   TV_DRINK_NAME_MAX_LENGTH,
+  unconfiguredCurrentPosProducts,
   venueSettingsAccessMessage,
   wouldExceedPriorityLimit,
   wouldNeedAnotherTvPage,
@@ -99,6 +100,16 @@ describe("normalizeMarketProductPatch", () => {
 });
 
 describe("market configuration access", () => {
+  it("does not flag a POS drink as needing setup when its market drink is archived", () => {
+    const posProducts = [
+      { id: "pos_archived", externalId: "pos_archived", sku: "OLD", name: "Archived drink", basePriceMinor: 1000, currentPriceMinor: 1000, currency: "GBP", isAvailable: true, isCurrent: true, category: "Cocktails", subcategory: "" },
+      { id: "pos_new", externalId: "pos_new", sku: "NEW", name: "New drink", basePriceMinor: 1000, currentPriceMinor: 1000, currency: "GBP", isAvailable: true, isCurrent: true, category: "Cocktails", subcategory: "" },
+    ];
+    const archivedMarketProduct = { ...product, id: "mp_archived", posProductId: "pos_archived", isArchived: true };
+
+    expect(unconfiguredCurrentPosProducts(posProducts, [archivedMarketProduct])).toEqual([posProducts[1]]);
+  });
+
   it("updates only the selected market product", () => {
     expect(applyMarketProductPatch([product, { ...product, id: "mp_other" }], "mp_test", { symbol: "NEW" })[0].symbol).toBe("NEW");
   });

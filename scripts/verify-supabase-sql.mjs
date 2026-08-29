@@ -57,6 +57,8 @@ const expectedMigrations = [
   "20260817010000_remove_legacy_crash_discount.sql",
   "20260817170000_sync_quick_start_with_tv_rotation.sql",
   "20260818074802_enable_market_round_realtime.sql",
+  "20260827075610_retain_cron_run_history.sql",
+  "20260827080854_clone_showcase_for_the_last_judgment.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -170,6 +172,16 @@ function checkRequiredPatterns() {
       label: "market price rounds are published over Supabase Realtime",
       source: migrationSql["20260818074802_enable_market_round_realtime.sql"],
       pattern: /alter publication supabase_realtime add table public\.market_price_snapshots/i,
+    },
+    {
+      label: "scheduler execution history is retained for only seven days",
+      source: migrationSql["20260827075610_retain_cron_run_history.sql"],
+      pattern: /delete from cron\.job_run_details[\s\S]+end_time < now\(\) - interval '7 days'[\s\S]+cron\.schedule\([\s\S]+'night-economy-prune-cron-run-history-daily'/i,
+    },
+    {
+      label: "The Last Judgment is seeded from Showcase without duplicating image storage",
+      source: migrationSql["20260827080854_clone_showcase_for_the_last_judgment.sql"],
+      pattern: /'ven_last_judgment'[\s\S]+from public\.venues[\s\S]+where id = 'ven_showcase'[\s\S]+source\.logo_url[\s\S]+where source\.venue_id = 'ven_showcase'[\s\S]+prepare_venue_test_service\('ven_last_judgment'\)/i,
     },
     {
       label: "market price rounds are linked to their owning run",

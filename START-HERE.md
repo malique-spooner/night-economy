@@ -12,7 +12,7 @@ You do not need to understand every folder to work comfortably in this project. 
 | Change the big TV display | `src/pages/Tv.tsx` and `src/components/tv/` |
 | Change the guest menu | `src/pages/Menu.tsx` and `src/components/market/` |
 | Change the operator portal | `src/pages/Portal.tsx` and `src/components/portal/` |
-| Change text, drinks, or demo content | `src/content/` and `src/demo/` |
+| Change drinks, venue demo content, or default prices | `src/demo/marketSeed.ts` and the venue data in Supabase |
 | Change colours and shared styling | `src/styles/app.css` |
 
 ## The TV display at a glance
@@ -34,7 +34,7 @@ The small expand icon makes either state fill the screen. TV-specific work belon
 | `pos-simulator/` | A separate local tool that imitates a point-of-sale system during service testing. |
 | `supabase/` | The database history and server-side jobs. Treat migrations as permanent history. |
 | `tests/` | Automated checks that help make sure the product still works. |
-| `scripts/` | Small maintenance and verification helpers used by developers. |
+| `scripts/` | Small maintenance and verification helpers used by developers. Start with the commands listed in `package.json`; do not run a script that mutates Supabase unless you understand its name and inputs. |
 
 ## Folders you can usually ignore
 
@@ -50,6 +50,14 @@ These are recreated automatically and are not part of the product source.
 npm run dev       # open the main app locally
 npm run build     # make sure the app can be built
 npm run test:all  # run all automated checks
+npm run check     # run the complete pre-deploy suite
 ```
 
 For the full technical reference, use the [main README](README.md). The [documentation index](docs/README.md) points to operational notes and visual reference material.
+
+## Keeping the project clean
+
+- Put a component beside the feature it supports; delete it when it is no longer imported.
+- Keep comments for decisions, constraints, and external behaviour—not for obvious code.
+- Add database changes as a new immutable migration. Never edit an applied migration.
+- Update the relevant guide in `docs/` when a user-visible flow, operational command, or deployment step changes.

@@ -4,8 +4,7 @@ import type { MarketScheduleEntry, VenueMarketSettings } from "../../engine/type
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 type Props = {
-  instantRunPending: boolean;
-  onInstantRun: () => void;
+  isServiceActionPending: boolean;
   onQuickStart: () => void;
   onRealTimeStart: () => void;
   onPause: () => void;
@@ -33,7 +32,7 @@ export function updateScheduleDay(schedule: MarketScheduleEntry[], day: string, 
   return schedule.map(entry => entry.day === day ? { ...entry, ...patch } : entry);
 }
 
-export function PortalLaunchStrip({ instantRunPending, onEnd, onInstantRun, onPause, onQuickStart, onRealTimeStart, onResume, onSettingsChange, settings, simulatorState, timezone }: Props) {
+export function PortalLaunchStrip({ isServiceActionPending, onEnd, onPause, onQuickStart, onRealTimeStart, onResume, onSettingsChange, settings, simulatorState, timezone }: Props) {
   const schedule = days.map(day => settings.marketSchedule.find(entry => entry.day === day) ?? { day, start: "18:00", end: "00:00", enabled: false });
   const next = getNextService(schedule, timezone);
   const save = (nextSchedule: MarketScheduleEntry[]) => onSettingsChange({ marketSchedule: nextSchedule });
@@ -51,11 +50,10 @@ export function PortalLaunchStrip({ instantRunPending, onEnd, onInstantRun, onPa
         <h2>{next ? `${next.day} · ${next.start}–${next.end}` : "No service scheduled"}</h2>
         <p>{marketStatus}</p>
       </div>
-      <div className="portal-service-actions">
+      <div className="portal-service-actions" data-portal-tour="service-controls">
         {!serviceIsOpen ? <>
-          <button className="portal-instant-run" disabled={instantRunPending} onClick={onInstantRun} type="button">{instantRunPending ? "Simulating full night…" : "Quick start · instant"}</button>
-          <button className="portal-quick-start" disabled={instantRunPending} onClick={onQuickStart} type="button">Quick start · 18 min live</button>
-          <button className="portal-real-time-start" disabled={instantRunPending} onClick={onRealTimeStart} type="button">Quick start · real time</button>
+          <button className="portal-quick-start" disabled={isServiceActionPending} onClick={onQuickStart} type="button">Start 18-min demo</button>
+          <button className="portal-real-time-start" disabled={isServiceActionPending} onClick={onRealTimeStart} type="button">Start real time demo</button>
         </> : null}
         {service?.running ? <button className="portal-quick-start is-live" onClick={onPause} type="button">Pause</button> : null}
         {serviceIsOpen && service?.paused ? <button className="portal-quick-start" onClick={onResume} type="button">Resume</button> : null}

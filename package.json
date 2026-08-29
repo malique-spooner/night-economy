@@ -11,6 +11,7 @@
     "simulator:dev": "node --experimental-strip-types pos-simulator/server.mjs",
     "simulator:market": "node pos-simulator/market-runner.mjs",
     "simulator:verify": "vitest run tests/integration",
+    "simulator:matrix": "node --experimental-strip-types scripts/test-manager-input-matrix.ts",
     "simulator:reset": "node scripts/reset-demo-service.mjs",
     "simulator:verify-live": "node scripts/verify-live-pos-flow.mjs",
     "setup:env": "node scripts/create-local-env.mjs",

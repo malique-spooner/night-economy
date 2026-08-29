@@ -1,7 +1,7 @@
 import type { PosProduct } from "../../api/market";
 import type { MarketProduct } from "../../engine/types";
 import { formatMoney } from "../format";
-import { hasConfiguredCategory } from "./portalHelpers";
+import { hasConfiguredCategory, unconfiguredCurrentPosProducts } from "./portalHelpers";
 
 type Props = {
   archivedProducts: MarketProduct[];
@@ -12,8 +12,9 @@ type Props = {
 };
 
 export function PortalPosProductSetup({ archivedProducts, onConfigure, onRestore, posProducts, products }: Props) {
-  const mapped = new Set(products.flatMap(product => (product.posProductId ? [product.posProductId] : [])));
-  const unmatched = posProducts.filter(product => product.isCurrent !== false && !mapped.has(product.id));
+  // An archived market drink is still connected to its POS record. It belongs
+  // in the Restore list, never in the "needs setup" list.
+  const unmatched = unconfiguredCurrentPosProducts(posProducts, [...products, ...archivedProducts]);
   if (!unmatched.length && !archivedProducts.length) return null;
 
   return <details className="portal-pos-setup"><summary><span>POS drinks</span><small>{unmatched.length ? `${unmatched.length} need setup` : "All connected"}{archivedProducts.length ? ` · ${archivedProducts.length} archived` : ""}</small></summary>

@@ -23,9 +23,10 @@ type Props = {
   products: MarketProduct[];
   roundSequence: number;
   venue: Venue;
+  featuredCategory?: string | null;
 };
 
-export function MarketBoard({ activeRunId, historyRunReady, onCategoryChange, products, roundSequence, venue }: Props) {
+export function MarketBoard({ activeRunId, featuredCategory, historyRunReady, onCategoryChange, products, roundSequence, venue }: Props) {
   const [featureRotationByCategory, setFeatureRotationByCategory] = useState<Record<string, number>>({});
   const lastAdvancedRound = useRef(0);
   const activeProducts = products.filter(product => product.isLive);
@@ -54,9 +55,15 @@ export function MarketBoard({ activeRunId, historyRunReady, onCategoryChange, pr
   const pageKey = pages.map(page => `${page.category}-${page.categoryPageIndex}`).join("|");
   const pageCategories = pages.map(page => page.category);
 
+  useEffect(() => {
+    if (!featuredCategory) return;
+    const index = pages.findIndex(page => page.category === featuredCategory);
+    if (index >= 0) setPageIndex(index);
+  }, [featuredCategory, pageKey]);
+
   useEffect(() => { setPageIndex(0); }, [pageKey]);
   useEffect(() => {
-    if (!roundSequence || lastAdvancedRound.current === roundSequence || !pageCategories.length) return;
+    if (featuredCategory || !roundSequence || lastAdvancedRound.current === roundSequence || !pageCategories.length) return;
     lastAdvancedRound.current = roundSequence;
     const currentIndex = pageIndex % pageCategories.length;
     const nextIndex = pageCategories.length > 1 ? (currentIndex + 1) % pageCategories.length : 0;
@@ -67,7 +74,7 @@ export function MarketBoard({ activeRunId, historyRunReady, onCategoryChange, pr
       setFeatureRotationByCategory(rotations => ({ ...rotations, [nextCategory]: (rotations[nextCategory] ?? 0) + 1 }));
     }
     setPageIndex(nextIndex);
-  }, [pageIndex, pageKey, roundSequence]);
+  }, [featuredCategory, pageIndex, pageKey, roundSequence]);
 
   const currentPage = pages[pageIndex % Math.max(pages.length, 1)] ?? { category: "Live market", categoryPageIndex: 0, categoryProducts: [], featuredProducts: [], pageCount: 1, products: [] };
   const { category, categoryPageIndex, categoryProducts, featuredProducts, pageCount, products: boardProducts } = currentPage;

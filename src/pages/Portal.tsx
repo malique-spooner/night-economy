@@ -3,6 +3,7 @@ import { PortalAccountPage } from "../components/portal/PortalAccountPage";
 import { PortalRunsPage } from "../components/portal/PortalRunsPage";
 import { PortalSidebar, type PortalTab } from "../components/portal/PortalSidebar";
 import { PortalStartPage } from "../components/portal/PortalStartPage";
+import { PortalTour } from "../components/portal/PortalTour";
 import {
   applyMarketProductPatch,
   applyVenueSettingsPatch,
@@ -63,8 +64,9 @@ export function Portal({ venueSlug }: Props) {
   const [simulatorState, setSimulatorState] = useState<SimulatorState | null>(null);
   const [runs, setRuns] = useState<MarketRun[]>([]);
   const [runsLoading, setRunsLoading] = useState(false);
-  const [instantRunPending, setInstantRunPending] = useState(false);
+  const [isServiceActionPending, setIsServiceActionPending] = useState(false);
   const [isEndConfirmationOpen, setIsEndConfirmationOpen] = useState(false);
+  const [isShowcaseGuideOpen, setIsShowcaseGuideOpen] = useState(false);
   const [tvPageWarning, setTvPageWarning] = useState<{ category: string; productId: string; patch: MarketProductPatch; options: { persist?: boolean }; productName: string } | null>(null);
   const [priorityLimitWarning, setPriorityLimitWarning] = useState<string | null>(null);
   const [scheduleOverride, setScheduleOverride] = useState<VenueMarketSettingsPatch["marketSchedule"] | null>(null);
@@ -78,6 +80,12 @@ export function Portal({ venueSlug }: Props) {
       void refreshSession();
     });
   }, []);
+
+  useEffect(() => {
+    if (!isSignedIn || venueSlug !== "showcase") return;
+    const storageKey = "night-economy-showcase-guide-seen";
+    if (window.localStorage.getItem(storageKey) !== "true") setIsShowcaseGuideOpen(true);
+  }, [isSignedIn, venueSlug]);
 
   useEffect(() => {
     if (!isAuthResolved || isSignedIn || isSigningOut) return;
@@ -458,6 +466,7 @@ export function Portal({ venueSlug }: Props) {
 
   async function handleQuickStart() {
     try {
+      setIsServiceActionPending(true);
       // A five-minute market round takes 15 seconds, matching the TV rotation.
       const nextSimulatorState = await controlSimulator(venueSlug, "quick_start");
       setSimulatorState(nextSimulatorState);
@@ -465,11 +474,14 @@ export function Portal({ venueSlug }: Props) {
       setLastSavedMessage("Quick-started an 18-minute rehearsal");
     } catch (error) {
       setLastSavedMessage(error instanceof Error ? `Could not quick start: ${error.message}` : "Could not quick start the simulator");
+    } finally {
+      setIsServiceActionPending(false);
     }
   }
 
   async function handleRealTimeStart() {
     try {
+      setIsServiceActionPending(true);
       // The same market service runs at 1×, so the six-hour night unfolds in real time.
       const nextSimulatorState = await controlSimulator(venueSlug, "quick_start", { speed: 1 });
       setSimulatorState(nextSimulatorState);
@@ -477,21 +489,8 @@ export function Portal({ venueSlug }: Props) {
       setLastSavedMessage("Quick-started a real-time market");
     } catch (error) {
       setLastSavedMessage(error instanceof Error ? `Could not start real-time market: ${error.message}` : "Could not start the real-time market");
-    }
-  }
-
-  async function handleInstantRun() {
-    try {
-      setInstantRunPending(true);
-      const nextSimulatorState = await controlSimulator(venueSlug, "instant_run");
-      setSimulatorState(nextSimulatorState);
-      await handleVenueSettingsChange({ marketLive: false });
-      setLastSavedMessage("Instant full-night simulation completed");
-      setActiveTab("runs");
-    } catch (error) {
-      setLastSavedMessage(error instanceof Error ? `Could not run instant simulation: ${error.message}` : "Could not run the instant simulation");
     } finally {
-      setInstantRunPending(false);
+      setIsServiceActionPending(false);
     }
   }
 
@@ -551,7 +550,7 @@ export function Portal({ venueSlug }: Props) {
       <section id="portalView" className="alt-view portal-view active">
         <div className="portal-shell">
           <div className={`portal-layout ${isNavPinned ? "nav-expanded" : ""}`}>
-            <PortalSidebar
+              <PortalSidebar
               activeTab={activeTab}
               accessibleVenues={accessibleVenues}
               isPinned={isNavPinned}
@@ -559,16 +558,18 @@ export function Portal({ venueSlug }: Props) {
               onTabChange={setActiveTab}
               onTogglePinned={() => setIsNavPinned(current => !current)}
               onSignOut={handleSignOut}
+              onOpenTour={() => setIsShowcaseGuideOpen(true)}
               simulatorHref={simulatorHref}
               totalCount={state.products.length}
               venueName={state.venue.name}
               venueSlug={venueSlug}
-            />
+              />
+              {isShowcaseGuideOpen && <PortalTour isServiceOpen={Boolean(simulatorState?.service.isOpen ?? simulatorState?.service.running ?? simulatorState?.service.paused)} onClose={() => { window.localStorage.setItem("night-economy-showcase-guide-seen", "true"); setIsShowcaseGuideOpen(false); }} />}
             <main className="portal-main">
               <div className="portal-workspace">
                 {activeTab === "start" ? (
                   <PortalStartPage
-                    instantRunPending={instantRunPending}
+                    isServiceActionPending={isServiceActionPending}
                     onConfigurePosProduct={handleConfigurePosProduct}
                     onRestoreProduct={product => { void handleProductChange(product.id, { isArchived: false }); }}
                     onProductChange={handleProductChange}
@@ -576,9 +577,14 @@ export function Portal({ venueSlug }: Props) {
                     onLogoRemove={handleLogoRemove}
                     onSelectProduct={handleToggleProductHistory}
                     onVenueSettingsChange={handleVenueSettingsChange}
-                    onInstantRun={handleInstantRun}
-                    onQuickStart={handleQuickStart}
-                    onRealTimeStart={handleRealTimeStart}
+                    onQuickStart={() => {
+                      window.open(`/tv/${encodeURIComponent(venueSlug)}?starting=1`, "_blank", "noopener,noreferrer");
+                      void handleQuickStart();
+                    }}
+                    onRealTimeStart={() => {
+                      window.open(`/tv/${encodeURIComponent(venueSlug)}?starting=1`, "_blank", "noopener,noreferrer");
+                      void handleRealTimeStart();
+                    }}
                     onPause={handlePause}
                     onResume={handleResume}
                     onEnd={() => setIsEndConfirmationOpen(true)}

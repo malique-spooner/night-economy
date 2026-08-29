@@ -70,6 +70,12 @@ Deno.serve(async request => {
           await save(url, headers, venue.id, { status: "ended", simulated_minute: 0, last_tick_at: new Date().toISOString(), active_run_id: null }).catch(() => undefined);
           throw error;
         }
+      } else {
+        // Publish the opening price at simulated minute zero. The display can
+        // therefore render its first featured chart bar immediately instead
+        // of looking inactive until the first five-minute market round.
+        const openingDecisions = await runMarketCycle(venue.slug, simulatedTime(0, state.started_at), state.active_run_id, 0);
+        await publishInternalPrices(url, headers, venue.id, `test_sim_${venue.id}`, openingDecisions);
       }
     } else if (action === "event") {
       if (!['rush', 'slowdown'].includes(eventType)) return response({ error: "Unknown simulator event" }, 400);

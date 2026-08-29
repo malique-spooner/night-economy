@@ -1,0 +1,5437 @@
+{
+  "generatedAt": "2026-08-23T07:52:17.379Z",
+  "method": {
+    "engine": "The exact shared buildInstantSimulation, simulateDemandMinute, priceMarket, crash and simulation-clock modules used by the Supabase Edge Functions",
+    "seedPrefix": "holdout-2026-08-23",
+    "requestedServicesPerScenario": 500,
+    "stochasticScenarios": 32,
+    "totalSimulatedServices": 15525,
+    "confidence": "Two-sided 95% normal confidence intervals over independent seeded services; zero-failure upper bounds use the exact rule-of-three approximation (3/n).",
+    "serviceDefinition": "A service is an independent seeded customer night with five-minute production price rounds.",
+    "scenarioDesign": "One-factor-at-a-time manager settings plus deliberately adverse combined availability and category-mix cases."
+  },
+  "deterministicChecks": [
+    {
+      "id": "no-sales",
+      "label": "No orders hold every price",
+      "passed": true,
+      "observed": [
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      "expected": "All prices remain at 1000"
+    },
+    {
+      "id": "equal-sales",
+      "label": "Equal demand is zero-sum and holds",
+      "passed": true,
+      "observed": [
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      "expected": "All prices remain at 1000"
+    },
+    {
+      "id": "isolated-order",
+      "label": "One isolated order does not punish untouched peers",
+      "passed": true,
+      "observed": [
+        "up",
+        "hold",
+        "hold",
+        "hold"
+      ],
+      "expected": "Winner rises; peers hold"
+    },
+    {
+      "id": "sustained-winner",
+      "label": "A sustained favourite travels through the buffered range",
+      "passed": true,
+      "observed": [
+        1150,
+        850,
+        948,
+        948
+      ],
+      "expected": "Winner reaches at least 1140 without touching 1200 ceiling"
+    },
+    {
+      "id": "demand-reversal",
+      "label": "A former winner reverses after demand switches",
+      "passed": true,
+      "observed": {
+        "peak": 1150,
+        "final": 875
+      },
+      "expected": "Price rises first, then falls after the switch"
+    },
+    {
+      "id": "rotating-leaders",
+      "label": "Rotating leaders remain inside manager bounds",
+      "passed": true,
+      "observed": [
+        995,
+        1006,
+        1018,
+        1023
+      ],
+      "expected": "Every price stays within 800–1200"
+    },
+    {
+      "id": "adaptive-windows",
+      "label": "Busy, medium and quiet categories use 5/15/30-minute evidence",
+      "passed": true,
+      "observed": {
+        "Beer": 5,
+        "Cocktails": 15,
+        "Wine": 30
+      },
+      "expected": "Beer 5, Cocktails 15, Wine 30"
+    },
+    {
+      "id": "crash-target",
+      "label": "Crash uses 75% of the manager's downward range",
+      "passed": true,
+      "observed": [
+        850,
+        850
+      ],
+      "expected": "Both prices become 850"
+    },
+    {
+      "id": "crash-duration",
+      "label": "Five- and ten-minute crashes occupy one and two price rounds",
+      "passed": true,
+      "observed": {
+        "fiveMinuteRounds": [
+          180
+        ],
+        "tenMinuteRounds": [
+          175,
+          180
+        ]
+      },
+      "expected": "1 and 2 rounds respectively"
+    },
+    {
+      "id": "quick-start-clock",
+      "label": "Quick Start advances exactly one five-minute round per 15 seconds",
+      "passed": true,
+      "observed": {
+        "quickStart": {
+          "minute": 5,
+          "lastTickAt": "2026-07-30T18:00:15.000Z"
+        },
+        "delayed": {
+          "minute": 5,
+          "lastTickAt": "2026-07-30T18:10:00.000Z"
+        },
+        "early": {
+          "minute": 0,
+          "lastTickAt": "2026-07-30T18:00:00.000Z"
+        }
+      },
+      "expected": "15s => 5m; delayed tick => only 5m; early tick => 0m"
+    },
+    {
+      "id": "unmapped-hold",
+      "label": "A drink without a POS mapping cannot reprice",
+      "passed": false,
+      "observed": {
+        "productId": "exact-2",
+        "oldPriceMinor": 1000,
+        "newPriceMinor": 992,
+        "movement": "down",
+        "momentum": -0.07111356286821274,
+        "targetPriceMinor": 989,
+        "reason": "Category sales built downward momentum toward a buffered market target."
+      },
+      "expected": "Unmapped drink holds"
+    }
+  ],
+  "publicationChecks": {
+    "duplicateCycleGuard": {
+      "passed": true,
+      "detail": "The same run/cycle-end returns before price updates."
+    },
+    "snapshotAfterProductUpdates": {
+      "passed": true,
+      "detail": "A published snapshot is written only after all product PATCH promises resolve."
+    },
+    "restFailuresPropagate": {
+      "passed": true,
+      "detail": "Non-2xx Supabase/POS REST calls throw instead of being recorded as successful."
+    },
+    "atomicityRisk": {
+      "passed": false,
+      "detail": "Product PATCH calls run concurrently and are not wrapped in one database transaction. If one PATCH fails after another succeeds, a partial price update can exist without a snapshot. This requires an RPC/transaction to eliminate, not more random simulation."
+    }
+  },
+  "scenarios": [
+    {
+      "id": "baseline",
+      "label": "Standard manager setup",
+      "dimension": "baseline",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 106.104,
+          "standardDeviation": 8.9798,
+          "ci95Low": 105.3169,
+          "ci95High": 106.8911,
+          "ci95Margin": 0.7871,
+          "p05": 91.7425,
+          "p50": 105.8405,
+          "p95": 120.6296
+        },
+        "totalUnits": {
+          "mean": 795.458,
+          "standardDeviation": 51.2107,
+          "ci95Low": 790.9692,
+          "ci95High": 799.9468,
+          "ci95Margin": 4.4888,
+          "p05": 705.85,
+          "p50": 796.5,
+          "p95": 872
+        },
+        "averageRoundMovePct": {
+          "mean": 0.7214,
+          "standardDeviation": 0.0361,
+          "ci95Low": 0.7182,
+          "ci95High": 0.7246,
+          "ci95Margin": 0.0032,
+          "p05": 0.6633,
+          "p50": 0.7208,
+          "p95": 0.7792
+        },
+        "averageProductRangePct": {
+          "mean": 9.6938,
+          "standardDeviation": 0.5232,
+          "ci95Low": 9.6479,
+          "ci95High": 9.7396,
+          "ci95Margin": 0.0459,
+          "p05": 8.8409,
+          "p50": 9.6925,
+          "p95": 10.5879
+        },
+        "maximumProductRangePct": {
+          "mean": 16.4877,
+          "standardDeviation": 1.5498,
+          "ci95Low": 16.3518,
+          "ci95High": 16.6235,
+          "ci95Margin": 0.1358,
+          "p05": 14.1379,
+          "p50": 16.3235,
+          "p95": 19.3158
+        },
+        "movingDecisionRatePct": {
+          "mean": 94.0135,
+          "standardDeviation": 1.4443,
+          "ci95Low": 93.8869,
+          "ci95High": 94.1401,
+          "ci95Margin": 0.1266,
+          "p05": 91.4598,
+          "p50": 94.1696,
+          "p95": 96.0069
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.4875,
+          "standardDeviation": 3.2904,
+          "ci95Low": 99.1991,
+          "ci95High": 99.7759,
+          "ci95Margin": 0.2884,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.0481,
+          "standardDeviation": 0.2744,
+          "ci95Low": 4.0241,
+          "ci95High": 4.0722,
+          "ci95Margin": 0.0241,
+          "p05": 3.6362,
+          "p50": 4.0446,
+          "p95": 4.5226
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 48.9079,
+          "standardDeviation": 2.784,
+          "ci95Low": 48.6639,
+          "ci95High": 49.152,
+          "ci95Margin": 0.244,
+          "p05": 44.3626,
+          "p50": 49.0906,
+          "p95": 53.3622
+        },
+        "Cocktails": {
+          "mean": 18.1992,
+          "standardDeviation": 2.1797,
+          "ci95Low": 18.0081,
+          "ci95High": 18.3903,
+          "ci95Margin": 0.1911,
+          "p05": 14.7527,
+          "p50": 18.1178,
+          "p95": 21.7189
+        },
+        "Spirits": {
+          "mean": 14.0941,
+          "standardDeviation": 1.9951,
+          "ci95Low": 13.9192,
+          "ci95High": 14.269,
+          "ci95Margin": 0.1749,
+          "p05": 10.85,
+          "p50": 13.9362,
+          "p95": 17.3365
+        },
+        "Wine": {
+          "mean": 18.7987,
+          "standardDeviation": 2.1828,
+          "ci95Low": 18.6074,
+          "ci95High": 18.9901,
+          "ci95Margin": 0.1913,
+          "p05": 15.1863,
+          "p50": 18.7383,
+          "p95": 22.615
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "turnover-zero",
+      "label": "No expected takings",
+      "dimension": "expected takings",
+      "runs": 25,
+      "expectedRevenueGbp": 0,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 100,
+          "standardDeviation": 0,
+          "ci95Low": 100,
+          "ci95High": 100,
+          "ci95Margin": 0,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "totalUnits": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "averageRoundMovePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "averageProductRangePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumProductRangePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "movingDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "movedBy60MinutesPct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {},
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 25,
+        "zeroFailureUpper95Pct": 12
+      }
+    },
+    {
+      "id": "turnover-micro",
+      "label": "£500 expected takings",
+      "dimension": "expected takings",
+      "runs": 500,
+      "expectedRevenueGbp": 500,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 104.945,
+          "standardDeviation": 37.8966,
+          "ci95Low": 101.6232,
+          "ci95High": 108.2667,
+          "ci95Margin": 3.3218,
+          "p05": 48.2864,
+          "p50": 102.559,
+          "p95": 175.4452
+        },
+        "totalUnits": {
+          "mean": 39.076,
+          "standardDeviation": 11.1273,
+          "ci95Low": 38.1006,
+          "ci95High": 40.0514,
+          "ci95Margin": 0.9754,
+          "p05": 23,
+          "p50": 38,
+          "p95": 58
+        },
+        "averageRoundMovePct": {
+          "mean": 0.0393,
+          "standardDeviation": 0.0137,
+          "ci95Low": 0.0381,
+          "ci95High": 0.0405,
+          "ci95Margin": 0.0012,
+          "p05": 0.0196,
+          "p50": 0.0379,
+          "p95": 0.0626
+        },
+        "averageProductRangePct": {
+          "mean": 0.995,
+          "standardDeviation": 0.2946,
+          "ci95Low": 0.9692,
+          "ci95High": 1.0208,
+          "ci95Margin": 0.0258,
+          "p05": 0.5268,
+          "p50": 0.9861,
+          "p95": 1.5027
+        },
+        "maximumProductRangePct": {
+          "mean": 3.0958,
+          "standardDeviation": 0.9429,
+          "ci95Low": 3.0132,
+          "ci95High": 3.1785,
+          "ci95Margin": 0.0827,
+          "p05": 1.8427,
+          "p50": 2.98,
+          "p95": 4.8532
+        },
+        "movingDecisionRatePct": {
+          "mean": 18.9494,
+          "standardDeviation": 6.1044,
+          "ci95Low": 18.4143,
+          "ci95High": 19.4844,
+          "ci95Margin": 0.5351,
+          "p05": 9.8032,
+          "p50": 18.287,
+          "p95": 29.0263
+        },
+        "movedBy60MinutesPct": {
+          "mean": 27.0417,
+          "standardDeviation": 20.2528,
+          "ci95Low": 25.2664,
+          "ci95High": 28.8169,
+          "ci95Margin": 1.7752,
+          "p05": 0,
+          "p50": 27.0833,
+          "p95": 58.3333
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 1.4477,
+          "standardDeviation": 0.2308,
+          "ci95Low": 1.4275,
+          "ci95High": 1.468,
+          "ci95Margin": 0.0202,
+          "p05": 1.1594,
+          "p50": 1.3793,
+          "p95": 1.8676
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 48.7273,
+          "standardDeviation": 13.2906,
+          "ci95Low": 47.5623,
+          "ci95High": 49.8923,
+          "ci95Margin": 1.165,
+          "p05": 26.4514,
+          "p50": 48.6486,
+          "p95": 70.4545
+        },
+        "Cocktails": {
+          "mean": 17.6645,
+          "standardDeviation": 10.1125,
+          "ci95Low": 16.7781,
+          "ci95High": 18.5509,
+          "ci95Margin": 0.8864,
+          "p05": 2.625,
+          "p50": 17.2414,
+          "p95": 34.2105
+        },
+        "Spirits": {
+          "mean": 14.3402,
+          "standardDeviation": 9.0743,
+          "ci95Low": 13.5448,
+          "ci95High": 15.1356,
+          "ci95Margin": 0.7954,
+          "p05": 0,
+          "p50": 13.5749,
+          "p95": 30.0152
+        },
+        "Wine": {
+          "mean": 19.2679,
+          "standardDeviation": 10.7749,
+          "ci95Low": 18.3235,
+          "ci95High": 20.2124,
+          "ci95Margin": 0.9445,
+          "p05": 2.933,
+          "p50": 18.3942,
+          "p95": 38.8957
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "turnover-quiet",
+      "label": "£2,500 expected takings",
+      "dimension": "expected takings",
+      "runs": 500,
+      "expectedRevenueGbp": 2500,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 107.183,
+          "standardDeviation": 18.0941,
+          "ci95Low": 105.597,
+          "ci95High": 108.769,
+          "ci95Margin": 1.586,
+          "p05": 78.0176,
+          "p50": 106.2778,
+          "p95": 137.6501
+        },
+        "totalUnits": {
+          "mean": 200.122,
+          "standardDeviation": 25.4578,
+          "ci95Low": 197.8905,
+          "ci95High": 202.3535,
+          "ci95Margin": 2.2315,
+          "p05": 159.95,
+          "p50": 200,
+          "p95": 244.05
+        },
+        "averageRoundMovePct": {
+          "mean": 0.2394,
+          "standardDeviation": 0.0314,
+          "ci95Low": 0.2367,
+          "ci95High": 0.2422,
+          "ci95Margin": 0.0028,
+          "p05": 0.1879,
+          "p50": 0.2382,
+          "p95": 0.2913
+        },
+        "averageProductRangePct": {
+          "mean": 4.0311,
+          "standardDeviation": 0.4869,
+          "ci95Low": 3.9884,
+          "ci95High": 4.0737,
+          "ci95Margin": 0.0427,
+          "p05": 3.2902,
+          "p50": 4.002,
+          "p95": 4.8534
+        },
+        "maximumProductRangePct": {
+          "mean": 9.2925,
+          "standardDeviation": 1.5968,
+          "ci95Low": 9.1525,
+          "ci95High": 9.4324,
+          "ci95Margin": 0.14,
+          "p05": 7.069,
+          "p50": 9.1868,
+          "p95": 12.0838
+        },
+        "movingDecisionRatePct": {
+          "mean": 68.8951,
+          "standardDeviation": 5.7034,
+          "ci95Low": 68.3952,
+          "ci95High": 69.3951,
+          "ci95Margin": 0.4999,
+          "p05": 59.6007,
+          "p50": 69.2998,
+          "p95": 76.9387
+        },
+        "movedBy60MinutesPct": {
+          "mean": 78.05,
+          "standardDeviation": 17.5989,
+          "ci95Low": 76.5074,
+          "ci95High": 79.5926,
+          "ci95Margin": 1.5426,
+          "p05": 52.0833,
+          "p50": 77.0833,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 2.4664,
+          "standardDeviation": 0.3852,
+          "ci95Low": 2.4326,
+          "ci95High": 2.5001,
+          "ci95Margin": 0.0338,
+          "p05": 1.8729,
+          "p50": 2.459,
+          "p95": 3.0898
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 48.7834,
+          "standardDeviation": 5.5066,
+          "ci95Low": 48.3008,
+          "ci95High": 49.2661,
+          "ci95Margin": 0.4827,
+          "p05": 40,
+          "p50": 48.7561,
+          "p95": 58.1554
+        },
+        "Cocktails": {
+          "mean": 18.4355,
+          "standardDeviation": 4.5079,
+          "ci95Low": 18.0403,
+          "ci95High": 18.8306,
+          "ci95Margin": 0.3951,
+          "p05": 11.3192,
+          "p50": 18.2768,
+          "p95": 26.0503
+        },
+        "Spirits": {
+          "mean": 14.1259,
+          "standardDeviation": 3.9784,
+          "ci95Low": 13.7772,
+          "ci95High": 14.4746,
+          "ci95Margin": 0.3487,
+          "p05": 7.7775,
+          "p50": 13.9998,
+          "p95": 21.2971
+        },
+        "Wine": {
+          "mean": 18.6552,
+          "standardDeviation": 4.3502,
+          "ci95Low": 18.2739,
+          "ci95High": 19.0365,
+          "ci95Margin": 0.3813,
+          "p05": 11.5723,
+          "p50": 18.5575,
+          "p95": 25.9926
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "turnover-busy",
+      "label": "£25,000 expected takings",
+      "dimension": "expected takings",
+      "runs": 500,
+      "expectedRevenueGbp": 25000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 104.6375,
+          "standardDeviation": 5.46,
+          "ci95Low": 104.1589,
+          "ci95High": 105.1161,
+          "ci95Margin": 0.4786,
+          "p05": 95.5674,
+          "p50": 104.4609,
+          "p95": 113.4246
+        },
+        "totalUnits": {
+          "mean": 1987.91,
+          "standardDeviation": 81.4661,
+          "ci95Low": 1980.7692,
+          "ci95High": 1995.0508,
+          "ci95Margin": 7.1408,
+          "p05": 1852.95,
+          "p50": 1989,
+          "p95": 2124
+        },
+        "averageRoundMovePct": {
+          "mean": 1.0866,
+          "standardDeviation": 0.0297,
+          "ci95Low": 1.084,
+          "ci95High": 1.0892,
+          "ci95Margin": 0.0026,
+          "p05": 1.0379,
+          "p50": 1.0861,
+          "p95": 1.135
+        },
+        "averageProductRangePct": {
+          "mean": 12.6788,
+          "standardDeviation": 0.4132,
+          "ci95Low": 12.6426,
+          "ci95High": 12.715,
+          "ci95Margin": 0.0362,
+          "p05": 12.0386,
+          "p50": 12.6659,
+          "p95": 13.3398
+        },
+        "maximumProductRangePct": {
+          "mean": 18.1195,
+          "standardDeviation": 1.2753,
+          "ci95Low": 18.0077,
+          "ci95High": 18.2313,
+          "ci95Margin": 0.1118,
+          "p05": 16.2365,
+          "p50": 17.9831,
+          "p95": 20.4453
+        },
+        "movingDecisionRatePct": {
+          "mean": 97.0715,
+          "standardDeviation": 0.5515,
+          "ci95Low": 97.0232,
+          "ci95High": 97.1199,
+          "ci95Margin": 0.0483,
+          "p05": 96.0359,
+          "p50": 97.1644,
+          "p95": 97.8588
+        },
+        "movedBy60MinutesPct": {
+          "mean": 100,
+          "standardDeviation": 0,
+          "ci95Low": 100,
+          "ci95High": 100,
+          "ci95Margin": 0,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.4129,
+          "standardDeviation": 0.228,
+          "ci95Low": 4.3929,
+          "ci95High": 4.4328,
+          "ci95Margin": 0.02,
+          "p05": 4.0813,
+          "p50": 4.3845,
+          "p95": 4.8405
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.0794,
+          "standardDeviation": 1.8718,
+          "ci95Low": 48.9154,
+          "ci95High": 49.2435,
+          "ci95Margin": 0.1641,
+          "p05": 45.887,
+          "p50": 49.1927,
+          "p95": 52.0001
+        },
+        "Cocktails": {
+          "mean": 18.2828,
+          "standardDeviation": 1.3372,
+          "ci95Low": 18.1656,
+          "ci95High": 18.4,
+          "ci95Margin": 0.1172,
+          "p05": 16.2348,
+          "p50": 18.2418,
+          "p95": 20.4397
+        },
+        "Spirits": {
+          "mean": 14.0242,
+          "standardDeviation": 1.2733,
+          "ci95Low": 13.9126,
+          "ci95High": 14.1358,
+          "ci95Margin": 0.1116,
+          "p05": 11.9014,
+          "p50": 14.0028,
+          "p95": 16.132
+        },
+        "Wine": {
+          "mean": 18.6136,
+          "standardDeviation": 1.329,
+          "ci95Low": 18.4971,
+          "ci95High": 18.7301,
+          "ci95Margin": 0.1165,
+          "p05": 16.4019,
+          "p50": 18.5784,
+          "p95": 20.79
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "turnover-extreme",
+      "label": "£50,000 expected takings",
+      "dimension": "expected takings",
+      "runs": 500,
+      "expectedRevenueGbp": 50000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 103.6267,
+          "standardDeviation": 3.8256,
+          "ci95Low": 103.2913,
+          "ci95High": 103.962,
+          "ci95Margin": 0.3353,
+          "p05": 97.2785,
+          "p50": 103.6549,
+          "p95": 110.0973
+        },
+        "totalUnits": {
+          "mean": 3974.028,
+          "standardDeviation": 116.4409,
+          "ci95Low": 3963.8215,
+          "ci95High": 3984.2345,
+          "ci95Margin": 10.2065,
+          "p05": 3779.9,
+          "p50": 3981,
+          "p95": 4150.05
+        },
+        "averageRoundMovePct": {
+          "mean": 1.3138,
+          "standardDeviation": 0.0277,
+          "ci95Low": 1.3113,
+          "ci95High": 1.3162,
+          "ci95Margin": 0.0024,
+          "p05": 1.266,
+          "p50": 1.3128,
+          "p95": 1.3623
+        },
+        "averageProductRangePct": {
+          "mean": 13.6476,
+          "standardDeviation": 0.3735,
+          "ci95Low": 13.6148,
+          "ci95High": 13.6803,
+          "ci95Margin": 0.0327,
+          "p05": 13.0503,
+          "p50": 13.6467,
+          "p95": 14.267
+        },
+        "maximumProductRangePct": {
+          "mean": 18.7856,
+          "standardDeviation": 1.1493,
+          "ci95Low": 18.6848,
+          "ci95High": 18.8863,
+          "ci95Margin": 0.1007,
+          "p05": 17.2464,
+          "p50": 18.6617,
+          "p95": 20.8578
+        },
+        "movingDecisionRatePct": {
+          "mean": 98.0577,
+          "standardDeviation": 0.3041,
+          "ci95Low": 98.031,
+          "ci95High": 98.0844,
+          "ci95Margin": 0.0267,
+          "p05": 97.568,
+          "p50": 98.0903,
+          "p95": 98.4954
+        },
+        "movedBy60MinutesPct": {
+          "mean": 100,
+          "standardDeviation": 0,
+          "ci95Low": 100,
+          "ci95High": 100,
+          "ci95Margin": 0,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.7152,
+          "standardDeviation": 0.1852,
+          "ci95Low": 4.6989,
+          "ci95High": 4.7314,
+          "ci95Margin": 0.0162,
+          "p05": 4.4312,
+          "p50": 4.7094,
+          "p95": 5.0168
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.4425,
+          "standardDeviation": 1.2704,
+          "ci95Low": 49.3312,
+          "ci95High": 49.5539,
+          "ci95Margin": 0.1114,
+          "p05": 47.2992,
+          "p50": 49.4133,
+          "p95": 51.4555
+        },
+        "Cocktails": {
+          "mean": 18.0583,
+          "standardDeviation": 0.9414,
+          "ci95Low": 17.9758,
+          "ci95High": 18.1409,
+          "ci95Margin": 0.0825,
+          "p05": 16.4993,
+          "p50": 18.0617,
+          "p95": 19.5766
+        },
+        "Spirits": {
+          "mean": 13.9023,
+          "standardDeviation": 0.8948,
+          "ci95Low": 13.8239,
+          "ci95High": 13.9808,
+          "ci95Margin": 0.0784,
+          "p05": 12.4186,
+          "p50": 13.9218,
+          "p95": 15.3678
+        },
+        "Wine": {
+          "mean": 18.5968,
+          "standardDeviation": 0.9309,
+          "ci95Low": 18.5152,
+          "ci95High": 18.6784,
+          "ci95Margin": 0.0816,
+          "p05": 17.14,
+          "p50": 18.5715,
+          "p95": 20.2075
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "range-tight",
+      "label": "Symmetric ±5% price range",
+      "dimension": "manager price range",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 4.96,
+        "averageUpPct": 5.04
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 106.34,
+          "standardDeviation": 8.8941,
+          "ci95Low": 105.5604,
+          "ci95High": 107.1196,
+          "ci95Margin": 0.7796,
+          "p05": 91.2539,
+          "p50": 106.3228,
+          "p95": 122.0408
+        },
+        "totalUnits": {
+          "mean": 796.576,
+          "standardDeviation": 51.8153,
+          "ci95Low": 792.0342,
+          "ci95High": 801.1178,
+          "ci95Margin": 4.5418,
+          "p05": 711.95,
+          "p50": 797,
+          "p95": 881
+        },
+        "averageRoundMovePct": {
+          "mean": 0.1812,
+          "standardDeviation": 0.0085,
+          "ci95Low": 0.1804,
+          "ci95High": 0.1819,
+          "ci95Margin": 0.0007,
+          "p05": 0.1672,
+          "p50": 0.181,
+          "p95": 0.1944
+        },
+        "averageProductRangePct": {
+          "mean": 2.4423,
+          "standardDeviation": 0.1324,
+          "ci95Low": 2.4307,
+          "ci95High": 2.4539,
+          "ci95Margin": 0.0116,
+          "p05": 2.2304,
+          "p50": 2.4426,
+          "p95": 2.6721
+        },
+        "maximumProductRangePct": {
+          "mean": 4.1919,
+          "standardDeviation": 0.3742,
+          "ci95Low": 4.1591,
+          "ci95High": 4.2247,
+          "ci95Margin": 0.0328,
+          "p05": 3.6232,
+          "p50": 4.1429,
+          "p95": 4.8532
+        },
+        "movingDecisionRatePct": {
+          "mean": 82.7145,
+          "standardDeviation": 1.788,
+          "ci95Low": 82.5578,
+          "ci95High": 82.8713,
+          "ci95Margin": 0.1567,
+          "p05": 79.6007,
+          "p50": 82.8704,
+          "p95": 85.3024
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.5833,
+          "standardDeviation": 2.9315,
+          "ci95Low": 99.3264,
+          "ci95High": 99.8403,
+          "ci95Margin": 0.257,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 1.0481,
+          "standardDeviation": 0.0787,
+          "ci95Low": 1.0412,
+          "ci95High": 1.055,
+          "ci95Margin": 0.0069,
+          "p05": 0.9202,
+          "p50": 1.0327,
+          "p95": 1.1926
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 48.9794,
+          "standardDeviation": 2.7214,
+          "ci95Low": 48.7409,
+          "ci95High": 49.2179,
+          "ci95Margin": 0.2385,
+          "p05": 44.7468,
+          "p50": 48.9019,
+          "p95": 53.951
+        },
+        "Cocktails": {
+          "mean": 18.2174,
+          "standardDeviation": 2.1367,
+          "ci95Low": 18.0301,
+          "ci95High": 18.4047,
+          "ci95Margin": 0.1873,
+          "p05": 14.6954,
+          "p50": 18.2053,
+          "p95": 21.6387
+        },
+        "Spirits": {
+          "mean": 14.1413,
+          "standardDeviation": 1.8625,
+          "ci95Low": 13.978,
+          "ci95High": 14.3045,
+          "ci95Margin": 0.1633,
+          "p05": 11.1773,
+          "p50": 14.1748,
+          "p95": 17.1465
+        },
+        "Wine": {
+          "mean": 18.6619,
+          "standardDeviation": 2.0014,
+          "ci95Low": 18.4865,
+          "ci95High": 18.8374,
+          "ci95Margin": 0.1754,
+          "p05": 15.3734,
+          "p50": 18.754,
+          "p95": 21.9556
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "range-narrow",
+      "label": "Symmetric ±10% price range",
+      "dimension": "manager price range",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 10,
+        "averageUpPct": 10
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 106.3547,
+          "standardDeviation": 9.4076,
+          "ci95Low": 105.5301,
+          "ci95High": 107.1793,
+          "ci95Margin": 0.8246,
+          "p05": 91.0239,
+          "p50": 106.313,
+          "p95": 121.803
+        },
+        "totalUnits": {
+          "mean": 798.576,
+          "standardDeviation": 53.7055,
+          "ci95Low": 793.8685,
+          "ci95High": 803.2835,
+          "ci95Margin": 4.7075,
+          "p05": 702,
+          "p50": 800,
+          "p95": 884
+        },
+        "averageRoundMovePct": {
+          "mean": 0.3582,
+          "standardDeviation": 0.0178,
+          "ci95Low": 0.3567,
+          "ci95High": 0.3598,
+          "ci95Margin": 0.0016,
+          "p05": 0.3285,
+          "p50": 0.3589,
+          "p95": 0.3862
+        },
+        "averageProductRangePct": {
+          "mean": 4.8879,
+          "standardDeviation": 0.264,
+          "ci95Low": 4.8648,
+          "ci95High": 4.911,
+          "ci95Margin": 0.0231,
+          "p05": 4.4624,
+          "p50": 4.8823,
+          "p95": 5.331
+        },
+        "maximumProductRangePct": {
+          "mean": 8.4179,
+          "standardDeviation": 0.8224,
+          "ci95Low": 8.3458,
+          "ci95High": 8.49,
+          "ci95Margin": 0.0721,
+          "p05": 7.2845,
+          "p50": 8.2857,
+          "p95": 10
+        },
+        "movingDecisionRatePct": {
+          "mean": 89.8929,
+          "standardDeviation": 1.5909,
+          "ci95Low": 89.7535,
+          "ci95High": 90.0324,
+          "ci95Margin": 0.1394,
+          "p05": 87.066,
+          "p50": 90.0463,
+          "p95": 92.1918
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.875,
+          "standardDeviation": 1.6159,
+          "ci95Low": 99.7334,
+          "ci95High": 100.0166,
+          "ci95Margin": 0.1416,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 2.0473,
+          "standardDeviation": 0.1427,
+          "ci95Low": 2.0348,
+          "ci95High": 2.0598,
+          "ci95Margin": 0.0125,
+          "p05": 1.8439,
+          "p50": 2.0305,
+          "p95": 2.2727
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.0327,
+          "standardDeviation": 2.8456,
+          "ci95Low": 48.7833,
+          "ci95High": 49.2821,
+          "ci95Margin": 0.2494,
+          "p05": 44.3095,
+          "p50": 49.0306,
+          "p95": 53.4916
+        },
+        "Cocktails": {
+          "mean": 18.2541,
+          "standardDeviation": 2.0798,
+          "ci95Low": 18.0718,
+          "ci95High": 18.4364,
+          "ci95Margin": 0.1823,
+          "p05": 14.9134,
+          "p50": 18.2529,
+          "p95": 21.4888
+        },
+        "Spirits": {
+          "mean": 14.0581,
+          "standardDeviation": 1.8819,
+          "ci95Low": 13.8931,
+          "ci95High": 14.223,
+          "ci95Margin": 0.165,
+          "p05": 11.0231,
+          "p50": 14.0409,
+          "p95": 17.1788
+        },
+        "Wine": {
+          "mean": 18.6551,
+          "standardDeviation": 2.1976,
+          "ci95Low": 18.4625,
+          "ci95High": 18.8478,
+          "ci95Margin": 0.1926,
+          "p05": 15.1306,
+          "p50": 18.5918,
+          "p95": 22.5184
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "range-wide",
+      "label": "Symmetric ±40% price range",
+      "dimension": "manager price range",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 40,
+        "averageUpPct": 40
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 104.5296,
+          "standardDeviation": 9.0936,
+          "ci95Low": 103.7325,
+          "ci95High": 105.3267,
+          "ci95Margin": 0.7971,
+          "p05": 90.1234,
+          "p50": 104.8089,
+          "p95": 120.163
+        },
+        "totalUnits": {
+          "mean": 793.116,
+          "standardDeviation": 51.0951,
+          "ci95Low": 788.6373,
+          "ci95High": 797.5947,
+          "ci95Margin": 4.4787,
+          "p05": 709.95,
+          "p50": 791,
+          "p95": 878.15
+        },
+        "averageRoundMovePct": {
+          "mean": 1.4533,
+          "standardDeviation": 0.0745,
+          "ci95Low": 1.4467,
+          "ci95High": 1.4598,
+          "ci95Margin": 0.0065,
+          "p05": 1.3365,
+          "p50": 1.4474,
+          "p95": 1.5827
+        },
+        "averageProductRangePct": {
+          "mean": 18.9908,
+          "standardDeviation": 1.0284,
+          "ci95Low": 18.9006,
+          "ci95High": 19.0809,
+          "ci95Margin": 0.0901,
+          "p05": 17.2324,
+          "p50": 18.9389,
+          "p95": 20.6794
+        },
+        "maximumProductRangePct": {
+          "mean": 31.8391,
+          "standardDeviation": 2.7531,
+          "ci95Low": 31.5978,
+          "ci95High": 32.0805,
+          "ci95Margin": 0.2413,
+          "p05": 27.7901,
+          "p50": 31.5385,
+          "p95": 36.5391
+        },
+        "movingDecisionRatePct": {
+          "mean": 96.2437,
+          "standardDeviation": 1.1403,
+          "ci95Low": 96.1437,
+          "ci95High": 96.3436,
+          "ci95Margin": 0.0999,
+          "p05": 94.1826,
+          "p50": 96.3686,
+          "p95": 97.7749
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.7292,
+          "standardDeviation": 2.2817,
+          "ci95Low": 99.5292,
+          "ci95High": 99.9292,
+          "ci95Margin": 0.2,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 5.0953,
+          "standardDeviation": 0.0109,
+          "ci95Low": 5.0943,
+          "ci95High": 5.0962,
+          "ci95Margin": 0.001,
+          "p05": 5.0788,
+          "p50": 5.0943,
+          "p95": 5.1163
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.3122,
+          "standardDeviation": 2.894,
+          "ci95Low": 49.0585,
+          "ci95High": 49.5658,
+          "ci95Margin": 0.2537,
+          "p05": 44.6988,
+          "p50": 49.2092,
+          "p95": 54.3828
+        },
+        "Cocktails": {
+          "mean": 18.0233,
+          "standardDeviation": 2.1926,
+          "ci95Low": 17.8311,
+          "ci95High": 18.2155,
+          "ci95Margin": 0.1922,
+          "p05": 14.4488,
+          "p50": 17.9739,
+          "p95": 21.95
+        },
+        "Spirits": {
+          "mean": 14.0337,
+          "standardDeviation": 2.0111,
+          "ci95Low": 13.8574,
+          "ci95High": 14.21,
+          "ci95Margin": 0.1763,
+          "p05": 10.6608,
+          "p50": 13.9739,
+          "p95": 17.3076
+        },
+        "Wine": {
+          "mean": 18.6309,
+          "standardDeviation": 2.3332,
+          "ci95Low": 18.4263,
+          "ci95High": 18.8354,
+          "ci95Margin": 0.2045,
+          "p05": 14.6629,
+          "p50": 18.553,
+          "p95": 22.6654
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "range-upside",
+      "label": "Asymmetric −10% / +30% range",
+      "dimension": "manager price range",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 10,
+        "averageUpPct": 30
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 106.1562,
+          "standardDeviation": 9.1741,
+          "ci95Low": 105.3521,
+          "ci95High": 106.9604,
+          "ci95Margin": 0.8041,
+          "p05": 91.6422,
+          "p50": 106.3344,
+          "p95": 122.2306
+        },
+        "totalUnits": {
+          "mean": 787.11,
+          "standardDeviation": 53.064,
+          "ci95Low": 782.4587,
+          "ci95High": 791.7613,
+          "ci95Margin": 4.6513,
+          "p05": 704.95,
+          "p50": 787,
+          "p95": 873.05
+        },
+        "averageRoundMovePct": {
+          "mean": 0.636,
+          "standardDeviation": 0.0269,
+          "ci95Low": 0.6337,
+          "ci95High": 0.6384,
+          "ci95Margin": 0.0024,
+          "p05": 0.5908,
+          "p50": 0.6358,
+          "p95": 0.6788
+        },
+        "averageProductRangePct": {
+          "mean": 9.1196,
+          "standardDeviation": 0.4343,
+          "ci95Low": 9.0815,
+          "ci95High": 9.1577,
+          "ci95Margin": 0.0381,
+          "p05": 8.4091,
+          "p50": 9.123,
+          "p95": 9.8164
+        },
+        "maximumProductRangePct": {
+          "mean": 15.891,
+          "standardDeviation": 1.3591,
+          "ci95Low": 15.7719,
+          "ci95High": 16.0101,
+          "ci95Margin": 0.1191,
+          "p05": 13.8462,
+          "p50": 15.8516,
+          "p95": 18.2857
+        },
+        "movingDecisionRatePct": {
+          "mean": 92.2565,
+          "standardDeviation": 1.3848,
+          "ci95Low": 92.1352,
+          "ci95High": 92.3779,
+          "ci95Margin": 0.1214,
+          "p05": 89.9016,
+          "p50": 92.3466,
+          "p95": 94.2998
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.8792,
+          "standardDeviation": 1.5587,
+          "ci95Low": 99.7425,
+          "ci95High": 100.0158,
+          "ci95Margin": 0.1366,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.619,
+          "standardDeviation": 0.3537,
+          "ci95Low": 4.588,
+          "ci95High": 4.65,
+          "ci95Margin": 0.031,
+          "p05": 3.9602,
+          "p50": 4.6778,
+          "p95": 5.0491
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 48.8316,
+          "standardDeviation": 2.6786,
+          "ci95Low": 48.5968,
+          "ci95High": 49.0664,
+          "ci95Margin": 0.2348,
+          "p05": 44.2096,
+          "p50": 48.8688,
+          "p95": 53.1827
+        },
+        "Cocktails": {
+          "mean": 18.2933,
+          "standardDeviation": 2.3146,
+          "ci95Low": 18.0904,
+          "ci95High": 18.4961,
+          "ci95Margin": 0.2029,
+          "p05": 14.7171,
+          "p50": 18.2143,
+          "p95": 22.1878
+        },
+        "Spirits": {
+          "mean": 14.0885,
+          "standardDeviation": 2.0262,
+          "ci95Low": 13.9109,
+          "ci95High": 14.2661,
+          "ci95Margin": 0.1776,
+          "p05": 11.0955,
+          "p50": 13.9918,
+          "p95": 17.428
+        },
+        "Wine": {
+          "mean": 18.7866,
+          "standardDeviation": 2.1625,
+          "ci95Low": 18.597,
+          "ci95High": 18.9761,
+          "ci95Margin": 0.1896,
+          "p05": 15.3934,
+          "p50": 18.7502,
+          "p95": 22.3204
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "range-downside",
+      "label": "Asymmetric −30% / +10% range",
+      "dimension": "manager price range",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 30,
+        "averageUpPct": 10
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 104.5159,
+          "standardDeviation": 8.6089,
+          "ci95Low": 103.7613,
+          "ci95High": 105.2705,
+          "ci95Margin": 0.7546,
+          "p05": 90.8125,
+          "p50": 104.1651,
+          "p95": 118.5946
+        },
+        "totalUnits": {
+          "mean": 795.842,
+          "standardDeviation": 52.9235,
+          "ci95Low": 791.203,
+          "ci95High": 800.481,
+          "ci95Margin": 4.639,
+          "p05": 711,
+          "p50": 792,
+          "p95": 887
+        },
+        "averageRoundMovePct": {
+          "mean": 0.8116,
+          "standardDeviation": 0.0492,
+          "ci95Low": 0.8073,
+          "ci95High": 0.8159,
+          "ci95Margin": 0.0043,
+          "p05": 0.7328,
+          "p50": 0.8101,
+          "p95": 0.893
+        },
+        "averageProductRangePct": {
+          "mean": 10.1875,
+          "standardDeviation": 0.6567,
+          "ci95Low": 10.13,
+          "ci95High": 10.2451,
+          "ci95Margin": 0.0576,
+          "p05": 9.1383,
+          "p50": 10.158,
+          "p95": 11.299
+        },
+        "maximumProductRangePct": {
+          "mean": 18.6028,
+          "standardDeviation": 1.8709,
+          "ci95Low": 18.4389,
+          "ci95High": 18.7668,
+          "ci95Margin": 0.164,
+          "p05": 15.939,
+          "p50": 18.4845,
+          "p95": 21.7397
+        },
+        "movingDecisionRatePct": {
+          "mean": 93.5262,
+          "standardDeviation": 1.4315,
+          "ci95Low": 93.4007,
+          "ci95High": 93.6516,
+          "ci95Margin": 0.1255,
+          "p05": 90.9115,
+          "p50": 93.6632,
+          "p95": 95.4572
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.6708,
+          "standardDeviation": 2.5888,
+          "ci95Low": 99.4439,
+          "ci95High": 99.8978,
+          "ci95Margin": 0.2269,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 5.054,
+          "standardDeviation": 0.0488,
+          "ci95Low": 5.0498,
+          "ci95High": 5.0583,
+          "ci95Margin": 0.0043,
+          "p05": 4.97,
+          "p50": 5.0676,
+          "p95": 5.0943
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.3044,
+          "standardDeviation": 2.8936,
+          "ci95Low": 49.0508,
+          "ci95High": 49.5581,
+          "ci95Margin": 0.2536,
+          "p05": 44.4694,
+          "p50": 49.3345,
+          "p95": 53.9249
+        },
+        "Cocktails": {
+          "mean": 18.1321,
+          "standardDeviation": 2.2532,
+          "ci95Low": 17.9346,
+          "ci95High": 18.3296,
+          "ci95Margin": 0.1975,
+          "p05": 14.5663,
+          "p50": 18.1656,
+          "p95": 21.9546
+        },
+        "Spirits": {
+          "mean": 13.9193,
+          "standardDeviation": 1.9582,
+          "ci95Low": 13.7476,
+          "ci95High": 14.0909,
+          "ci95Margin": 0.1716,
+          "p05": 10.5516,
+          "p50": 13.97,
+          "p95": 17.0196
+        },
+        "Wine": {
+          "mean": 18.6442,
+          "standardDeviation": 2.1914,
+          "ci95Low": 18.4521,
+          "ci95High": 18.8363,
+          "ci95Margin": 0.1921,
+          "p05": 15.0662,
+          "p50": 18.6176,
+          "p95": 22.3782
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "live-1",
+      "label": "1 live drink per category",
+      "dimension": "live drinks per category",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 4,
+      "configuredProducts": 4,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.5932,
+          "standardDeviation": 11.4727,
+          "ci95Low": 104.5876,
+          "ci95High": 106.5989,
+          "ci95Margin": 1.0056,
+          "p05": 87.8162,
+          "p50": 104.8395,
+          "p95": 124.8015
+        },
+        "totalUnits": {
+          "mean": 565.346,
+          "standardDeviation": 43.0605,
+          "ci95Low": 561.5716,
+          "ci95High": 569.1204,
+          "ci95Margin": 3.7744,
+          "p05": 496,
+          "p50": 566,
+          "p95": 635.05
+        },
+        "averageRoundMovePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "averageProductRangePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumProductRangePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "movingDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "movedBy60MinutesPct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 48.7187,
+          "standardDeviation": 3.2071,
+          "ci95Low": 48.4376,
+          "ci95High": 48.9998,
+          "ci95Margin": 0.2811,
+          "p05": 43.1242,
+          "p50": 48.7396,
+          "p95": 53.6072
+        },
+        "Cocktails": {
+          "mean": 18.4525,
+          "standardDeviation": 2.5244,
+          "ci95Low": 18.2312,
+          "ci95High": 18.6738,
+          "ci95Margin": 0.2213,
+          "p05": 14.5978,
+          "p50": 18.4624,
+          "p95": 22.8981
+        },
+        "Spirits": {
+          "mean": 14.2334,
+          "standardDeviation": 2.4058,
+          "ci95Low": 14.0225,
+          "ci95High": 14.4442,
+          "ci95Margin": 0.2109,
+          "p05": 10.4266,
+          "p50": 14.1708,
+          "p95": 18.2301
+        },
+        "Wine": {
+          "mean": 18.5954,
+          "standardDeviation": 2.5106,
+          "ci95Low": 18.3754,
+          "ci95High": 18.8155,
+          "ci95Margin": 0.2201,
+          "p05": 14.4674,
+          "p50": 18.6309,
+          "p95": 22.7769
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "live-2",
+      "label": "2 live drinks per category",
+      "dimension": "live drinks per category",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 8,
+      "configuredProducts": 8,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.4009,
+          "standardDeviation": 10.0218,
+          "ci95Low": 104.5224,
+          "ci95High": 106.2793,
+          "ci95Margin": 0.8784,
+          "p05": 90.2275,
+          "p50": 104.8784,
+          "p95": 122.3023
+        },
+        "totalUnits": {
+          "mean": 659.372,
+          "standardDeviation": 47.9834,
+          "ci95Low": 655.1661,
+          "ci95High": 663.5779,
+          "ci95Margin": 4.2059,
+          "p05": 583,
+          "p50": 658,
+          "p95": 736.05
+        },
+        "averageRoundMovePct": {
+          "mean": 1.1434,
+          "standardDeviation": 0.0862,
+          "ci95Low": 1.1358,
+          "ci95High": 1.1509,
+          "ci95Margin": 0.0076,
+          "p05": 1.0145,
+          "p50": 1.1388,
+          "p95": 1.2891
+        },
+        "averageProductRangePct": {
+          "mean": 15.3162,
+          "standardDeviation": 1.4583,
+          "ci95Low": 15.1883,
+          "ci95High": 15.444,
+          "ci95Margin": 0.1278,
+          "p05": 13.0205,
+          "p50": 15.3068,
+          "p95": 17.6949
+        },
+        "maximumProductRangePct": {
+          "mean": 19.1585,
+          "standardDeviation": 2.1502,
+          "ci95Low": 18.9701,
+          "ci95High": 19.347,
+          "ci95Margin": 0.1885,
+          "p05": 15.8332,
+          "p50": 19.0067,
+          "p95": 22.8583
+        },
+        "movingDecisionRatePct": {
+          "mean": 94.8993,
+          "standardDeviation": 1.8804,
+          "ci95Low": 94.7345,
+          "ci95High": 95.0641,
+          "ci95Margin": 0.1648,
+          "p05": 91.4931,
+          "p50": 95.1389,
+          "p95": 97.3958
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.15,
+          "standardDeviation": 3.8642,
+          "ci95Low": 98.8113,
+          "ci95High": 99.4887,
+          "ci95Margin": 0.3387,
+          "p05": 87.5,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.4858,
+          "standardDeviation": 0.4077,
+          "ci95Low": 4.4501,
+          "ci95High": 4.5216,
+          "ci95Margin": 0.0357,
+          "p05": 3.7423,
+          "p50": 4.4935,
+          "p95": 5.0336
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 48.9287,
+          "standardDeviation": 3.1348,
+          "ci95Low": 48.6539,
+          "ci95High": 49.2035,
+          "ci95Margin": 0.2748,
+          "p05": 43.9458,
+          "p50": 48.9736,
+          "p95": 53.9095
+        },
+        "Cocktails": {
+          "mean": 18.3009,
+          "standardDeviation": 2.4182,
+          "ci95Low": 18.0889,
+          "ci95High": 18.5128,
+          "ci95Margin": 0.212,
+          "p05": 14.5161,
+          "p50": 18.0536,
+          "p95": 22.5525
+        },
+        "Spirits": {
+          "mean": 14.1232,
+          "standardDeviation": 2.1916,
+          "ci95Low": 13.9311,
+          "ci95High": 14.3153,
+          "ci95Margin": 0.1921,
+          "p05": 10.6396,
+          "p50": 14.0019,
+          "p95": 18.0403
+        },
+        "Wine": {
+          "mean": 18.6473,
+          "standardDeviation": 2.2699,
+          "ci95Low": 18.4483,
+          "ci95High": 18.8462,
+          "ci95Margin": 0.199,
+          "p05": 15.0658,
+          "p50": 18.4698,
+          "p95": 22.3927
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "live-5",
+      "label": "5 live drinks per category",
+      "dimension": "live drinks per category",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 20,
+      "configuredProducts": 20,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.1007,
+          "standardDeviation": 9.4003,
+          "ci95Low": 104.2767,
+          "ci95High": 105.9247,
+          "ci95Margin": 0.824,
+          "p05": 90.3061,
+          "p50": 104.6777,
+          "p95": 121.3731
+        },
+        "totalUnits": {
+          "mean": 717.17,
+          "standardDeviation": 47.5165,
+          "ci95Low": 713.005,
+          "ci95High": 721.335,
+          "ci95Margin": 4.165,
+          "p05": 637.95,
+          "p50": 716,
+          "p95": 796
+        },
+        "averageRoundMovePct": {
+          "mean": 1.0264,
+          "standardDeviation": 0.0573,
+          "ci95Low": 1.0214,
+          "ci95High": 1.0315,
+          "ci95Margin": 0.005,
+          "p05": 0.9295,
+          "p50": 1.0235,
+          "p95": 1.1255
+        },
+        "averageProductRangePct": {
+          "mean": 13.77,
+          "standardDeviation": 0.7897,
+          "ci95Low": 13.7007,
+          "ci95High": 13.8392,
+          "ci95Margin": 0.0692,
+          "p05": 12.3986,
+          "p50": 13.784,
+          "p95": 15.0632
+        },
+        "maximumProductRangePct": {
+          "mean": 20.2362,
+          "standardDeviation": 1.7293,
+          "ci95Low": 20.0846,
+          "ci95High": 20.3878,
+          "ci95Margin": 0.1516,
+          "p05": 17.8462,
+          "p50": 20,
+          "p95": 23.5019
+        },
+        "movingDecisionRatePct": {
+          "mean": 94.6382,
+          "standardDeviation": 1.5448,
+          "ci95Low": 94.5028,
+          "ci95High": 94.7736,
+          "ci95Margin": 0.1354,
+          "p05": 91.8056,
+          "p50": 94.7917,
+          "p95": 96.8056
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.58,
+          "standardDeviation": 2.3948,
+          "ci95Low": 99.3701,
+          "ci95High": 99.7899,
+          "ci95Margin": 0.2099,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.6326,
+          "standardDeviation": 0.2839,
+          "ci95Low": 4.6077,
+          "ci95High": 4.6575,
+          "ci95Margin": 0.0249,
+          "p05": 4.1663,
+          "p50": 4.6458,
+          "p95": 5.042
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.3355,
+          "standardDeviation": 2.8123,
+          "ci95Low": 49.089,
+          "ci95High": 49.582,
+          "ci95Margin": 0.2465,
+          "p05": 44.7561,
+          "p50": 49.557,
+          "p95": 54.3864
+        },
+        "Cocktails": {
+          "mean": 18.1251,
+          "standardDeviation": 2.2481,
+          "ci95Low": 17.928,
+          "ci95High": 18.3222,
+          "ci95Margin": 0.1971,
+          "p05": 14.5034,
+          "p50": 17.9733,
+          "p95": 22.1754
+        },
+        "Spirits": {
+          "mean": 13.8026,
+          "standardDeviation": 2.0158,
+          "ci95Low": 13.6259,
+          "ci95High": 13.9793,
+          "ci95Margin": 0.1767,
+          "p05": 10.7418,
+          "p50": 13.7721,
+          "p95": 17.1372
+        },
+        "Wine": {
+          "mean": 18.7368,
+          "standardDeviation": 2.335,
+          "ci95Low": 18.5322,
+          "ci95High": 18.9415,
+          "ci95Margin": 0.2047,
+          "p05": 15.0418,
+          "p50": 18.658,
+          "p95": 22.5192
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "live-10",
+      "label": "10 live drinks per category",
+      "dimension": "live drinks per category",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 40,
+      "configuredProducts": 40,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.2209,
+          "standardDeviation": 8.9174,
+          "ci95Low": 104.4393,
+          "ci95High": 106.0026,
+          "ci95Margin": 0.7816,
+          "p05": 90.6973,
+          "p50": 105.0546,
+          "p95": 119.4109
+        },
+        "totalUnits": {
+          "mean": 786.466,
+          "standardDeviation": 50.0974,
+          "ci95Low": 782.0748,
+          "ci95High": 790.8572,
+          "ci95Margin": 4.3912,
+          "p05": 704,
+          "p50": 792.5,
+          "p95": 864
+        },
+        "averageRoundMovePct": {
+          "mean": 0.7868,
+          "standardDeviation": 0.0411,
+          "ci95Low": 0.7832,
+          "ci95High": 0.7904,
+          "ci95Margin": 0.0036,
+          "p05": 0.7238,
+          "p50": 0.7877,
+          "p95": 0.8513
+        },
+        "averageProductRangePct": {
+          "mean": 10.6843,
+          "standardDeviation": 0.5922,
+          "ci95Low": 10.6324,
+          "ci95High": 10.7363,
+          "ci95Margin": 0.0519,
+          "p05": 9.7315,
+          "p50": 10.6805,
+          "p95": 11.6368
+        },
+        "maximumProductRangePct": {
+          "mean": 17.7199,
+          "standardDeviation": 1.5048,
+          "ci95Low": 17.588,
+          "ci95High": 17.8518,
+          "ci95Margin": 0.1319,
+          "p05": 15.3992,
+          "p50": 17.6812,
+          "p95": 20.2859
+        },
+        "movingDecisionRatePct": {
+          "mean": 94.1734,
+          "standardDeviation": 1.4027,
+          "ci95Low": 94.0505,
+          "ci95High": 94.2964,
+          "ci95Margin": 0.123,
+          "p05": 91.8003,
+          "p50": 94.3229,
+          "p95": 96.1111
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.725,
+          "standardDeviation": 2.6364,
+          "ci95Low": 99.4939,
+          "ci95High": 99.9561,
+          "ci95Margin": 0.2311,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.2258,
+          "standardDeviation": 0.2852,
+          "ci95Low": 4.2008,
+          "ci95High": 4.2508,
+          "ci95Margin": 0.025,
+          "p05": 3.792,
+          "p50": 4.2023,
+          "p95": 4.7622
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.2372,
+          "standardDeviation": 2.8806,
+          "ci95Low": 48.9847,
+          "ci95High": 49.4897,
+          "ci95Margin": 0.2525,
+          "p05": 44.356,
+          "p50": 49.2671,
+          "p95": 53.8576
+        },
+        "Cocktails": {
+          "mean": 18.0409,
+          "standardDeviation": 2.21,
+          "ci95Low": 17.8472,
+          "ci95High": 18.2346,
+          "ci95Margin": 0.1937,
+          "p05": 14.6497,
+          "p50": 18.0089,
+          "p95": 21.9092
+        },
+        "Spirits": {
+          "mean": 14.0525,
+          "standardDeviation": 1.8557,
+          "ci95Low": 13.8899,
+          "ci95High": 14.2152,
+          "ci95Margin": 0.1627,
+          "p05": 10.9993,
+          "p50": 13.9937,
+          "p95": 16.8507
+        },
+        "Wine": {
+          "mean": 18.6693,
+          "standardDeviation": 2.3604,
+          "ci95Low": 18.4624,
+          "ci95High": 18.8762,
+          "ci95Margin": 0.2069,
+          "p05": 14.8886,
+          "p50": 18.7068,
+          "p95": 22.5412
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "mix-beer-heavy",
+      "label": "Beer-heavy live range",
+      "dimension": "category mix",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 16,
+      "configuredProducts": 16,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.0111,
+          "standardDeviation": 9.7786,
+          "ci95Low": 104.154,
+          "ci95High": 105.8682,
+          "ci95Margin": 0.8571,
+          "p05": 89.9818,
+          "p50": 104.736,
+          "p95": 121.3482
+        },
+        "totalUnits": {
+          "mean": 662.364,
+          "standardDeviation": 48.392,
+          "ci95Low": 658.1223,
+          "ci95High": 666.6057,
+          "ci95Margin": 4.2417,
+          "p05": 579.95,
+          "p50": 663.5,
+          "p95": 741
+        },
+        "averageRoundMovePct": {
+          "mean": 1.0519,
+          "standardDeviation": 0.0625,
+          "ci95Low": 1.0464,
+          "ci95High": 1.0573,
+          "ci95Margin": 0.0055,
+          "p05": 0.9497,
+          "p50": 1.0543,
+          "p95": 1.1512
+        },
+        "averageProductRangePct": {
+          "mean": 13.7765,
+          "standardDeviation": 0.901,
+          "ci95Low": 13.6975,
+          "ci95High": 13.8555,
+          "ci95Margin": 0.079,
+          "p05": 12.2333,
+          "p50": 13.7479,
+          "p95": 15.2511
+        },
+        "maximumProductRangePct": {
+          "mean": 18.3016,
+          "standardDeviation": 1.8278,
+          "ci95Low": 18.1414,
+          "ci95High": 18.4618,
+          "ci95Margin": 0.1602,
+          "p05": 15.6923,
+          "p50": 18.1429,
+          "p95": 21.7872
+        },
+        "movingDecisionRatePct": {
+          "mean": 95.3981,
+          "standardDeviation": 1.1935,
+          "ci95Low": 95.2935,
+          "ci95High": 95.5027,
+          "ci95Margin": 0.1046,
+          "p05": 93.2248,
+          "p50": 95.4861,
+          "p95": 97.1354
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.6,
+          "standardDeviation": 1.7236,
+          "ci95Low": 99.4489,
+          "ci95High": 99.7511,
+          "ci95Margin": 0.1511,
+          "p05": 93.75,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.2773,
+          "standardDeviation": 0.327,
+          "ci95Low": 4.2487,
+          "ci95High": 4.306,
+          "ci95Margin": 0.0287,
+          "p05": 3.782,
+          "p50": 4.2336,
+          "p95": 4.9375
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.3487,
+          "standardDeviation": 3.0228,
+          "ci95Low": 49.0837,
+          "ci95High": 49.6136,
+          "ci95Margin": 0.265,
+          "p05": 44.6226,
+          "p50": 49.4426,
+          "p95": 53.8023
+        },
+        "Cocktails": {
+          "mean": 18.243,
+          "standardDeviation": 2.4002,
+          "ci95Low": 18.0326,
+          "ci95High": 18.4534,
+          "ci95Margin": 0.2104,
+          "p05": 14.5211,
+          "p50": 18.1257,
+          "p95": 22.6441
+        },
+        "Spirits": {
+          "mean": 13.9069,
+          "standardDeviation": 2.0205,
+          "ci95Low": 13.7298,
+          "ci95High": 14.084,
+          "ci95Margin": 0.1771,
+          "p05": 11.0108,
+          "p50": 13.7393,
+          "p95": 17.2419
+        },
+        "Wine": {
+          "mean": 18.5014,
+          "standardDeviation": 2.314,
+          "ci95Low": 18.2986,
+          "ci95High": 18.7042,
+          "ci95Margin": 0.2028,
+          "p05": 14.8013,
+          "p50": 18.3533,
+          "p95": 22.5321
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "mix-cocktail-heavy",
+      "label": "Cocktail-heavy live range",
+      "dimension": "category mix",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 16,
+      "configuredProducts": 16,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 106.0281,
+          "standardDeviation": 11.205,
+          "ci95Low": 105.046,
+          "ci95High": 107.0103,
+          "ci95Margin": 0.9822,
+          "p05": 88.264,
+          "p50": 105.1257,
+          "p95": 124.4301
+        },
+        "totalUnits": {
+          "mean": 666.758,
+          "standardDeviation": 49.2387,
+          "ci95Low": 662.442,
+          "ci95High": 671.074,
+          "ci95Margin": 4.316,
+          "p05": 588,
+          "p50": 665,
+          "p95": 749
+        },
+        "averageRoundMovePct": {
+          "mean": 0.8298,
+          "standardDeviation": 0.0683,
+          "ci95Low": 0.8238,
+          "ci95High": 0.8358,
+          "ci95Margin": 0.006,
+          "p05": 0.7262,
+          "p50": 0.8296,
+          "p95": 0.9456
+        },
+        "averageProductRangePct": {
+          "mean": 11.5215,
+          "standardDeviation": 1.0449,
+          "ci95Low": 11.4299,
+          "ci95High": 11.6131,
+          "ci95Margin": 0.0916,
+          "p05": 9.7934,
+          "p50": 11.5368,
+          "p95": 13.2683
+        },
+        "maximumProductRangePct": {
+          "mean": 18.936,
+          "standardDeviation": 2.4799,
+          "ci95Low": 18.7186,
+          "ci95High": 19.1534,
+          "ci95Margin": 0.2174,
+          "p05": 15.2118,
+          "p50": 18.7724,
+          "p95": 23.0038
+        },
+        "movingDecisionRatePct": {
+          "mean": 94.2458,
+          "standardDeviation": 2.2136,
+          "ci95Low": 94.0518,
+          "ci95High": 94.4399,
+          "ci95Margin": 0.194,
+          "p05": 89.9219,
+          "p50": 94.6181,
+          "p95": 97.1354
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.4125,
+          "standardDeviation": 3.6111,
+          "ci95Low": 99.096,
+          "ci95High": 99.729,
+          "ci95Margin": 0.3165,
+          "p05": 99.6875,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.4564,
+          "standardDeviation": 0.4188,
+          "ci95Low": 4.4197,
+          "ci95High": 4.4931,
+          "ci95Margin": 0.0367,
+          "p05": 3.7681,
+          "p50": 4.4408,
+          "p95": 5.0507
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 48.6999,
+          "standardDeviation": 3.2317,
+          "ci95Low": 48.4166,
+          "ci95High": 48.9832,
+          "ci95Margin": 0.2833,
+          "p05": 43.1935,
+          "p50": 48.6052,
+          "p95": 53.7582
+        },
+        "Cocktails": {
+          "mean": 18.3327,
+          "standardDeviation": 2.3233,
+          "ci95Low": 18.1291,
+          "ci95High": 18.5364,
+          "ci95Margin": 0.2036,
+          "p05": 14.545,
+          "p50": 18.2507,
+          "p95": 22.0447
+        },
+        "Spirits": {
+          "mean": 14.0793,
+          "standardDeviation": 2.2882,
+          "ci95Low": 13.8788,
+          "ci95High": 14.2799,
+          "ci95Margin": 0.2006,
+          "p05": 10.5189,
+          "p50": 14.0014,
+          "p95": 17.9504
+        },
+        "Wine": {
+          "mean": 18.888,
+          "standardDeviation": 2.4857,
+          "ci95Low": 18.6701,
+          "ci95High": 19.1059,
+          "ci95Margin": 0.2179,
+          "p05": 14.9145,
+          "p50": 18.8679,
+          "p95": 23.1667
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "mix-sparse-wine",
+      "label": "Only one live wine",
+      "dimension": "category mix",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 31,
+      "configuredProducts": 31,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.2213,
+          "standardDeviation": 12.6016,
+          "ci95Low": 104.1167,
+          "ci95High": 106.3258,
+          "ci95Margin": 1.1046,
+          "p05": 86.0469,
+          "p50": 104.963,
+          "p95": 127.5796
+        },
+        "totalUnits": {
+          "mean": 576.868,
+          "standardDeviation": 44.9122,
+          "ci95Low": 572.9313,
+          "ci95High": 580.8047,
+          "ci95Margin": 3.9367,
+          "p05": 504,
+          "p50": 576,
+          "p95": 653.05
+        },
+        "averageRoundMovePct": {
+          "mean": 0.6435,
+          "standardDeviation": 0.0443,
+          "ci95Low": 0.6396,
+          "ci95High": 0.6474,
+          "ci95Margin": 0.0039,
+          "p05": 0.5745,
+          "p50": 0.6429,
+          "p95": 0.7176
+        },
+        "averageProductRangePct": {
+          "mean": 8.9793,
+          "standardDeviation": 0.6799,
+          "ci95Low": 8.9197,
+          "ci95High": 9.0389,
+          "ci95Margin": 0.0596,
+          "p05": 7.892,
+          "p50": 8.9387,
+          "p95": 10.1034
+        },
+        "maximumProductRangePct": {
+          "mean": 16.6606,
+          "standardDeviation": 1.7651,
+          "ci95Low": 16.5059,
+          "ci95High": 16.8153,
+          "ci95Margin": 0.1547,
+          "p05": 13.8566,
+          "p50": 16.5217,
+          "p95": 19.693
+        },
+        "movingDecisionRatePct": {
+          "mean": 86.7442,
+          "standardDeviation": 2.4497,
+          "ci95Low": 86.5294,
+          "ci95High": 86.9589,
+          "ci95Margin": 0.2147,
+          "p05": 82.1214,
+          "p50": 86.9848,
+          "p95": 90.2352
+        },
+        "movedBy60MinutesPct": {
+          "mean": 95.2516,
+          "standardDeviation": 6.192,
+          "ci95Low": 94.7089,
+          "ci95High": 95.7944,
+          "ci95Margin": 0.5428,
+          "p05": 74.1935,
+          "p50": 96.7742,
+          "p95": 96.7742
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 3.9702,
+          "standardDeviation": 0.3163,
+          "ci95Low": 3.9424,
+          "ci95High": 3.9979,
+          "ci95Margin": 0.0277,
+          "p05": 3.473,
+          "p50": 3.9597,
+          "p95": 4.5097
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.0767,
+          "standardDeviation": 3.3345,
+          "ci95Low": 48.7844,
+          "ci95High": 49.369,
+          "ci95Margin": 0.2923,
+          "p05": 43.797,
+          "p50": 48.972,
+          "p95": 54.7389
+        },
+        "Cocktails": {
+          "mean": 18.2123,
+          "standardDeviation": 2.5484,
+          "ci95Low": 17.989,
+          "ci95High": 18.4357,
+          "ci95Margin": 0.2234,
+          "p05": 14.0233,
+          "p50": 18.1515,
+          "p95": 22.3741
+        },
+        "Spirits": {
+          "mean": 14.0446,
+          "standardDeviation": 2.2679,
+          "ci95Low": 13.8458,
+          "ci95High": 14.2434,
+          "ci95Margin": 0.1988,
+          "p05": 10.4562,
+          "p50": 14.0237,
+          "p95": 17.7464
+        },
+        "Wine": {
+          "mean": 18.6664,
+          "standardDeviation": 2.7609,
+          "ci95Low": 18.4244,
+          "ci95High": 18.9084,
+          "ci95Margin": 0.242,
+          "p05": 14.3924,
+          "p50": 18.5713,
+          "p95": 23.4569
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "mix-no-wine",
+      "label": "No live wine category",
+      "dimension": "category mix",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 30,
+      "configuredProducts": 30,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 107.1265,
+          "standardDeviation": 5.3909,
+          "ci95Low": 106.654,
+          "ci95High": 107.5991,
+          "ci95Margin": 0.4725,
+          "p05": 98.9904,
+          "p50": 106.8749,
+          "p95": 116.2876
+        },
+        "totalUnits": {
+          "mean": 1443.736,
+          "standardDeviation": 69.6471,
+          "ci95Low": 1437.6312,
+          "ci95High": 1449.8408,
+          "ci95Margin": 6.1048,
+          "p05": 1341,
+          "p50": 1439,
+          "p95": 1561.05
+        },
+        "averageRoundMovePct": {
+          "mean": 1.1538,
+          "standardDeviation": 0.0398,
+          "ci95Low": 1.1503,
+          "ci95High": 1.1573,
+          "ci95Margin": 0.0035,
+          "p05": 1.0876,
+          "p50": 1.1564,
+          "p95": 1.2176
+        },
+        "averageProductRangePct": {
+          "mean": 13.5501,
+          "standardDeviation": 0.5505,
+          "ci95Low": 13.5019,
+          "ci95High": 13.5984,
+          "ci95Margin": 0.0482,
+          "p05": 12.6366,
+          "p50": 13.5779,
+          "p95": 14.4362
+        },
+        "maximumProductRangePct": {
+          "mean": 18.6385,
+          "standardDeviation": 1.3553,
+          "ci95Low": 18.5197,
+          "ci95High": 18.7573,
+          "ci95Margin": 0.1188,
+          "p05": 16.6154,
+          "p50": 18.4464,
+          "p95": 21.2091
+        },
+        "movingDecisionRatePct": {
+          "mean": 96.5141,
+          "standardDeviation": 0.705,
+          "ci95Low": 96.4523,
+          "ci95High": 96.5759,
+          "ci95Margin": 0.0618,
+          "p05": 95.3704,
+          "p50": 96.5741,
+          "p95": 97.5486
+        },
+        "movedBy60MinutesPct": {
+          "mean": 100,
+          "standardDeviation": 0,
+          "ci95Low": 100,
+          "ci95High": 100,
+          "ci95Margin": 0,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.5004,
+          "standardDeviation": 0.2448,
+          "ci95Low": 4.4789,
+          "ci95High": 4.5218,
+          "ci95Margin": 0.0215,
+          "p05": 4.1305,
+          "p50": 4.4752,
+          "p95": 4.9425
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 60.4741,
+          "standardDeviation": 2.129,
+          "ci95Low": 60.2875,
+          "ci95High": 60.6607,
+          "ci95Margin": 0.1866,
+          "p05": 56.9225,
+          "p50": 60.5014,
+          "p95": 63.9663
+        },
+        "Cocktails": {
+          "mean": 22.2134,
+          "standardDeviation": 1.8108,
+          "ci95Low": 22.0547,
+          "ci95High": 22.3722,
+          "ci95Margin": 0.1587,
+          "p05": 19.1689,
+          "p50": 22.1703,
+          "p95": 25.3421
+        },
+        "Spirits": {
+          "mean": 17.3124,
+          "standardDeviation": 1.5972,
+          "ci95Low": 17.1724,
+          "ci95High": 17.4524,
+          "ci95Margin": 0.14,
+          "p05": 14.5966,
+          "p50": 17.3312,
+          "p95": 20.0136
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "demand-even",
+      "label": "Equal product popularity",
+      "dimension": "demand shape",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.1083,
+          "standardDeviation": 8.933,
+          "ci95Low": 104.3253,
+          "ci95High": 105.8913,
+          "ci95Margin": 0.783,
+          "p05": 90.009,
+          "p50": 105.0898,
+          "p95": 120.0736
+        },
+        "totalUnits": {
+          "mean": 792.78,
+          "standardDeviation": 50.8884,
+          "ci95Low": 788.3194,
+          "ci95High": 797.2406,
+          "ci95Margin": 4.4606,
+          "p05": 709.95,
+          "p50": 796,
+          "p95": 872.1
+        },
+        "averageRoundMovePct": {
+          "mean": 0.7289,
+          "standardDeviation": 0.0377,
+          "ci95Low": 0.7256,
+          "ci95High": 0.7322,
+          "ci95Margin": 0.0033,
+          "p05": 0.6668,
+          "p50": 0.7284,
+          "p95": 0.7893
+        },
+        "averageProductRangePct": {
+          "mean": 9.7585,
+          "standardDeviation": 0.5295,
+          "ci95Low": 9.7121,
+          "ci95High": 9.805,
+          "ci95Margin": 0.0464,
+          "p05": 8.8709,
+          "p50": 9.7516,
+          "p95": 10.7332
+        },
+        "maximumProductRangePct": {
+          "mean": 16.6054,
+          "standardDeviation": 1.5455,
+          "ci95Low": 16.4699,
+          "ci95High": 16.7408,
+          "ci95Margin": 0.1355,
+          "p05": 14.3565,
+          "p50": 16.4286,
+          "p95": 19.2566
+        },
+        "movingDecisionRatePct": {
+          "mean": 93.9604,
+          "standardDeviation": 1.53,
+          "ci95Low": 93.8262,
+          "ci95High": 94.0945,
+          "ci95Margin": 0.1341,
+          "p05": 91.2312,
+          "p50": 94.184,
+          "p95": 96.2384
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.6667,
+          "standardDeviation": 2.6366,
+          "ci95Low": 99.4356,
+          "ci95High": 99.8978,
+          "ci95Margin": 0.2311,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.0419,
+          "standardDeviation": 0.2692,
+          "ci95Low": 4.0183,
+          "ci95High": 4.0654,
+          "ci95Margin": 0.0236,
+          "p05": 3.6219,
+          "p50": 4.0433,
+          "p95": 4.5172
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.2849,
+          "standardDeviation": 2.8222,
+          "ci95Low": 49.0376,
+          "ci95High": 49.5323,
+          "ci95Margin": 0.2474,
+          "p05": 44.3765,
+          "p50": 49.6264,
+          "p95": 53.5777
+        },
+        "Cocktails": {
+          "mean": 18.1156,
+          "standardDeviation": 2.1803,
+          "ci95Low": 17.9245,
+          "ci95High": 18.3067,
+          "ci95Margin": 0.1911,
+          "p05": 14.6876,
+          "p50": 18.116,
+          "p95": 21.9549
+        },
+        "Spirits": {
+          "mean": 13.9275,
+          "standardDeviation": 1.8552,
+          "ci95Low": 13.7649,
+          "ci95High": 14.0901,
+          "ci95Margin": 0.1626,
+          "p05": 10.8542,
+          "p50": 13.8857,
+          "p95": 17.0171
+        },
+        "Wine": {
+          "mean": 18.672,
+          "standardDeviation": 2.1628,
+          "ci95Low": 18.4824,
+          "ci95High": 18.8616,
+          "ci95Margin": 0.1896,
+          "p05": 14.9367,
+          "p50": 18.6249,
+          "p95": 22.3869
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "demand-runaway",
+      "label": "One 12× favourite per category",
+      "dimension": "demand shape",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 110.7096,
+          "standardDeviation": 11.2537,
+          "ci95Low": 109.7232,
+          "ci95High": 111.6961,
+          "ci95Margin": 0.9864,
+          "p05": 93.282,
+          "p50": 111.0913,
+          "p95": 129.1093
+        },
+        "totalUnits": {
+          "mean": 666.788,
+          "standardDeviation": 46.842,
+          "ci95Low": 662.6821,
+          "ci95High": 670.8939,
+          "ci95Margin": 4.1059,
+          "p05": 595,
+          "p50": 663,
+          "p95": 745.05
+        },
+        "averageRoundMovePct": {
+          "mean": 0.6037,
+          "standardDeviation": 0.0304,
+          "ci95Low": 0.601,
+          "ci95High": 0.6064,
+          "ci95Margin": 0.0027,
+          "p05": 0.5529,
+          "p50": 0.6025,
+          "p95": 0.6558
+        },
+        "averageProductRangePct": {
+          "mean": 8.2116,
+          "standardDeviation": 0.5033,
+          "ci95Low": 8.1675,
+          "ci95High": 8.2557,
+          "ci95Margin": 0.0441,
+          "p05": 7.4219,
+          "p50": 8.1981,
+          "p95": 9.0993
+        },
+        "maximumProductRangePct": {
+          "mean": 15.3651,
+          "standardDeviation": 0.6955,
+          "ci95Low": 15.3042,
+          "ci95High": 15.4261,
+          "ci95Margin": 0.061,
+          "p05": 14.9231,
+          "p50": 15.0769,
+          "p95": 17.069
+        },
+        "movingDecisionRatePct": {
+          "mean": 92.7252,
+          "standardDeviation": 1.7075,
+          "ci95Low": 92.5756,
+          "ci95High": 92.8749,
+          "ci95Margin": 0.1497,
+          "p05": 89.7251,
+          "p50": 92.8819,
+          "p95": 95.3718
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.35,
+          "standardDeviation": 3.711,
+          "ci95Low": 99.0247,
+          "ci95High": 99.6753,
+          "ci95Margin": 0.3253,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 3.5958,
+          "standardDeviation": 0.2811,
+          "ci95Low": 3.5711,
+          "ci95High": 3.6204,
+          "ci95Margin": 0.0246,
+          "p05": 3.1692,
+          "p50": 3.5595,
+          "p95": 4.0569
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.0669,
+          "standardDeviation": 3.071,
+          "ci95Low": 48.7977,
+          "ci95High": 49.3361,
+          "ci95Margin": 0.2692,
+          "p05": 43.9354,
+          "p50": 49.0516,
+          "p95": 54.0707
+        },
+        "Cocktails": {
+          "mean": 17.9714,
+          "standardDeviation": 2.3033,
+          "ci95Low": 17.7695,
+          "ci95High": 18.1733,
+          "ci95Margin": 0.2019,
+          "p05": 14.0981,
+          "p50": 17.9884,
+          "p95": 21.6276
+        },
+        "Spirits": {
+          "mean": 14.1485,
+          "standardDeviation": 2.2221,
+          "ci95Low": 13.9538,
+          "ci95High": 14.3433,
+          "ci95Margin": 0.1948,
+          "p05": 10.509,
+          "p50": 14.0988,
+          "p95": 17.6996
+        },
+        "Wine": {
+          "mean": 18.8131,
+          "standardDeviation": 2.4009,
+          "ci95Low": 18.6027,
+          "ci95High": 19.0236,
+          "ci95Margin": 0.2104,
+          "p05": 15.1716,
+          "p50": 18.8576,
+          "p95": 22.7916
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "availability-sold-out",
+      "label": "20% of drinks sold out",
+      "dimension": "availability",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 38,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.6539,
+          "standardDeviation": 9.1701,
+          "ci95Low": 104.8502,
+          "ci95High": 106.4577,
+          "ci95Margin": 0.8038,
+          "p05": 91.0325,
+          "p50": 105.7367,
+          "p95": 119.9863
+        },
+        "totalUnits": {
+          "mean": 774.884,
+          "standardDeviation": 51.5693,
+          "ci95Low": 770.3637,
+          "ci95High": 779.4043,
+          "ci95Margin": 4.5203,
+          "p05": 692,
+          "p50": 774,
+          "p95": 868
+        },
+        "averageRoundMovePct": {
+          "mean": 0.6397,
+          "standardDeviation": 0.0345,
+          "ci95Low": 0.6367,
+          "ci95High": 0.6428,
+          "ci95Margin": 0.003,
+          "p05": 0.5833,
+          "p50": 0.6397,
+          "p95": 0.6988
+        },
+        "averageProductRangePct": {
+          "mean": 11.0291,
+          "standardDeviation": 0.6065,
+          "ci95Low": 10.9759,
+          "ci95High": 11.0822,
+          "ci95Margin": 0.0532,
+          "p05": 10.044,
+          "p50": 10.9805,
+          "p95": 12.0716
+        },
+        "maximumProductRangePct": {
+          "mean": 17.797,
+          "standardDeviation": 1.522,
+          "ci95Low": 17.6636,
+          "ci95High": 17.9304,
+          "ci95Margin": 0.1334,
+          "p05": 15.5698,
+          "p50": 17.6812,
+          "p95": 20.5815
+        },
+        "movingDecisionRatePct": {
+          "mean": 74.6286,
+          "standardDeviation": 1.1121,
+          "ci95Low": 74.5312,
+          "ci95High": 74.7261,
+          "ci95Margin": 0.0975,
+          "p05": 72.5694,
+          "p50": 74.7396,
+          "p95": 76.2182
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.6684,
+          "standardDeviation": 2.4909,
+          "ci95Low": 99.4501,
+          "ci95High": 99.8868,
+          "ci95Margin": 0.2183,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.2336,
+          "standardDeviation": 0.2854,
+          "ci95Low": 4.2086,
+          "ci95High": 4.2586,
+          "ci95Margin": 0.025,
+          "p05": 3.8235,
+          "p50": 4.2017,
+          "p95": 4.7828
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.1452,
+          "standardDeviation": 2.8437,
+          "ci95Low": 48.8959,
+          "ci95High": 49.3944,
+          "ci95Margin": 0.2493,
+          "p05": 44.5283,
+          "p50": 49.0071,
+          "p95": 53.8572
+        },
+        "Cocktails": {
+          "mean": 17.886,
+          "standardDeviation": 2.2023,
+          "ci95Low": 17.693,
+          "ci95High": 18.0791,
+          "ci95Margin": 0.193,
+          "p05": 14.5167,
+          "p50": 17.7905,
+          "p95": 21.6563
+        },
+        "Spirits": {
+          "mean": 14.2339,
+          "standardDeviation": 1.9377,
+          "ci95Low": 14.064,
+          "ci95High": 14.4037,
+          "ci95Margin": 0.1698,
+          "p05": 11.1897,
+          "p50": 14.2372,
+          "p95": 17.5021
+        },
+        "Wine": {
+          "mean": 18.7349,
+          "standardDeviation": 2.2878,
+          "ci95Low": 18.5344,
+          "ci95High": 18.9355,
+          "ci95Margin": 0.2005,
+          "p05": 15.1707,
+          "p50": 18.704,
+          "p95": 22.5541
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "availability-paused",
+      "label": "20% of drinks paused",
+      "dimension": "availability",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 38,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.8622,
+          "standardDeviation": 9.1578,
+          "ci95Low": 105.0595,
+          "ci95High": 106.6649,
+          "ci95Margin": 0.8027,
+          "p05": 91.5034,
+          "p50": 105.7078,
+          "p95": 121.6677
+        },
+        "totalUnits": {
+          "mean": 775.706,
+          "standardDeviation": 50.3907,
+          "ci95Low": 771.2891,
+          "ci95High": 780.1229,
+          "ci95Margin": 4.4169,
+          "p05": 695,
+          "p50": 775,
+          "p95": 866.05
+        },
+        "averageRoundMovePct": {
+          "mean": 0.6381,
+          "standardDeviation": 0.0342,
+          "ci95Low": 0.6351,
+          "ci95High": 0.6411,
+          "ci95Margin": 0.003,
+          "p05": 0.5824,
+          "p50": 0.6381,
+          "p95": 0.6922
+        },
+        "averageProductRangePct": {
+          "mean": 11.0194,
+          "standardDeviation": 0.6014,
+          "ci95Low": 10.9667,
+          "ci95High": 11.0721,
+          "ci95Margin": 0.0527,
+          "p05": 10.0668,
+          "p50": 11.0076,
+          "p95": 12.0147
+        },
+        "maximumProductRangePct": {
+          "mean": 17.7349,
+          "standardDeviation": 1.4343,
+          "ci95Low": 17.6091,
+          "ci95High": 17.8606,
+          "ci95Margin": 0.1257,
+          "p05": 15.5033,
+          "p50": 17.6417,
+          "p95": 20.2859
+        },
+        "movingDecisionRatePct": {
+          "mean": 74.549,
+          "standardDeviation": 1.0783,
+          "ci95Low": 74.4544,
+          "ci95High": 74.6435,
+          "ci95Margin": 0.0945,
+          "p05": 72.6273,
+          "p50": 74.6528,
+          "p95": 76.0142
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.6526,
+          "standardDeviation": 2.5898,
+          "ci95Low": 99.4256,
+          "ci95High": 99.8796,
+          "ci95Margin": 0.227,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.2232,
+          "standardDeviation": 0.2694,
+          "ci95Low": 4.1996,
+          "ci95High": 4.2468,
+          "ci95Margin": 0.0236,
+          "p05": 3.8081,
+          "p50": 4.2072,
+          "p95": 4.7159
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.1852,
+          "standardDeviation": 2.9287,
+          "ci95Low": 48.9285,
+          "ci95High": 49.442,
+          "ci95Margin": 0.2567,
+          "p05": 44.4113,
+          "p50": 49.1557,
+          "p95": 53.9287
+        },
+        "Cocktails": {
+          "mean": 18.1007,
+          "standardDeviation": 2.2298,
+          "ci95Low": 17.9053,
+          "ci95High": 18.2962,
+          "ci95Margin": 0.1954,
+          "p05": 14.4551,
+          "p50": 18.0274,
+          "p95": 21.5938
+        },
+        "Spirits": {
+          "mean": 13.9942,
+          "standardDeviation": 1.9556,
+          "ci95Low": 13.8228,
+          "ci95High": 14.1656,
+          "ci95Margin": 0.1714,
+          "p05": 10.8897,
+          "p50": 13.9534,
+          "p95": 17.2675
+        },
+        "Wine": {
+          "mean": 18.7198,
+          "standardDeviation": 2.1896,
+          "ci95Low": 18.5279,
+          "ci95High": 18.9117,
+          "ci95Margin": 0.1919,
+          "p05": 15.0668,
+          "p50": 18.7811,
+          "p95": 22.3507
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "availability-unmapped",
+      "label": "20% of drinks missing POS mapping",
+      "dimension": "availability",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 38,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.9281,
+          "standardDeviation": 9.3465,
+          "ci95Low": 105.1089,
+          "ci95High": 106.7474,
+          "ci95Margin": 0.8193,
+          "p05": 91.4915,
+          "p50": 105.9057,
+          "p95": 121.6766
+        },
+        "totalUnits": {
+          "mean": 766.852,
+          "standardDeviation": 50.2296,
+          "ci95Low": 762.4492,
+          "ci95High": 771.2548,
+          "ci95Margin": 4.4028,
+          "p05": 684,
+          "p50": 766,
+          "p95": 851.05
+        },
+        "averageRoundMovePct": {
+          "mean": 0.6575,
+          "standardDeviation": 0.0308,
+          "ci95Low": 0.6548,
+          "ci95High": 0.6602,
+          "ci95Margin": 0.0027,
+          "p05": 0.612,
+          "p50": 0.659,
+          "p95": 0.7077
+        },
+        "averageProductRangePct": {
+          "mean": 10.0141,
+          "standardDeviation": 0.5582,
+          "ci95Low": 9.9651,
+          "ci95High": 10.063,
+          "ci95Margin": 0.0489,
+          "p05": 9.1213,
+          "p50": 9.9924,
+          "p95": 10.9861
+        },
+        "maximumProductRangePct": {
+          "mean": 16.6183,
+          "standardDeviation": 1.7121,
+          "ci95Low": 16.4682,
+          "ci95High": 16.7683,
+          "ci95Margin": 0.1501,
+          "p05": 14.0566,
+          "p50": 16.4165,
+          "p95": 19.829
+        },
+        "movingDecisionRatePct": {
+          "mean": 93.5237,
+          "standardDeviation": 1.5607,
+          "ci95Low": 93.3869,
+          "ci95High": 93.6605,
+          "ci95Margin": 0.1368,
+          "p05": 90.4774,
+          "p50": 93.6921,
+          "p95": 95.6308
+        },
+        "movedBy60MinutesPct": {
+          "mean": 125.5579,
+          "standardDeviation": 4.5298,
+          "ci95Low": 125.1608,
+          "ci95High": 125.955,
+          "ci95Margin": 0.3971,
+          "p05": 126.3158,
+          "p50": 126.3158,
+          "p95": 126.3158
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.0623,
+          "standardDeviation": 0.2852,
+          "ci95Low": 4.0373,
+          "ci95High": 4.0873,
+          "ci95Margin": 0.025,
+          "p05": 3.6336,
+          "p50": 4.0404,
+          "p95": 4.5313
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.0956,
+          "standardDeviation": 2.8732,
+          "ci95Low": 48.8438,
+          "ci95High": 49.3475,
+          "ci95Margin": 0.2518,
+          "p05": 44.4711,
+          "p50": 49.1137,
+          "p95": 54.1619
+        },
+        "Cocktails": {
+          "mean": 18.0965,
+          "standardDeviation": 2.216,
+          "ci95Low": 17.9023,
+          "ci95High": 18.2908,
+          "ci95Margin": 0.1942,
+          "p05": 14.5077,
+          "p50": 17.9869,
+          "p95": 21.8267
+        },
+        "Spirits": {
+          "mean": 14.039,
+          "standardDeviation": 2.0743,
+          "ci95Low": 13.8571,
+          "ci95High": 14.2208,
+          "ci95Margin": 0.1818,
+          "p05": 10.7968,
+          "p50": 13.9643,
+          "p95": 17.4029
+        },
+        "Wine": {
+          "mean": 18.7689,
+          "standardDeviation": 2.214,
+          "ci95Low": 18.5748,
+          "ci95High": 18.9629,
+          "ci95Margin": 0.1941,
+          "p05": 15.223,
+          "p50": 18.6692,
+          "p95": 22.8346
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 329494,
+        "totalFailures": 329494,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": null
+      }
+    },
+    {
+      "id": "availability-combined",
+      "label": "Mixed sold-out, paused and unmapped drinks",
+      "dimension": "availability",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 36,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.9369,
+          "standardDeviation": 8.9997,
+          "ci95Low": 105.148,
+          "ci95High": 106.7257,
+          "ci95Margin": 0.7889,
+          "p05": 91.7524,
+          "p50": 105.8321,
+          "p95": 120.6484
+        },
+        "totalUnits": {
+          "mean": 818.858,
+          "standardDeviation": 52.8569,
+          "ci95Low": 814.2249,
+          "ci95High": 823.4911,
+          "ci95Margin": 4.6331,
+          "p05": 736.95,
+          "p50": 819,
+          "p95": 901.1
+        },
+        "averageRoundMovePct": {
+          "mean": 0.6427,
+          "standardDeviation": 0.0323,
+          "ci95Low": 0.6399,
+          "ci95High": 0.6456,
+          "ci95Margin": 0.0028,
+          "p05": 0.5898,
+          "p50": 0.6431,
+          "p95": 0.6976
+        },
+        "averageProductRangePct": {
+          "mean": 11.1098,
+          "standardDeviation": 0.6279,
+          "ci95Low": 11.0547,
+          "ci95High": 11.1648,
+          "ci95Margin": 0.055,
+          "p05": 10.1061,
+          "p50": 11.102,
+          "p95": 12.1188
+        },
+        "maximumProductRangePct": {
+          "mean": 17.9256,
+          "standardDeviation": 1.5911,
+          "ci95Low": 17.7861,
+          "ci95High": 18.0651,
+          "ci95Margin": 0.1395,
+          "p05": 15.4405,
+          "p50": 17.931,
+          "p95": 20.7246
+        },
+        "movingDecisionRatePct": {
+          "mean": 78.4243,
+          "standardDeviation": 1.1594,
+          "ci95Low": 78.3227,
+          "ci95High": 78.5259,
+          "ci95Margin": 0.1016,
+          "p05": 76.3571,
+          "p50": 78.6169,
+          "p95": 80.0347
+        },
+        "movedBy60MinutesPct": {
+          "mean": 110.8,
+          "standardDeviation": 2.6371,
+          "ci95Low": 110.5689,
+          "ci95High": 111.0311,
+          "ci95Margin": 0.2311,
+          "p05": 111.1111,
+          "p50": 111.1111,
+          "p95": 111.1111
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.2703,
+          "standardDeviation": 0.2862,
+          "ci95Low": 4.2452,
+          "ci95High": 4.2954,
+          "ci95Margin": 0.0251,
+          "p05": 3.8298,
+          "p50": 4.2476,
+          "p95": 4.7777
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.1,
+          "standardDeviation": 2.9128,
+          "ci95Low": 48.8446,
+          "ci95High": 49.3553,
+          "ci95Margin": 0.2553,
+          "p05": 44.3399,
+          "p50": 48.9689,
+          "p95": 53.7384
+        },
+        "Cocktails": {
+          "mean": 18.2297,
+          "standardDeviation": 2.1133,
+          "ci95Low": 18.0445,
+          "ci95High": 18.4149,
+          "ci95Margin": 0.1852,
+          "p05": 14.9494,
+          "p50": 18.1712,
+          "p95": 21.7631
+        },
+        "Spirits": {
+          "mean": 13.9926,
+          "standardDeviation": 1.955,
+          "ci95Low": 13.8212,
+          "ci95High": 14.1639,
+          "ci95Margin": 0.1714,
+          "p05": 10.7944,
+          "p50": 13.9058,
+          "p95": 17.2396
+        },
+        "Wine": {
+          "mean": 18.6778,
+          "standardDeviation": 2.1063,
+          "ci95Low": 18.4931,
+          "ci95High": 18.8624,
+          "ci95Margin": 0.1846,
+          "p05": 15.4183,
+          "p50": 18.5988,
+          "p95": 22.2084
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 132897,
+        "totalFailures": 132897,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": null
+      }
+    },
+    {
+      "id": "elasticity-low",
+      "label": "Low customer price sensitivity",
+      "dimension": "customer behaviour",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.9894,
+          "standardDeviation": 8.3764,
+          "ci95Low": 105.2552,
+          "ci95High": 106.7236,
+          "ci95Margin": 0.7342,
+          "p05": 92.2253,
+          "p50": 105.5739,
+          "p95": 119.623
+        },
+        "totalUnits": {
+          "mean": 796.644,
+          "standardDeviation": 50.4584,
+          "ci95Low": 792.2211,
+          "ci95High": 801.0669,
+          "ci95Margin": 4.4229,
+          "p05": 709.9,
+          "p50": 796.5,
+          "p95": 876.05
+        },
+        "averageRoundMovePct": {
+          "mean": 0.716,
+          "standardDeviation": 0.0345,
+          "ci95Low": 0.713,
+          "ci95High": 0.7191,
+          "ci95Margin": 0.003,
+          "p05": 0.6603,
+          "p50": 0.7168,
+          "p95": 0.7711
+        },
+        "averageProductRangePct": {
+          "mean": 9.82,
+          "standardDeviation": 0.5427,
+          "ci95Low": 9.7724,
+          "ci95High": 9.8676,
+          "ci95Margin": 0.0476,
+          "p05": 8.9692,
+          "p50": 9.816,
+          "p95": 10.7277
+        },
+        "maximumProductRangePct": {
+          "mean": 17.0395,
+          "standardDeviation": 1.6693,
+          "ci95Low": 16.8932,
+          "ci95High": 17.1859,
+          "ci95Margin": 0.1463,
+          "p05": 14.567,
+          "p50": 16.9118,
+          "p95": 19.8465
+        },
+        "movingDecisionRatePct": {
+          "mean": 94.089,
+          "standardDeviation": 1.3507,
+          "ci95Low": 93.9706,
+          "ci95High": 94.2074,
+          "ci95Margin": 0.1184,
+          "p05": 91.7216,
+          "p50": 94.2419,
+          "p95": 95.9491
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.8458,
+          "standardDeviation": 1.7254,
+          "ci95Low": 99.6946,
+          "ci95High": 99.9971,
+          "ci95Margin": 0.1512,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.0531,
+          "standardDeviation": 0.2733,
+          "ci95Low": 4.0291,
+          "ci95High": 4.077,
+          "ci95Margin": 0.024,
+          "p05": 3.6358,
+          "p50": 4.0299,
+          "p95": 4.5462
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.0198,
+          "standardDeviation": 2.593,
+          "ci95Low": 48.7925,
+          "ci95High": 49.2471,
+          "ci95Margin": 0.2273,
+          "p05": 44.8795,
+          "p50": 48.9924,
+          "p95": 53.1171
+        },
+        "Cocktails": {
+          "mean": 18.1447,
+          "standardDeviation": 2.0305,
+          "ci95Low": 17.9667,
+          "ci95High": 18.3226,
+          "ci95Margin": 0.178,
+          "p05": 15.013,
+          "p50": 18.0424,
+          "p95": 21.4389
+        },
+        "Spirits": {
+          "mean": 14.1988,
+          "standardDeviation": 1.9889,
+          "ci95Low": 14.0245,
+          "ci95High": 14.3731,
+          "ci95Margin": 0.1743,
+          "p05": 10.9712,
+          "p50": 14.1975,
+          "p95": 17.7819
+        },
+        "Wine": {
+          "mean": 18.6367,
+          "standardDeviation": 2.1776,
+          "ci95Low": 18.4458,
+          "ci95High": 18.8276,
+          "ci95Margin": 0.1909,
+          "p05": 15.3106,
+          "p50": 18.5326,
+          "p95": 22.3361
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "elasticity-high",
+      "label": "High customer price sensitivity",
+      "dimension": "customer behaviour",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.2835,
+          "standardDeviation": 9.1285,
+          "ci95Low": 104.4834,
+          "ci95High": 106.0837,
+          "ci95Margin": 0.8002,
+          "p05": 90.544,
+          "p50": 105.1112,
+          "p95": 120.3294
+        },
+        "totalUnits": {
+          "mean": 791.748,
+          "standardDeviation": 54.8187,
+          "ci95Low": 786.9429,
+          "ci95High": 796.5531,
+          "ci95Margin": 4.8051,
+          "p05": 700.95,
+          "p50": 792.5,
+          "p95": 881
+        },
+        "averageRoundMovePct": {
+          "mean": 0.7279,
+          "standardDeviation": 0.0399,
+          "ci95Low": 0.7244,
+          "ci95High": 0.7314,
+          "ci95Margin": 0.0035,
+          "p05": 0.6571,
+          "p50": 0.728,
+          "p95": 0.7935
+        },
+        "averageProductRangePct": {
+          "mean": 9.523,
+          "standardDeviation": 0.5408,
+          "ci95Low": 9.4756,
+          "ci95High": 9.5704,
+          "ci95Margin": 0.0474,
+          "p05": 8.6617,
+          "p50": 9.4883,
+          "p95": 10.3708
+        },
+        "maximumProductRangePct": {
+          "mean": 15.9654,
+          "standardDeviation": 1.4185,
+          "ci95Low": 15.8411,
+          "ci95High": 16.0898,
+          "ci95Margin": 0.1243,
+          "p05": 13.913,
+          "p50": 15.8462,
+          "p95": 18.534
+        },
+        "movingDecisionRatePct": {
+          "mean": 94.0131,
+          "standardDeviation": 1.4724,
+          "ci95Low": 93.8841,
+          "ci95High": 94.1422,
+          "ci95Margin": 0.1291,
+          "p05": 91.1748,
+          "p50": 94.2564,
+          "p95": 96.0663
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.675,
+          "standardDeviation": 2.564,
+          "ci95Low": 99.4503,
+          "ci95High": 99.8997,
+          "ci95Margin": 0.2247,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 4.0325,
+          "standardDeviation": 0.2698,
+          "ci95Low": 4.0088,
+          "ci95High": 4.0561,
+          "ci95Margin": 0.0236,
+          "p05": 3.603,
+          "p50": 4.0234,
+          "p95": 4.4961
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.2938,
+          "standardDeviation": 2.9125,
+          "ci95Low": 49.0385,
+          "ci95High": 49.5491,
+          "ci95Margin": 0.2553,
+          "p05": 44.6218,
+          "p50": 49.4082,
+          "p95": 53.8572
+        },
+        "Cocktails": {
+          "mean": 17.9651,
+          "standardDeviation": 2.3266,
+          "ci95Low": 17.7612,
+          "ci95High": 18.169,
+          "ci95Margin": 0.2039,
+          "p05": 14.0573,
+          "p50": 17.8566,
+          "p95": 22.1211
+        },
+        "Spirits": {
+          "mean": 13.9436,
+          "standardDeviation": 2.0187,
+          "ci95Low": 13.7666,
+          "ci95High": 14.1205,
+          "ci95Margin": 0.1769,
+          "p05": 10.7692,
+          "p50": 13.8951,
+          "p95": 17.433
+        },
+        "Wine": {
+          "mean": 18.7975,
+          "standardDeviation": 2.1393,
+          "ci95Low": 18.61,
+          "ci95High": 18.985,
+          "ci95Margin": 0.1875,
+          "p05": 15.4261,
+          "p50": 18.7179,
+          "p95": 22.5897
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "service-one-hour",
+      "label": "One-hour service",
+      "dimension": "service duration",
+      "runs": 500,
+      "expectedRevenueGbp": 1666.6666666666665,
+      "serviceMinutes": 60,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.663,
+          "standardDeviation": 23.6272,
+          "ci95Low": 103.592,
+          "ci95High": 107.734,
+          "ci95Margin": 2.071,
+          "p05": 71.7542,
+          "p50": 103.5522,
+          "p95": 147.0233
+        },
+        "totalUnits": {
+          "mean": 131.888,
+          "standardDeviation": 22.0355,
+          "ci95Low": 129.9565,
+          "ci95High": 133.8195,
+          "ci95Margin": 1.9315,
+          "p05": 97,
+          "p50": 131,
+          "p95": 170
+        },
+        "averageRoundMovePct": {
+          "mean": 0.6384,
+          "standardDeviation": 0.0886,
+          "ci95Low": 0.6306,
+          "ci95High": 0.6461,
+          "ci95Margin": 0.0078,
+          "p05": 0.4961,
+          "p50": 0.6346,
+          "p95": 0.7829
+        },
+        "averageProductRangePct": {
+          "mean": 4.3127,
+          "standardDeviation": 0.6136,
+          "ci95Low": 4.2589,
+          "ci95High": 4.3664,
+          "ci95Margin": 0.0538,
+          "p05": 3.2955,
+          "p50": 4.3186,
+          "p95": 5.3196
+        },
+        "maximumProductRangePct": {
+          "mean": 9.6774,
+          "standardDeviation": 1.6932,
+          "ci95Low": 9.529,
+          "ci95High": 9.8258,
+          "ci95Margin": 0.1484,
+          "p05": 7.0655,
+          "p50": 9.5106,
+          "p95": 12.5733
+        },
+        "movingDecisionRatePct": {
+          "mean": 85.3681,
+          "standardDeviation": 5.8249,
+          "ci95Low": 84.8575,
+          "ci95High": 85.8786,
+          "ci95Margin": 0.5106,
+          "p05": 75.1736,
+          "p50": 85.5903,
+          "p95": 94.2708
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.9625,
+          "standardDeviation": 0.8385,
+          "ci95Low": 99.889,
+          "ci95High": 100.036,
+          "ci95Margin": 0.0735,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 3.3966,
+          "standardDeviation": 0.446,
+          "ci95Low": 3.3575,
+          "ci95High": 3.4357,
+          "ci95Margin": 0.0391,
+          "p05": 2.636,
+          "p50": 3.4018,
+          "p95": 4.0961
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.1293,
+          "standardDeviation": 6.8632,
+          "ci95Low": 48.5277,
+          "ci95High": 49.7309,
+          "ci95Margin": 0.6016,
+          "p05": 38.0844,
+          "p50": 48.8281,
+          "p95": 61.2915
+        },
+        "Cocktails": {
+          "mean": 18.0958,
+          "standardDeviation": 5.3928,
+          "ci95Low": 17.6231,
+          "ci95High": 18.5685,
+          "ci95Margin": 0.4727,
+          "p05": 9.8267,
+          "p50": 17.4825,
+          "p95": 27.1053
+        },
+        "Spirits": {
+          "mean": 14.1968,
+          "standardDeviation": 4.7225,
+          "ci95Low": 13.7828,
+          "ci95High": 14.6107,
+          "ci95Margin": 0.4139,
+          "p05": 7.0128,
+          "p50": 13.7097,
+          "p95": 22.4769
+        },
+        "Wine": {
+          "mean": 18.5781,
+          "standardDeviation": 5.4148,
+          "ci95Low": 18.1035,
+          "ci95High": 19.0527,
+          "ci95Margin": 0.4746,
+          "p05": 9.9114,
+          "p50": 18.5181,
+          "p95": 27.1238
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "service-three-hour",
+      "label": "Three-hour service",
+      "dimension": "service duration",
+      "runs": 500,
+      "expectedRevenueGbp": 5000,
+      "serviceMinutes": 180,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.9566,
+          "standardDeviation": 13.101,
+          "ci95Low": 104.8083,
+          "ci95High": 107.105,
+          "ci95Margin": 1.1484,
+          "p05": 87.1743,
+          "p50": 104.7552,
+          "p95": 128.2942
+        },
+        "totalUnits": {
+          "mean": 397.526,
+          "standardDeviation": 38.1658,
+          "ci95Low": 394.1806,
+          "ci95High": 400.8714,
+          "ci95Margin": 3.3454,
+          "p05": 340.95,
+          "p50": 395,
+          "p95": 463
+        },
+        "averageRoundMovePct": {
+          "mean": 0.7105,
+          "standardDeviation": 0.0527,
+          "ci95Low": 0.7059,
+          "ci95High": 0.7151,
+          "ci95Margin": 0.0046,
+          "p05": 0.6285,
+          "p50": 0.7111,
+          "p95": 0.7989
+        },
+        "averageProductRangePct": {
+          "mean": 7.7295,
+          "standardDeviation": 0.5983,
+          "ci95Low": 7.6771,
+          "ci95High": 7.782,
+          "ci95Margin": 0.0524,
+          "p05": 6.8186,
+          "p50": 7.6765,
+          "p95": 8.7076
+        },
+        "maximumProductRangePct": {
+          "mean": 14.587,
+          "standardDeviation": 1.6399,
+          "ci95Low": 14.4432,
+          "ci95High": 14.7307,
+          "ci95Margin": 0.1437,
+          "p05": 12.1667,
+          "p50": 14.4776,
+          "p95": 17.2522
+        },
+        "movingDecisionRatePct": {
+          "mean": 92.2649,
+          "standardDeviation": 2.481,
+          "ci95Low": 92.0475,
+          "ci95High": 92.4824,
+          "ci95Margin": 0.2175,
+          "p05": 87.6128,
+          "p50": 92.5926,
+          "p95": 95.5498
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.7958,
+          "standardDeviation": 2.0352,
+          "ci95Low": 99.6174,
+          "ci95High": 99.9742,
+          "ci95Margin": 0.1784,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 3.8359,
+          "standardDeviation": 0.3154,
+          "ci95Low": 3.8083,
+          "ci95High": 3.8636,
+          "ci95Margin": 0.0276,
+          "p05": 3.323,
+          "p50": 3.8398,
+          "p95": 4.3662
+        },
+        "crashRoundCount": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.0572,
+          "standardDeviation": 3.9413,
+          "ci95Low": 48.7118,
+          "ci95High": 49.4027,
+          "ci95Margin": 0.3455,
+          "p05": 42.4225,
+          "p50": 48.9241,
+          "p95": 55.24
+        },
+        "Cocktails": {
+          "mean": 18.2702,
+          "standardDeviation": 3.0542,
+          "ci95Low": 18.0025,
+          "ci95High": 18.5379,
+          "ci95Margin": 0.2677,
+          "p05": 13.4633,
+          "p50": 18.3334,
+          "p95": 23.5045
+        },
+        "Spirits": {
+          "mean": 13.9727,
+          "standardDeviation": 2.8622,
+          "ci95Low": 13.7219,
+          "ci95High": 14.2236,
+          "ci95Margin": 0.2509,
+          "p05": 9.4587,
+          "p50": 13.92,
+          "p95": 19.0315
+        },
+        "Wine": {
+          "mean": 18.6998,
+          "standardDeviation": 3.03,
+          "ci95Low": 18.4342,
+          "ci95High": 18.9654,
+          "ci95Margin": 0.2656,
+          "p05": 13.7637,
+          "p50": 18.6761,
+          "p95": 23.6979
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "crash-one-5",
+      "label": "One five-minute cocktail crash",
+      "dimension": "market crash",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.7186,
+          "standardDeviation": 9.0567,
+          "ci95Low": 104.9247,
+          "ci95High": 106.5124,
+          "ci95Margin": 0.7939,
+          "p05": 90.8171,
+          "p50": 105.9255,
+          "p95": 120.4584
+        },
+        "totalUnits": {
+          "mean": 794.718,
+          "standardDeviation": 52.5698,
+          "ci95Low": 790.1101,
+          "ci95High": 799.3259,
+          "ci95Margin": 4.6079,
+          "p05": 706,
+          "p50": 797,
+          "p95": 883
+        },
+        "averageRoundMovePct": {
+          "mean": 0.8119,
+          "standardDeviation": 0.0364,
+          "ci95Low": 0.8087,
+          "ci95High": 0.8151,
+          "ci95Margin": 0.0032,
+          "p05": 0.7528,
+          "p50": 0.8116,
+          "p95": 0.8726
+        },
+        "averageProductRangePct": {
+          "mean": 12.2192,
+          "standardDeviation": 0.4583,
+          "ci95Low": 12.179,
+          "ci95High": 12.2594,
+          "ci95Margin": 0.0402,
+          "p05": 11.4944,
+          "p50": 12.2034,
+          "p95": 12.9303
+        },
+        "maximumProductRangePct": {
+          "mean": 22.5088,
+          "standardDeviation": 1.1246,
+          "ci95Low": 22.4103,
+          "ci95High": 22.6074,
+          "ci95Margin": 0.0986,
+          "p05": 20.9228,
+          "p50": 22.3741,
+          "p95": 24.5388
+        },
+        "movingDecisionRatePct": {
+          "mean": 94.0782,
+          "standardDeviation": 1.4776,
+          "ci95Low": 93.9487,
+          "ci95High": 94.2078,
+          "ci95Margin": 0.1295,
+          "p05": 91.6059,
+          "p50": 94.3142,
+          "p95": 96.1531
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.7125,
+          "standardDeviation": 2.4203,
+          "ci95Low": 99.5004,
+          "ci95High": 99.9246,
+          "ci95Margin": 0.2121,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 18.6046,
+          "standardDeviation": 1.1022,
+          "ci95Low": 18.5079,
+          "ci95High": 18.7012,
+          "ci95Margin": 0.0966,
+          "p05": 16.909,
+          "p50": 18.5304,
+          "p95": 20.5607
+        },
+        "crashRoundCount": {
+          "mean": 1,
+          "standardDeviation": 0,
+          "ci95Low": 1,
+          "ci95High": 1,
+          "ci95Margin": 0,
+          "p05": 1,
+          "p50": 1,
+          "p95": 1
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 48.8929,
+          "standardDeviation": 2.7312,
+          "ci95Low": 48.6535,
+          "ci95High": 49.1323,
+          "ci95Margin": 0.2394,
+          "p05": 44.3652,
+          "p50": 48.8652,
+          "p95": 53.5867
+        },
+        "Cocktails": {
+          "mean": 18.3621,
+          "standardDeviation": 2.1055,
+          "ci95Low": 18.1775,
+          "ci95High": 18.5466,
+          "ci95Margin": 0.1846,
+          "p05": 15.0781,
+          "p50": 18.1823,
+          "p95": 21.9487
+        },
+        "Spirits": {
+          "mean": 14.0387,
+          "standardDeviation": 1.9863,
+          "ci95Low": 13.8646,
+          "ci95High": 14.2128,
+          "ci95Margin": 0.1741,
+          "p05": 10.904,
+          "p50": 13.9478,
+          "p95": 17.2532
+        },
+        "Wine": {
+          "mean": 18.7064,
+          "standardDeviation": 2.2107,
+          "ci95Low": 18.5126,
+          "ci95High": 18.9001,
+          "ci95Margin": 0.1938,
+          "p05": 14.9742,
+          "p50": 18.8145,
+          "p95": 22.2785
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "crash-one-10",
+      "label": "One ten-minute cocktail crash",
+      "dimension": "market crash",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 105.1841,
+          "standardDeviation": 8.9441,
+          "ci95Low": 104.4001,
+          "ci95High": 105.9681,
+          "ci95Margin": 0.784,
+          "p05": 91.2594,
+          "p50": 105.1708,
+          "p95": 120.1431
+        },
+        "totalUnits": {
+          "mean": 793.316,
+          "standardDeviation": 52.2454,
+          "ci95Low": 788.7365,
+          "ci95High": 797.8955,
+          "ci95Margin": 4.5795,
+          "p05": 707.9,
+          "p50": 791,
+          "p95": 881
+        },
+        "averageRoundMovePct": {
+          "mean": 0.8075,
+          "standardDeviation": 0.0374,
+          "ci95Low": 0.8042,
+          "ci95High": 0.8108,
+          "ci95Margin": 0.0033,
+          "p05": 0.748,
+          "p50": 0.8088,
+          "p95": 0.8692
+        },
+        "averageProductRangePct": {
+          "mean": 12.1649,
+          "standardDeviation": 0.469,
+          "ci95Low": 12.1238,
+          "ci95High": 12.206,
+          "ci95Margin": 0.0411,
+          "p05": 11.427,
+          "p50": 12.1556,
+          "p95": 12.9689
+        },
+        "maximumProductRangePct": {
+          "mean": 22.4537,
+          "standardDeviation": 1.0743,
+          "ci95Low": 22.3595,
+          "ci95High": 22.5479,
+          "ci95Margin": 0.0942,
+          "p05": 20.9167,
+          "p50": 22.3333,
+          "p95": 24.4008
+        },
+        "movingDecisionRatePct": {
+          "mean": 93.7553,
+          "standardDeviation": 1.3812,
+          "ci95Low": 93.6343,
+          "ci95High": 93.8764,
+          "ci95Margin": 0.1211,
+          "p05": 91.3773,
+          "p50": 93.8368,
+          "p95": 95.8058
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.8,
+          "standardDeviation": 1.9989,
+          "ci95Low": 99.6248,
+          "ci95High": 99.9752,
+          "ci95Margin": 0.1752,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 18.5985,
+          "standardDeviation": 1.1958,
+          "ci95Low": 18.4937,
+          "ci95High": 18.7033,
+          "ci95Margin": 0.1048,
+          "p05": 16.79,
+          "p50": 18.5304,
+          "p95": 20.6758
+        },
+        "crashRoundCount": {
+          "mean": 2,
+          "standardDeviation": 0,
+          "ci95Low": 2,
+          "ci95High": 2,
+          "ci95Margin": 0,
+          "p05": 2,
+          "p50": 2,
+          "p95": 2
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.0072,
+          "standardDeviation": 2.8412,
+          "ci95Low": 48.7581,
+          "ci95High": 49.2562,
+          "ci95Margin": 0.249,
+          "p05": 44.4559,
+          "p50": 48.9682,
+          "p95": 54.1313
+        },
+        "Cocktails": {
+          "mean": 18.2807,
+          "standardDeviation": 2.1157,
+          "ci95Low": 18.0953,
+          "ci95High": 18.4662,
+          "ci95Margin": 0.1855,
+          "p05": 14.9595,
+          "p50": 18.2367,
+          "p95": 22.0895
+        },
+        "Spirits": {
+          "mean": 14.0529,
+          "standardDeviation": 1.924,
+          "ci95Low": 13.8842,
+          "ci95High": 14.2215,
+          "ci95Margin": 0.1686,
+          "p05": 10.9187,
+          "p50": 14.0088,
+          "p95": 17.2888
+        },
+        "Wine": {
+          "mean": 18.6592,
+          "standardDeviation": 2.2044,
+          "ci95Low": 18.466,
+          "ci95High": 18.8525,
+          "ci95Margin": 0.1932,
+          "p05": 15.0057,
+          "p50": 18.6378,
+          "p95": 22.2002
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    },
+    {
+      "id": "crash-four",
+      "label": "Four mixed category crashes",
+      "dimension": "market crash",
+      "runs": 500,
+      "expectedRevenueGbp": 10000,
+      "serviceMinutes": 360,
+      "activeProducts": 48,
+      "configuredProducts": 48,
+      "priceRange": {
+        "averageDownPct": 20,
+        "averageUpPct": 20
+      },
+      "metrics": {
+        "actualRevenueRatioPct": {
+          "mean": 104.6013,
+          "standardDeviation": 8.6287,
+          "ci95Low": 103.8449,
+          "ci95High": 105.3576,
+          "ci95Margin": 0.7563,
+          "p05": 89.9825,
+          "p50": 105.1443,
+          "p95": 118.4029
+        },
+        "totalUnits": {
+          "mean": 793.346,
+          "standardDeviation": 52.6748,
+          "ci95Low": 788.7289,
+          "ci95High": 797.9631,
+          "ci95Margin": 4.6171,
+          "p05": 702.95,
+          "p50": 794,
+          "p95": 876.1
+        },
+        "averageRoundMovePct": {
+          "mean": 1.0651,
+          "standardDeviation": 0.0341,
+          "ci95Low": 1.0621,
+          "ci95High": 1.0681,
+          "ci95Margin": 0.003,
+          "p05": 1.0064,
+          "p50": 1.0661,
+          "p95": 1.1182
+        },
+        "averageProductRangePct": {
+          "mean": 19.2053,
+          "standardDeviation": 0.2058,
+          "ci95Low": 19.1872,
+          "ci95High": 19.2233,
+          "ci95Margin": 0.018,
+          "p05": 18.8794,
+          "p50": 19.2112,
+          "p95": 19.5523
+        },
+        "maximumProductRangePct": {
+          "mean": 23.4824,
+          "standardDeviation": 0.906,
+          "ci95Low": 23.403,
+          "ci95High": 23.5618,
+          "ci95Margin": 0.0794,
+          "p05": 22.2043,
+          "p50": 23.4032,
+          "p95": 25.1431
+        },
+        "movingDecisionRatePct": {
+          "mean": 92.8289,
+          "standardDeviation": 1.3538,
+          "ci95Low": 92.7103,
+          "ci95High": 92.9476,
+          "ci95Margin": 0.1187,
+          "p05": 90.3356,
+          "p50": 92.9688,
+          "p95": 94.7627
+        },
+        "movedBy60MinutesPct": {
+          "mean": 99.6042,
+          "standardDeviation": 2.7838,
+          "ci95Low": 99.3602,
+          "ci95High": 99.8482,
+          "ci95Margin": 0.244,
+          "p05": 100,
+          "p50": 100,
+          "p95": 100
+        },
+        "nearLimitDecisionRatePct": {
+          "mean": 0,
+          "standardDeviation": 0,
+          "ci95Low": 0,
+          "ci95High": 0,
+          "ci95Margin": 0,
+          "p05": 0,
+          "p50": 0,
+          "p95": 0
+        },
+        "maximumRoundMovePct": {
+          "mean": 19.7004,
+          "standardDeviation": 0.9578,
+          "ci95Low": 19.6164,
+          "ci95High": 19.7843,
+          "ci95Margin": 0.084,
+          "p05": 18.2087,
+          "p50": 19.692,
+          "p95": 21.3611
+        },
+        "crashRoundCount": {
+          "mean": 8,
+          "standardDeviation": 0,
+          "ci95Low": 8,
+          "ci95High": 8,
+          "ci95Margin": 0,
+          "p05": 8,
+          "p50": 8,
+          "p95": 8
+        }
+      },
+      "categoryUnitSharePct": {
+        "Beer": {
+          "mean": 49.1209,
+          "standardDeviation": 2.7455,
+          "ci95Low": 48.8802,
+          "ci95High": 49.3615,
+          "ci95Margin": 0.2407,
+          "p05": 44.6436,
+          "p50": 49.0955,
+          "p95": 53.6671
+        },
+        "Cocktails": {
+          "mean": 18.1681,
+          "standardDeviation": 2.1866,
+          "ci95Low": 17.9764,
+          "ci95High": 18.3597,
+          "ci95Margin": 0.1917,
+          "p05": 14.7283,
+          "p50": 18.1932,
+          "p95": 22.0183
+        },
+        "Spirits": {
+          "mean": 14.0701,
+          "standardDeviation": 1.912,
+          "ci95Low": 13.9025,
+          "ci95High": 14.2377,
+          "ci95Margin": 0.1676,
+          "p05": 10.954,
+          "p50": 14.0317,
+          "p95": 17.1045
+        },
+        "Wine": {
+          "mean": 18.6409,
+          "standardDeviation": 2.1677,
+          "ci95Low": 18.4509,
+          "ci95High": 18.8309,
+          "ci95Margin": 0.19,
+          "p05": 15.0702,
+          "p50": 18.677,
+          "p95": 22.2787
+        }
+      },
+      "invariants": {
+        "boundsBreaches": 0,
+        "roundCapBreaches": 0,
+        "ineligiblePriceChanges": 0,
+        "totalFailures": 0,
+        "observedServices": 500,
+        "zeroFailureUpper95Pct": 0.6
+      }
+    }
+  ]
+}
