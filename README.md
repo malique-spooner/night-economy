@@ -1,8 +1,47 @@
 # Night Economy
 
-Production repository for the Night Economy venue market, operator portal, TV display, and Friday service simulator.
+> A live drinks-pricing prototype for venues: one operator portal, one market engine, and guest-facing TV and mobile displays that stay in sync.
 
 Night Economy lets a venue run a live drinks market: operators manage the catalogue and service, while guests see current prices on a TV display and mobile menu.
+
+**[Try the live demo](https://night-economy.pages.dev/sign-in/the-last-judgment)** · **[Read the case study](docs/portfolio-case-study.md)** · **[View deployment guide](docs/deployment.md)**
+
+## Why this exists
+
+Venue teams need a simple way to make a drinks offer feel active without losing control of pricing. Night Economy turns that idea into a working product flow: start a service, gather POS-style demand, publish controlled price rounds, and present the same market to staff, a venue screen, and guests' phones.
+
+## See it in action
+
+Open the [live sign-in page](https://night-economy.pages.dev/sign-in/the-last-judgment) on a laptop. Demo access is available on request; once signed in, start the **18-minute demo**, then open the Market and Mobile Market links to see the guest-facing views update from the same service.
+
+The demo account is intentionally limited to prototype data. Do not use it for real venue information.
+
+## Product journey
+
+```mermaid
+flowchart LR
+  O[Venue operator\nPortal] -->|starts, pauses, edits| S[Supabase service simulator]
+  P[POS-style sales data] --> S
+  S -->|five-minute price decisions| M[Market state]
+  M --> T[TV market display]
+  M --> G[Guest mobile menu]
+  M --> H[Run history and operator controls]
+```
+
+## What I built
+
+- An operator portal for schedules, drinks, POS mapping, service controls, run history, and venue settings.
+- A live TV market display with a 15-second presentation rhythm, market stories, price movement, and full-screen use.
+- A guest mobile menu that reads the same live market state as the TV.
+- A POS-style Friday service simulator and a cloud-side simulator for repeatable rehearsals.
+- A pricing engine that publishes controlled five-minute price rounds, with shared logic guarded against cloud/local drift.
+- Supabase Auth, Row Level Security, scheduled Edge Functions, migrations, and Cloudflare Pages deployment.
+
+## Evidence of engineering quality
+
+- 126 unit/integration tests plus 13 browser workflows cover product and service behaviour.
+- The release suite verifies source reachability, environment safety, Supabase SQL/function safeguards, pricing-engine parity, routing, and a production preview.
+- The public production site is deployed on [Cloudflare Pages](https://night-economy.pages.dev/).
 
 New to this codebase? Begin with [START-HERE.md](START-HERE.md) for a plain-English map of the project.
 

@@ -12,6 +12,7 @@ This folder holds the notes that explain how Night Economy runs, plus visual ref
 - [Friday service acceptance](friday-service-acceptance.md) — a short local end-to-end service test.
 - [Manager-input validation](manager-input-market-engine-validation.md) — evidence and checks for the manager-input pricing matrix.
 - [Showcase drink image sources](showcase-drink-image-sources.md) — provenance for the image URLs used by Showcase and The Last Judgment.
+- [Portfolio case study](portfolio-case-study.md) — the product story, decisions, architecture, and live-demo route for reviewers.
 
 ## Maintenance rules
 
