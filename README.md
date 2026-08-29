@@ -2,6 +2,8 @@
 
 Production repository for the Night Economy venue market, operator portal, TV display, and Friday service simulator.
 
+Night Economy lets a venue run a live drinks market: operators manage the catalogue and service, while guests see current prices on a TV display and mobile menu.
+
 New to this codebase? Begin with [START-HERE.md](START-HERE.md) for a plain-English map of the project.
 
 The browser application has one React/Vite/TypeScript entrypoint at `index.html`. Supabase owns persistent state and service automation; Cloudflare Pages serves only the compiled frontend.
@@ -21,6 +23,13 @@ See [docs/simulation-engine.md](docs/simulation-engine.md) for the customer, bas
 See [docs/friday-service-acceptance.md](docs/friday-service-acceptance.md) for the accelerated local POS acceptance run.
 See [docs/testing.md](docs/testing.md) for the required Chromium button-testing contract and test commands.
 See [docs/README.md](docs/README.md) for the complete documentation index and visual references.
+
+## Community and security
+
+- [Contributing guide](CONTRIBUTING.md)
+- [Code of conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+- [MIT licence](LICENSE)
 
 ## Repository Map
 
