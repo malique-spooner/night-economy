@@ -4,7 +4,7 @@
 
 Night Economy lets a venue run a live drinks market: operators manage the catalogue and service, while guests see current prices on a TV display and mobile menu.
 
-**[Try the live demo](https://night-economy.pages.dev/sign-in/the-last-judgment)** · **[Read the case study](docs/portfolio-case-study.md)** · **[View deployment guide](docs/deployment.md)**
+**[Try the public demo](https://night-economy.pages.dev/public-demo)** · **[Read the case study](docs/portfolio-case-study.md)** · **[View deployment guide](docs/deployment.md)**
 
 ## Why this exists
 
@@ -12,9 +12,9 @@ Venue teams need a simple way to make a drinks offer feel active without losing 
 
 ## See it in action
 
-Open the [live sign-in page](https://night-economy.pages.dev/sign-in/the-last-judgment) on a laptop. Demo access is available on request; once signed in, start the **18-minute demo**, then open the Market and Mobile Market links to see the guest-facing views update from the same service.
+Open the [public demo](https://night-economy.pages.dev/public-demo) on a laptop—no sign-in required. It is a read-only live venue: its real-time market runs continuously, prices change every five minutes, and the TV presentation changes every 15 seconds. Open the Market and Mobile Market from the demo to see the guest-facing views update from the same service.
 
-The demo account is intentionally limited to prototype data. Do not use it for real venue information.
+Public visitors cannot edit drinks, settings, POS links, or service controls. Private operator access remains separate.
 
 ## Product journey
 
@@ -39,7 +39,7 @@ flowchart LR
 
 ## Evidence of engineering quality
 
-- 126 unit/integration tests plus 13 browser workflows cover product and service behaviour.
+- 126 unit/integration tests plus 14 browser workflows cover product and service behaviour.
 - The release suite verifies source reachability, environment safety, Supabase SQL/function safeguards, pricing-engine parity, routing, and a production preview.
 - The public production site is deployed on [Cloudflare Pages](https://night-economy.pages.dev/).
 

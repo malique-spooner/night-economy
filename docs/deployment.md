@@ -94,8 +94,10 @@ supabase functions deploy service-scheduler
 
 `service-scheduler` runs every minute in Supabase Cron. It reads every prepared
 venue's own weekly schedule in its configured timezone, starts/stops its cloud
-simulator, and triggers the pricing engine every five minutes while open. It
-continues running when no Portal, TV, or venue computer is open.
+simulator, and triggers the pricing engine every five minutes while open. The
+designated public demo venue is an exception: it automatically restarts a 1×
+service whenever the previous six-hour run finishes, so it remains live without
+any browser, portal, or operator account.
 
 After importing each venue menu, prepare its default cloud simulator once:
 
@@ -152,6 +154,9 @@ Check:
 /menu/demo-venue
 /app/demo-venue
 /venue/demo-venue
+/public-demo
+/tv/public-demo
+/menu/public-demo
 ```
 
 Then test one real signup lead and one portal product edit against Supabase.

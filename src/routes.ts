@@ -1,4 +1,4 @@
-type AppSurface = "site" | "tv" | "menu" | "app" | "venue" | "sign-in" | "simulator" | "logo";
+type AppSurface = "site" | "tv" | "menu" | "app" | "venue" | "sign-in" | "simulator" | "logo" | "public-demo";
 
 export type AppRoute = {
   surface: AppSurface;
@@ -13,7 +13,7 @@ const previewViewRoutes: Record<string, AppRoute> = {
   logo: { surface: "logo" },
 };
 
-const pathSurfaces = new Set<AppSurface>(["site", "tv", "menu", "app", "venue", "sign-in", "simulator", "logo"]);
+const pathSurfaces = new Set<AppSurface>(["site", "tv", "menu", "app", "venue", "sign-in", "simulator", "logo", "public-demo"]);
 
 export function resolveAppRoute(pathname: string, search = ""): AppRoute {
   const requestedView = new URLSearchParams(search).get("view");

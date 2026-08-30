@@ -59,6 +59,7 @@ const expectedMigrations = [
   "20260818074802_enable_market_round_realtime.sql",
   "20260827075610_retain_cron_run_history.sql",
   "20260827080854_clone_showcase_for_the_last_judgment.sql",
+  "20260830074202_create_public_demo_venue.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -182,6 +183,16 @@ function checkRequiredPatterns() {
       label: "The Last Judgment is seeded from Showcase without duplicating image storage",
       source: migrationSql["20260827080854_clone_showcase_for_the_last_judgment.sql"],
       pattern: /'ven_last_judgment'[\s\S]+from public\.venues[\s\S]+where id = 'ven_showcase'[\s\S]+source\.logo_url[\s\S]+where source\.venue_id = 'ven_showcase'[\s\S]+prepare_venue_test_service\('ven_last_judgment'\)/i,
+    },
+    {
+      label: "public demo is an anonymous read-only venue that is seeded from Showcase",
+      source: migrationSql["20260830074202_create_public_demo_venue.sql"],
+      pattern: /add column if not exists is_public_demo boolean not null default false[\s\S]+'ven_public_demo'[\s\S]+'public-demo'[\s\S]+is_public_demo[\s\S]+true[\s\S]+from public\.market_products source[\s\S]+where source\.venue_id = 'ven_showcase'[\s\S]+prepare_venue_test_service\('ven_public_demo'\)/i,
+    },
+    {
+      label: "The Last Judgment's dedicated test login and venue are retired",
+      source: migrationSql["20260830074202_create_public_demo_venue.sql"],
+      pattern: /delete from public\.price_publication_lines[\s\S]+delete from public\.price_publications[\s\S]+delete from public\.pos_sales_events[\s\S]+delete from auth\.users[\s\S]+manager@thelastjudgment\.com[\s\S]+delete from public\.venues[\s\S]+ven_last_judgment/i,
     },
     {
       label: "market price rounds are linked to their owning run",

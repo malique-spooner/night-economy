@@ -67,4 +67,4 @@ This is a working product prototype, not a claim that dynamic pricing is ready f
 
 Use a laptop for the best experience.
 
-Start at the [live sign-in page](https://night-economy.pages.dev/sign-in/the-last-judgment). Demo access is available on request. Once signed in, start the 18-minute demo, then open Market and Mobile Market from the portal.
+Start at the [public demo](https://night-economy.pages.dev/public-demo). No sign-in is required. The market stays live continuously, while the Portal is deliberately view-only; open Market and Mobile Market from there to see the connected guest-facing experiences.

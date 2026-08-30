@@ -7,7 +7,7 @@ import { activeSlot, serviceAction, type ScheduleEntry } from "../_shared/servic
  * services follow exactly the same lifecycle.
  */
 
-type Venue = { id: string; slug: string; timezone: string; market_schedule: ScheduleEntry[] | null };
+type Venue = { id: string; slug: string; timezone: string; market_schedule: ScheduleEntry[] | null; is_public_demo: boolean };
 type Service = { venue_id: string; status: "idle" | "running" | "paused" | "ended"; scheduled_slot_key: string | null };
 
 Deno.serve(async request => {
@@ -19,7 +19,7 @@ Deno.serve(async request => {
     const key = serverKey();
     if (!url || !key) return json({ error: "Server configuration is incomplete" }, 500);
     const headers = { apikey: key, "content-type": "application/json" };
-    const venues = await restJson<Venue[]>(url, "/venues?select=id,slug,timezone,market_schedule", { headers }, "load venue schedules");
+    const venues = await restJson<Venue[]>(url, "/venues?select=id,slug,timezone,market_schedule,is_public_demo", { headers }, "load venue schedules");
     const services = await restJson<Service[]>(url, "/venue_test_services?select=venue_id,status,scheduled_slot_key", { headers }, "load test services");
     const byVenue = new Map(services.map(service => [service.venue_id, service]));
     const outcomes: Array<{ venue: string; action: string }> = [];
@@ -27,6 +27,21 @@ Deno.serve(async request => {
     for (const venue of venues) {
       const service = byVenue.get(venue.id);
       if (!service) continue;
+
+      // The public demo is intentionally always on. A real-time service lasts
+      // six hours, then the scheduler starts a fresh one on its next pass.
+      // Public visitors only receive read access, so this cannot be paused or
+      // changed from the browser.
+      if (venue.is_public_demo) {
+        if (service.status === "running") {
+          await invokeVenueSimulator(url, key, { venueSlug: venue.slug, action: "tick" });
+          outcomes.push({ venue: venue.slug, action: "ticked-public-demo" });
+        } else {
+          await invokeVenueSimulator(url, key, { venueSlug: venue.slug, action: "quick_start", speed: 1 });
+          outcomes.push({ venue: venue.slug, action: "started-public-demo" });
+        }
+        continue;
+      }
       const slot = activeSlot(venue.market_schedule ?? [], venue.timezone || "Europe/London", new Date());
       const action = serviceAction(slot, service);
       if (action === "scheduled_start" && slot) {

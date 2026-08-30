@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Menu } from "./pages/Menu";
 import { LogoDemo } from "./pages/LogoDemo";
 import { Portal } from "./pages/Portal";
+import { PublicDemoPortal } from "./pages/PublicDemoPortal";
 import { PortalSignIn } from "./pages/PortalSignIn";
 import { Simulator } from "./pages/Simulator";
 import { Site } from "./pages/Site";
@@ -14,7 +15,7 @@ export function App() {
     ? "simulator"
     : route.surface === "logo"
       ? "logo"
-    : route.surface === "app" || route.surface === "sign-in"
+    : route.surface === "app" || route.surface === "sign-in" || route.surface === "public-demo"
       ? "portal"
     : route.surface === "menu"
       ? "mobile"
@@ -34,6 +35,7 @@ export function App() {
   if (route.surface === "tv") return <Tv venueSlug={route.slug ?? "demo-venue"} />;
   if (route.surface === "menu") return <Menu venueSlug={route.slug ?? "demo-venue"} />;
   if (route.surface === "app") return <Portal venueSlug={route.slug ?? "demo-venue"} />;
+  if (route.surface === "public-demo") return <PublicDemoPortal />;
   if (route.surface === "sign-in") return <PortalSignIn venueSlug={route.slug} />;
   if (route.surface === "simulator") return <Simulator venueSlug={route.slug ?? "demo-venue"} />;
   if (route.surface === "logo") return <LogoDemo />;

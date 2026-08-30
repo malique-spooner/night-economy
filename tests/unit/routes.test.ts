@@ -16,6 +16,7 @@ describe("resolveAppRoute", () => {
     expect(resolveAppRoute("/simulator/soho-house")).toEqual({ surface: "simulator", slug: "soho-house" });
     expect(resolveAppRoute("/sign-in/soho-house")).toEqual({ surface: "sign-in", slug: "soho-house" });
     expect(resolveAppRoute("/venue/soho-house")).toEqual({ surface: "venue", slug: "soho-house" });
+    expect(resolveAppRoute("/public-demo")).toEqual({ surface: "public-demo" });
   });
 
   it("falls back to the public site", () => {
