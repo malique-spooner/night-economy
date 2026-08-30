@@ -50,6 +50,9 @@ test("the public demo is view-only and links to its guest-facing market surfaces
   await expect(page.getByRole("link", { name: "Market display" })).toHaveAttribute("href", "/tv/public-demo");
   await expect(page.getByRole("link", { name: "Mobile market" })).toHaveAttribute("href", "/menu/public-demo");
   await expect(page.getByText(/Controls, pricing edits, POS setup and settings are disabled/)).toBeVisible();
+  expect(await page.evaluate(() => document.scrollingElement!.scrollHeight > document.scrollingElement!.clientHeight)).toBe(true);
+  await page.mouse.wheel(0, 900);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
 });
 
 test("a guest can move through the venue, TV, and mobile market surfaces", async ({ page }) => {
