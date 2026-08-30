@@ -114,10 +114,9 @@ export function PortalSignIn({ venueSlug }: Props) {
   return (
     <main className="portal-signin-page">
       <section className="portal-signin-card" aria-labelledby="portal-signin-title">
-        <a className="portal-signin-back" href={requestedVenueSlug ? `/venue/${encodeURIComponent(requestedVenueSlug)}` : "/"}>← Back to site</a>
+        <a className="portal-signin-back" href={requestedVenueSlug ? `/venue/${encodeURIComponent(requestedVenueSlug)}` : "/"}>← Back</a>
         <p className="portal-signin-kicker">Night Economy</p>
-        <h1 id="portal-signin-title">{isRecovery ? "Choose a new password" : "Portal sign in"}</h1>
-        <p>{isRecovery ? "Secure your operator account with a new password." : "Sign in to your Night Economy account. We’ll take you to the venue Portal you can access."}</p>
+        <h1 id="portal-signin-title">{isRecovery ? "New password" : "Sign in"}</h1>
         {isRecovery ? (
           <form className="portal-signin-form" onSubmit={handlePasswordUpdate}>
             <label>
@@ -144,18 +143,15 @@ export function PortalSignIn({ venueSlug }: Props) {
             </div>
           </label>
           <div className="portal-signin-help">
-            <span>Your account may have access to one or more venues.</span>
             <button type="button" onClick={handlePasswordReset} disabled={!supabaseStatus.ready || status !== "idle"}>Forgot password?</button>
           </div>
           <button disabled={!supabaseStatus.ready || status !== "idle"} type="submit">{status === "signing-in" ? "Signing in…" : "Sign in securely"}</button>
         </form>
         )}
-        <p className={`portal-signin-status ${isError ? "error" : ""}`} aria-live="polite">
-          {message || (isRecovery ? "Your reset link is active." : supabaseStatus.ready ? "Need access? Ask your venue administrator or contact support." : "Portal sign-in is not configured yet.")}
-        </p>
-        {!isRecovery && <a className="portal-public-demo-link" href="/public-demo">View the public demo — no sign-in needed <span aria-hidden="true">→</span></a>}
+        {(message || !supabaseStatus.ready) && <p className={`portal-signin-status ${isError ? "error" : ""}`} aria-live="polite">{message || "Sign-in is not configured yet."}</p>}
+        {!isRecovery && <a className="portal-public-demo-link" href="/public-demo">Try the public demo <span aria-hidden="true">→</span></a>}
         {hasNoVenueAccess && <button className="portal-signin-signout" type="button" onClick={() => { void signOut().finally(() => window.location.assign("/")); }}>Sign out and use another venue account</button>}
-        <div className="portal-signin-footer"><a href="mailto:hello@nighteconomy.app?subject=Portal%20access">Contact support</a><span>Encrypted authentication</span></div>
+        <div className="portal-signin-footer"><a href="mailto:hello@nighteconomy.app?subject=Portal%20access">Contact support</a></div>
       </section>
     </main>
   );
