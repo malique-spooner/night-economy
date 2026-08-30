@@ -610,6 +610,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
                     readOnly={readOnly}
                     selectedProductId={selectedProductId}
                     simulatorState={simulatorState}
+                    marketSlug={venueSlug}
                     venue={scheduleOverride ? { ...state.venue, marketSchedule: scheduleOverride } : state.venue}
                   />
                 ) : activeTab === "runs" ? (

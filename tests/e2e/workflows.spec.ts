@@ -48,7 +48,8 @@ test("the public demo is the real Portal with every mutating control disabled", 
   await expect(page.getByRole("heading", { name: "Portal" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Open 24/7" })).toBeVisible();
   await expect(page.getByText("Every day · all day", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Start real time demo" })).toBeDisabled();
+  await expect(page.getByRole("link", { name: /Open TV market/ })).toHaveAttribute("href", "/tv/public-demo");
+  await expect(page.getByRole("button", { name: "Start real time demo" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Market history", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Market history", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Market history" })).toBeVisible();

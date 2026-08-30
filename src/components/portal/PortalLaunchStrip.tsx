@@ -11,6 +11,7 @@ type Props = {
   onResume: () => void;
   onEnd: () => void;
   onSettingsChange: (patch: Partial<VenueMarketSettings>) => void;
+  marketHref: string;
   readOnly?: boolean;
   settings: VenueMarketSettings;
   simulatorState: SimulatorState | null;
@@ -33,7 +34,7 @@ export function updateScheduleDay(schedule: MarketScheduleEntry[], day: string, 
   return schedule.map(entry => entry.day === day ? { ...entry, ...patch } : entry);
 }
 
-export function PortalLaunchStrip({ isServiceActionPending, onEnd, onPause, onQuickStart, onRealTimeStart, onResume, onSettingsChange, readOnly = false, settings, simulatorState, timezone }: Props) {
+export function PortalLaunchStrip({ isServiceActionPending, marketHref, onEnd, onPause, onQuickStart, onRealTimeStart, onResume, onSettingsChange, readOnly = false, settings, simulatorState, timezone }: Props) {
   const schedule = days.map(day => settings.marketSchedule.find(entry => entry.day === day) ?? { day, start: "18:00", end: "00:00", enabled: false });
   const next = getNextService(schedule, timezone);
   const save = (nextSchedule: MarketScheduleEntry[]) => onSettingsChange({ marketSchedule: nextSchedule });
@@ -52,13 +53,13 @@ export function PortalLaunchStrip({ isServiceActionPending, onEnd, onPause, onQu
         <p>{marketStatus}</p>
       </div>
       <div className="portal-service-actions" data-portal-tour="service-controls">
-        {!serviceIsOpen ? <>
+        {readOnly ? <a className="portal-open-market" href={marketHref} rel="noreferrer" target="_blank">Open TV market <span aria-hidden="true">↗</span></a> : !serviceIsOpen ? <>
           <button className="portal-quick-start" disabled={readOnly || isServiceActionPending} onClick={onQuickStart} type="button">Start 18-min demo</button>
           <button className="portal-real-time-start" disabled={readOnly || isServiceActionPending} onClick={onRealTimeStart} type="button">Start real time demo</button>
         </> : null}
-        {service?.running ? <button className="portal-quick-start is-live" disabled={readOnly} onClick={onPause} type="button">Pause</button> : null}
-        {serviceIsOpen && service?.paused ? <button className="portal-quick-start" disabled={readOnly} onClick={onResume} type="button">Resume</button> : null}
-        {serviceIsOpen ? <button className="portal-end-service" disabled={readOnly} onClick={onEnd} type="button">End</button> : null}
+        {!readOnly && service?.running ? <button className="portal-quick-start is-live" onClick={onPause} type="button">Pause</button> : null}
+        {!readOnly && serviceIsOpen && service?.paused ? <button className="portal-quick-start" onClick={onResume} type="button">Resume</button> : null}
+        {!readOnly && serviceIsOpen ? <button className="portal-end-service" onClick={onEnd} type="button">End</button> : null}
       </div>
     </div>
 
