@@ -83,7 +83,7 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
         {simulatorHref && <a className="portal-nav-item portal-nav-link" href={simulatorHref}>
           <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="simulator" /></span><span className="portal-nav-label">Simulator</span>
         </a>}
-        {readOnly ? <a className="portal-signout" href="/sign-in"><span aria-hidden="true" className="portal-signout-icon"><NavIcon name="signout" /></span><b>Operator sign in</b></a> : <button className="portal-signout" type="button" onClick={onSignOut}><span aria-hidden="true" className="portal-signout-icon"><NavIcon name="signout" /></span><b>Sign out</b></button>}
+        {readOnly ? <a className="portal-signout" href="/sign-in"><span aria-hidden="true" className="portal-signout-icon"><NavIcon name="signout" /></span><b>Sign in</b></a> : <button className="portal-signout" type="button" onClick={onSignOut}><span aria-hidden="true" className="portal-signout-icon"><NavIcon name="signout" /></span><b>Sign out</b></button>}
       </div>
     </aside>
   );

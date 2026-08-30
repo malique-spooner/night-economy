@@ -8303,7 +8303,7 @@ body[data-app-view='site'] .site-scroll-story .site-why-shell{width:min(1180px,1
 }
 
 /* Sign out is one inline control everywhere; the icon must never occupy its own row. */
-body[data-app-view='portal'] .portal-signout{display:flex;align-items:center;justify-content:flex-start;gap:10px;text-align:left}
+body[data-app-view='portal'] .portal-signout{display:flex;align-items:center;justify-content:flex-start;gap:10px;text-align:left;text-decoration:none}
 body[data-app-view='portal'] .portal-signout .portal-signout-icon{display:grid;place-items:center;flex:0 0 20px;width:20px;height:20px;line-height:1}
 body[data-app-view='portal'] .portal-signout .portal-signout-icon svg{display:block;width:20px;height:20px}
 body[data-app-view='portal'] .portal-signout b{display:block;margin:0;line-height:1;white-space:nowrap}
