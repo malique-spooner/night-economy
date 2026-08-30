@@ -27,6 +27,7 @@ type Props = {
   priceHistory: MarketPriceHistoryPoint[];
   priceHistoryLoading: boolean;
   posProducts: PosProduct[];
+  readOnly?: boolean;
   selectedProductId: string | null;
   simulatorState: SimulatorState | null;
   venue: Venue;
@@ -52,6 +53,7 @@ export function PortalStartPage({
   selectedProductId,
   simulatorState,
   posProducts,
+  readOnly = false,
   venue,
 }: Props) {
   const activeProducts = products.filter(product => !product.isArchived);
@@ -74,7 +76,7 @@ export function PortalStartPage({
   return (
     <section className="portal-start-page">
       <h1 className="portal-page-title">Portal</h1>
-      <PortalLaunchStrip isServiceActionPending={isServiceActionPending} onEnd={onEnd} onPause={onPause} onQuickStart={onQuickStart} onRealTimeStart={onRealTimeStart} onResume={onResume} onSettingsChange={onVenueSettingsChange} settings={settings} simulatorState={simulatorState} timezone={venue.timezone} />
+      <PortalLaunchStrip isServiceActionPending={isServiceActionPending} onEnd={onEnd} onPause={onPause} onQuickStart={onQuickStart} onRealTimeStart={onRealTimeStart} onResume={onResume} onSettingsChange={onVenueSettingsChange} readOnly={readOnly} settings={settings} simulatorState={simulatorState} timezone={venue.timezone} />
       <PortalCategoryFilters activeCategory={activeCategory} categories={categories} onCategoryChange={setSelectedCategory} />
       <div className="portal-drink-list">
         {visibleGroups.map(([category, categoryProducts]) => (
@@ -90,6 +92,7 @@ export function PortalStartPage({
             priceHistoryLoading={priceHistoryLoading}
             posProducts={posProducts}
             products={categoryProducts}
+            readOnly={readOnly}
             selectedProductId={selectedProductId}
             key={category}
           />
