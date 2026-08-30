@@ -11,6 +11,7 @@ type Props = {
   onResume: () => void;
   onEnd: () => void;
   onSettingsChange: (patch: Partial<VenueMarketSettings>) => void;
+  readOnly?: boolean;
   settings: VenueMarketSettings;
   simulatorState: SimulatorState | null;
   timezone: string;
@@ -32,7 +33,7 @@ export function updateScheduleDay(schedule: MarketScheduleEntry[], day: string, 
   return schedule.map(entry => entry.day === day ? { ...entry, ...patch } : entry);
 }
 
-export function PortalLaunchStrip({ isServiceActionPending, onEnd, onPause, onQuickStart, onRealTimeStart, onResume, onSettingsChange, settings, simulatorState, timezone }: Props) {
+export function PortalLaunchStrip({ isServiceActionPending, onEnd, onPause, onQuickStart, onRealTimeStart, onResume, onSettingsChange, readOnly = false, settings, simulatorState, timezone }: Props) {
   const schedule = days.map(day => settings.marketSchedule.find(entry => entry.day === day) ?? { day, start: "18:00", end: "00:00", enabled: false });
   const next = getNextService(schedule, timezone);
   const save = (nextSchedule: MarketScheduleEntry[]) => onSettingsChange({ marketSchedule: nextSchedule });
@@ -52,23 +53,23 @@ export function PortalLaunchStrip({ isServiceActionPending, onEnd, onPause, onQu
       </div>
       <div className="portal-service-actions" data-portal-tour="service-controls">
         {!serviceIsOpen ? <>
-          <button className="portal-quick-start" disabled={isServiceActionPending} onClick={onQuickStart} type="button">Start 18-min demo</button>
-          <button className="portal-real-time-start" disabled={isServiceActionPending} onClick={onRealTimeStart} type="button">Start real time demo</button>
+          <button className="portal-quick-start" disabled={readOnly || isServiceActionPending} onClick={onQuickStart} type="button">Start 18-min demo</button>
+          <button className="portal-real-time-start" disabled={readOnly || isServiceActionPending} onClick={onRealTimeStart} type="button">Start real time demo</button>
         </> : null}
-        {service?.running ? <button className="portal-quick-start is-live" onClick={onPause} type="button">Pause</button> : null}
-        {serviceIsOpen && service?.paused ? <button className="portal-quick-start" onClick={onResume} type="button">Resume</button> : null}
-        {serviceIsOpen ? <button className="portal-end-service" onClick={onEnd} type="button">End</button> : null}
+        {service?.running ? <button className="portal-quick-start is-live" disabled={readOnly} onClick={onPause} type="button">Pause</button> : null}
+        {serviceIsOpen && service?.paused ? <button className="portal-quick-start" disabled={readOnly} onClick={onResume} type="button">Resume</button> : null}
+        {serviceIsOpen ? <button className="portal-end-service" disabled={readOnly} onClick={onEnd} type="button">End</button> : null}
       </div>
     </div>
 
     <div className="portal-schedule-days" aria-label="Weekly market schedule">
       {schedule.map(entry => <div className={`portal-schedule-day ${entry.enabled ? "is-enabled" : ""}`} key={entry.day}>
-        <button aria-pressed={entry.enabled} className="portal-schedule-day-toggle" onClick={() => updateDay(entry.day, { enabled: !entry.enabled })} type="button">
+        <button aria-pressed={entry.enabled} className="portal-schedule-day-toggle" disabled={readOnly} onClick={() => updateDay(entry.day, { enabled: !entry.enabled })} type="button">
           <strong>{entry.day}</strong>
           <span>{entry.enabled ? "On" : "Off"}</span>
         </button>
-        <label>Start<input aria-label={`${entry.day} start`} disabled={!entry.enabled} onChange={event => updateDay(entry.day, { start: event.target.value })} type="time" value={entry.start} /></label>
-        <label>Finish<input aria-label={`${entry.day} finish`} disabled={!entry.enabled} onChange={event => updateDay(entry.day, { end: event.target.value })} type="time" value={entry.end} /></label>
+        <label>Start<input aria-label={`${entry.day} start`} disabled={readOnly || !entry.enabled} onChange={event => updateDay(entry.day, { start: event.target.value })} type="time" value={entry.start} /></label>
+        <label>Finish<input aria-label={`${entry.day} finish`} disabled={readOnly || !entry.enabled} onChange={event => updateDay(entry.day, { end: event.target.value })} type="time" value={entry.end} /></label>
       </div>)}
     </div>
   </section>;

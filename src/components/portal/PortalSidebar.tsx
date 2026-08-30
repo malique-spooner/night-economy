@@ -11,13 +11,14 @@ type Props = {
   onTogglePinned: () => void;
   onSignOut: () => void;
   onOpenTour: () => void;
+  readOnly?: boolean;
   simulatorHref: string | null;
   totalCount: number;
   venueName: string;
   venueSlug: string;
 };
 
-export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount, onSignOut, onOpenTour, onTabChange, onTogglePinned, simulatorHref, totalCount, venueName, venueSlug }: Props) {
+export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount, onSignOut, onOpenTour, onTabChange, onTogglePinned, readOnly = false, simulatorHref, totalCount, venueName, venueSlug }: Props) {
   const canSwitchVenue = accessibleVenues.length > 1;
 
   return (
@@ -34,7 +35,7 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
       <label className="portal-venue-switcher">
         <span>{canSwitchVenue ? "Switch venue" : "Venue"}</span>
         <select aria-label="Switch venue" disabled={!canSwitchVenue} onChange={event => window.location.assign(`/app/${encodeURIComponent(event.target.value)}`)} value={venueSlug}>
-          {accessibleVenues.map(venue => <option key={venue.id} value={venue.slug}>{venue.name}</option>)}
+          {accessibleVenues.length ? accessibleVenues.map(venue => <option key={venue.id} value={venue.slug}>{venue.name}</option>) : <option value={venueSlug}>{venueName}</option>}
         </select>
       </label>
       <div className="portal-sidebar-stat">
@@ -82,7 +83,7 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
         {simulatorHref && <a className="portal-nav-item portal-nav-link" href={simulatorHref}>
           <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="simulator" /></span><span className="portal-nav-label">Simulator</span>
         </a>}
-        <button className="portal-signout" type="button" onClick={onSignOut}><span aria-hidden="true" className="portal-signout-icon"><NavIcon name="signout" /></span><b>Sign out</b></button>
+        {readOnly ? <a className="portal-signout" href="/sign-in"><span aria-hidden="true" className="portal-signout-icon"><NavIcon name="signout" /></span><b>Operator sign in</b></a> : <button className="portal-signout" type="button" onClick={onSignOut}><span aria-hidden="true" className="portal-signout-icon"><NavIcon name="signout" /></span><b>Sign out</b></button>}
       </div>
     </aside>
   );

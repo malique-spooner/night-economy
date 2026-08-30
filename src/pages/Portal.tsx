@@ -37,10 +37,11 @@ import {
 import { prepareMarketProductConfiguration } from "../components/portal/portalHelpers";
 
 type Props = {
+  readOnly?: boolean;
   venueSlug: string;
 };
 
-export function Portal({ venueSlug }: Props) {
+export function Portal({ readOnly = false, venueSlug }: Props) {
   // Realtime normally delivers changes instantly. Polling keeps the operator
   // view in sync with the POS if the browser misses a websocket event.
   const { error, refresh, setState, state } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
@@ -75,11 +76,17 @@ export function Portal({ venueSlug }: Props) {
   const venueSettingsSaveQueue = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
+    if (readOnly) {
+      setIsAuthResolved(true);
+      setIsCheckingAccess(false);
+      setHasCheckedVenueAccess(true);
+      return;
+    }
     void refreshSession();
     return onAuthStateChange(() => {
       void refreshSession();
     });
-  }, []);
+  }, [readOnly]);
 
   useEffect(() => {
     if (!isSignedIn || venueSlug !== "showcase") return;
@@ -88,9 +95,9 @@ export function Portal({ venueSlug }: Props) {
   }, [isSignedIn, venueSlug]);
 
   useEffect(() => {
-    if (!isAuthResolved || isSignedIn || isSigningOut) return;
+    if (readOnly || !isAuthResolved || isSignedIn || isSigningOut) return;
     window.location.replace(`/sign-in/${encodeURIComponent(venueSlug)}`);
-  }, [isAuthResolved, isSignedIn, isSigningOut, venueSlug]);
+  }, [isAuthResolved, isSignedIn, isSigningOut, readOnly, venueSlug]);
 
   useEffect(() => {
     if (!state) return;
@@ -100,6 +107,13 @@ export function Portal({ venueSlug }: Props) {
 
     async function refreshVenueAccess() {
       setHasCheckedVenueAccess(false);
+
+      if (readOnly) {
+        setMemberRole(null);
+        setIsCheckingAccess(false);
+        setHasCheckedVenueAccess(true);
+        return;
+      }
 
       if (source === "seed") {
         setMemberRole(null);
@@ -136,10 +150,10 @@ export function Portal({ venueSlug }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn, state?.source, state?.venue.id]);
+  }, [isSignedIn, readOnly, state?.source, state?.venue.id]);
 
   useEffect(() => {
-    if (!isSignedIn || state?.source !== "supabase") {
+    if (readOnly || !isSignedIn || state?.source !== "supabase") {
       setAccessibleVenues([]);
       return;
     }
@@ -149,10 +163,10 @@ export function Portal({ venueSlug }: Props) {
       .then(venues => { if (!cancelled) setAccessibleVenues(venues); })
       .catch(() => { if (!cancelled) setAccessibleVenues([]); });
     return () => { cancelled = true; };
-  }, [isSignedIn, state?.source]);
+  }, [isSignedIn, readOnly, state?.source]);
 
   useEffect(() => {
-    if (!isSignedIn || !error.includes("no longer available")) return;
+    if (readOnly || !isSignedIn || !error.includes("no longer available")) return;
 
     let cancelled = false;
     void getMyAccessibleVenues().then(venues => {
@@ -162,10 +176,10 @@ export function Portal({ venueSlug }: Props) {
       // The error screen remains visible when the session has no venue access.
     });
     return () => { cancelled = true; };
-  }, [error, isSignedIn]);
+  }, [error, isSignedIn, readOnly]);
 
   useEffect(() => {
-    if (!state || !isSignedIn || state.source !== "supabase") return;
+    if (!state || (!isSignedIn && !readOnly) || state.source !== "supabase") return;
     let cancelled = false;
     let timer: number | undefined;
     const venueId = state.venue.id;
@@ -196,10 +210,10 @@ export function Portal({ venueSlug }: Props) {
       cancelled = true;
       if (timer !== undefined) window.clearTimeout(timer);
     };
-  }, [activeTab, isSignedIn, state?.source, state?.venue.id]);
+  }, [activeTab, isSignedIn, readOnly, state?.source, state?.venue.id]);
 
   useEffect(() => {
-    if (!state || state.source !== "supabase" || !isSignedIn || !hasCheckedVenueAccess || isCheckingAccess || memberRole !== null) return;
+    if (readOnly || !state || state.source !== "supabase" || !isSignedIn || !hasCheckedVenueAccess || isCheckingAccess || memberRole !== null) return;
 
     let cancelled = false;
     void getMyAccessibleVenues().then(venues => {
@@ -212,14 +226,14 @@ export function Portal({ venueSlug }: Props) {
     });
 
     return () => { cancelled = true; };
-  }, [hasCheckedVenueAccess, isCheckingAccess, isSignedIn, memberRole, state?.source, venueSlug]);
+  }, [hasCheckedVenueAccess, isCheckingAccess, isSignedIn, memberRole, readOnly, state?.source, venueSlug]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function refreshSimulator() {
       try {
-        if (!isSignedIn) return;
+        if (!isSignedIn && !readOnly) return;
         const nextState = await getSimulatorState(venueSlug);
         if (!cancelled) setSimulatorState(nextState);
       } catch {
@@ -237,7 +251,7 @@ export function Portal({ venueSlug }: Props) {
       cancelled = true;
       if (timer !== undefined) window.clearTimeout(timer);
     };
-  }, [isSignedIn, venueSlug]);
+  }, [isSignedIn, readOnly, venueSlug]);
 
   useEffect(() => {
     if (!state || !selectedProductId || state.source === "seed") {
@@ -270,7 +284,7 @@ export function Portal({ venueSlug }: Props) {
     const marketState = state;
     let cancelled = false;
     async function refreshPosProducts() {
-      if (marketState.source === "supabase" && !isSignedIn) {
+      if (marketState.source === "supabase" && !isSignedIn && !readOnly) {
         setPosProducts([]);
         return;
       }
@@ -287,14 +301,14 @@ export function Portal({ venueSlug }: Props) {
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [isSignedIn, state?.source, state?.venue.id]);
+  }, [isSignedIn, readOnly, state?.source, state?.venue.id]);
 
   if (isSigningOut) return <main className="page">Signing out...</main>;
-  if (!isAuthResolved || !isSignedIn) return <main className="page">Checking secure portal access...</main>;
+  if (!readOnly && (!isAuthResolved || !isSignedIn)) return <main className="page">Checking secure portal access...</main>;
   if (error) return <main className="page">{error.includes("no longer available") ? "That venue has been removed. Taking you to a venue you can access…" : `Could not load portal: ${error}`}</main>;
   if (!state) return <main className="page">Loading portal...</main>;
 
-  if (state.source === "supabase" && (!hasCheckedVenueAccess || isCheckingAccess || memberRole === null)) {
+  if (!readOnly && state.source === "supabase" && (!hasCheckedVenueAccess || isCheckingAccess || memberRole === null)) {
     return (
       <main className="page">
         <h1>{!hasCheckedVenueAccess || isCheckingAccess ? "Checking venue access..." : "This account cannot access this venue."}</h1>
@@ -305,15 +319,15 @@ export function Portal({ venueSlug }: Props) {
 
   const liveCount = state.products.filter(product => !product.isArchived && !product.isSoldOut && product.isLive).length;
   const simulatorHref = isPlatformAdmin ? `/simulator/${encodeURIComponent(venueSlug)}` : null;
-  const canPersist = canEditMarketProducts({ isSignedIn, role: memberRole, source: state.source });
-  const canManageSettings = canManageVenueSettings({ role: memberRole, source: state.source });
-  const accessMessage = portalAccessMessage({
+  const canPersist = !readOnly && canEditMarketProducts({ isSignedIn, role: memberRole, source: state.source });
+  const canManageSettings = !readOnly && canManageVenueSettings({ role: memberRole, source: state.source });
+  const accessMessage = readOnly ? "Public demo — changes are disabled" : portalAccessMessage({
     isCheckingAccess,
     isSignedIn,
     role: memberRole,
     source: state.source,
   });
-  const settingsAccessMessage = venueSettingsAccessMessage({ role: memberRole, source: state.source });
+  const settingsAccessMessage = readOnly ? "Public demo — settings are disabled" : venueSettingsAccessMessage({ role: memberRole, source: state.source });
 
   async function handleProductChange(
     productId: string,
@@ -559,6 +573,7 @@ export function Portal({ venueSlug }: Props) {
               onTogglePinned={() => setIsNavPinned(current => !current)}
               onSignOut={handleSignOut}
               onOpenTour={() => setIsShowcaseGuideOpen(true)}
+              readOnly={readOnly}
               simulatorHref={simulatorHref}
               totalCount={state.products.length}
               venueName={state.venue.name}
@@ -592,6 +607,7 @@ export function Portal({ venueSlug }: Props) {
                     priceHistory={priceHistory}
                     priceHistoryLoading={priceHistoryLoading}
                     posProducts={posProducts}
+                    readOnly={readOnly}
                     selectedProductId={selectedProductId}
                     simulatorState={simulatorState}
                     venue={scheduleOverride ? { ...state.venue, marketSchedule: scheduleOverride } : state.venue}
@@ -602,8 +618,9 @@ export function Portal({ venueSlug }: Props) {
                   <PortalAccountPage
                     categories={[...new Set(state.products.filter(product => !product.isArchived).map(product => product.category))].sort((left, right) => left.localeCompare(right))}
                     canManageCrashSettings={canManageSettings}
-                    email={signedInEmail}
+                    email={readOnly ? "Public visitor" : signedInEmail}
                     isSignedIn={isSignedIn}
+                    isReadOnly={readOnly}
                     onCrashSettingsChange={crashSettings => { void handleVenueSettingsChange({ crashSettings }); }}
                     products={state.products}
                     role={memberRole}

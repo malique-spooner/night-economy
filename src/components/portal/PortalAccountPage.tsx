@@ -7,6 +7,7 @@ type Props = {
   canManageCrashSettings: boolean;
   email: string;
   isSignedIn: boolean;
+  isReadOnly?: boolean;
   onCrashSettingsChange: (settings: MarketCrashSettings) => void;
   products: MarketProduct[];
   role: VenueMemberRole | null;
@@ -14,8 +15,8 @@ type Props = {
   venue: Venue;
 };
 
-export function PortalAccountPage({ categories, canManageCrashSettings, email, isSignedIn, onCrashSettingsChange, products, role, source, venue }: Props) {
-  const access = source === "seed" ? "Demo access" : role ? `${role[0].toUpperCase()}${role.slice(1)} access` : "No venue access";
+export function PortalAccountPage({ categories, canManageCrashSettings, email, isReadOnly = false, isSignedIn, onCrashSettingsChange, products, role, source, venue }: Props) {
+  const access = isReadOnly ? "Public read-only access" : source === "seed" ? "Demo access" : role ? `${role[0].toUpperCase()}${role.slice(1)} access` : "No venue access";
 
   return (
     <section className="portal-page-grid portal-settings-page">
@@ -40,7 +41,7 @@ export function PortalAccountPage({ categories, canManageCrashSettings, email, i
       <article className="portal-account-card portal-settings-details">
         <h2>Access</h2>
         <dl className="portal-account-list">
-          <div><dt>Operator</dt><dd>{isSignedIn ? email || "Signed in" : "Not signed in"}</dd></div>
+          <div><dt>Operator</dt><dd>{isReadOnly ? email : isSignedIn ? email || "Signed in" : "Not signed in"}</dd></div>
           <div><dt>Permission</dt><dd>{access}</dd></div>
         </dl>
       </article>

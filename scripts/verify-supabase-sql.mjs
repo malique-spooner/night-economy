@@ -60,6 +60,7 @@ const expectedMigrations = [
   "20260827075610_retain_cron_run_history.sql",
   "20260827080854_clone_showcase_for_the_last_judgment.sql",
   "20260830074202_create_public_demo_venue.sql",
+  "20260830082235_allow_public_demo_portal_reads.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -193,6 +194,11 @@ function checkRequiredPatterns() {
       label: "The Last Judgment's dedicated test login and venue are retired",
       source: migrationSql["20260830074202_create_public_demo_venue.sql"],
       pattern: /delete from public\.price_publication_lines[\s\S]+delete from public\.price_publications[\s\S]+delete from public\.pos_sales_events[\s\S]+delete from auth\.users[\s\S]+manager@thelastjudgment\.com[\s\S]+delete from public\.venues[\s\S]+ven_last_judgment/i,
+    },
+    {
+      label: "public demo Portal reads only its own simulated POS and run data",
+      source: migrationSql["20260830082235_allow_public_demo_portal_reads.sql"],
+      pattern: /grant select on public\.pos_connections, public\.pos_products, public\.pos_sales_events, public\.market_runs to anon[\s\S]+on public\.pos_connections for select[\s\S]+is_public_demo = true[\s\S]+on public\.pos_products for select[\s\S]+is_public_demo = true[\s\S]+on public\.market_runs for select[\s\S]+is_public_demo = true[\s\S]+on public\.pos_sales_events for select[\s\S]+run_id is not null[\s\S]+is_public_demo = true/i,
     },
     {
       label: "market price rounds are linked to their owning run",

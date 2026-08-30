@@ -15,10 +15,11 @@ type Props = {
   marketLive: boolean;
   posProducts: PosProduct[];
   products: MarketProduct[];
+  readOnly?: boolean;
   selectedProductId: string | null;
 };
 
-export function PortalDrinkGroup({ allProducts, category, marketLive, onLogoRemove, onLogoUpload, onProductChange, onSelectProduct, posProducts, priceHistory, priceHistoryLoading, products, selectedProductId }: Props) {
+export function PortalDrinkGroup({ allProducts, category, marketLive, onLogoRemove, onLogoUpload, onProductChange, onSelectProduct, posProducts, priceHistory, priceHistoryLoading, products, readOnly = false, selectedProductId }: Props) {
   const liveProducts = products.filter(product => product.isLive && !product.isArchived).length;
   const tvPages = Math.ceil(liveProducts / TV_CATEGORY_PAGE_LIMIT);
   const isOverTvPageLimit = liveProducts > TV_CATEGORY_PAGE_LIMIT;
@@ -46,7 +47,7 @@ export function PortalDrinkGroup({ allProducts, category, marketLive, onLogoRemo
         </div>
       </div>
       {products.map(product => (
-        <PortalDrinkRow allProducts={allProducts} history={priceHistory} historyLoading={priceHistoryLoading} marketLive={marketLive} onChange={onProductChange} onLogoRemove={onLogoRemove} onLogoUpload={onLogoUpload} onSelect={onSelectProduct} posProducts={posProducts} product={product} selected={product.id === selectedProductId} key={product.id} />
+        <PortalDrinkRow allProducts={allProducts} history={priceHistory} historyLoading={priceHistoryLoading} marketLive={marketLive} onChange={onProductChange} onLogoRemove={onLogoRemove} onLogoUpload={onLogoUpload} onSelect={onSelectProduct} posProducts={posProducts} product={product} readOnly={readOnly} selected={product.id === selectedProductId} key={product.id} />
       ))}
     </section>
   );

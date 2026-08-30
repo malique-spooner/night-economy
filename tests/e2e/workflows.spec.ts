@@ -41,18 +41,14 @@ test("the public venue route uses the intentional coming-soon landing page", asy
   await expect(page.getByRole("link", { name: /Sign in to Portal/ })).toHaveAttribute("href", "/sign-in/demo-venue");
 });
 
-test("the public demo is view-only and links to its guest-facing market surfaces", async ({ page }) => {
+test("the public demo is the real Portal with every mutating control disabled", async ({ page }) => {
   await mockSupabase(page);
   await page.goto("/public-demo");
   await expect(page.locator("body")).toHaveAttribute("data-app-view", "portal");
   await expect(page.getByRole("heading", { name: "Portal" })).toBeVisible();
-  await expect(page.getByText("Public demo · View only")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Market display" })).toHaveAttribute("href", "/tv/public-demo");
+  await expect(page.getByRole("button", { name: "Start real time demo" })).toBeDisabled();
+  await expect(page.getByRole("link", { name: "Market", exact: true })).toHaveAttribute("href", "/tv/public-demo");
   await expect(page.getByRole("link", { name: "Mobile market" })).toHaveAttribute("href", "/menu/public-demo");
-  await expect(page.getByText(/Controls, pricing edits, POS setup and settings are disabled/)).toBeVisible();
-  expect(await page.evaluate(() => document.scrollingElement!.scrollHeight > document.scrollingElement!.clientHeight)).toBe(true);
-  await page.mouse.wheel(0, 900);
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
 });
 
 test("a guest can move through the venue, TV, and mobile market surfaces", async ({ page }) => {
