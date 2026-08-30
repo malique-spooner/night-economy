@@ -13,11 +13,12 @@ type Props = {
   currency: string;
   isLoading: boolean;
   products: MarketProduct[];
+  readOnly?: boolean;
   runs: MarketRun[];
   timezone: string;
 };
 
-export function PortalRunsPage({ currency, isLoading, products, runs, timezone }: Props) {
+export function PortalRunsPage({ currency, isLoading, products, readOnly = false, runs, timezone }: Props) {
   const [selectedRun, setSelectedRun] = useState<MarketRun | null>(null);
   const [sales, setSales] = useState<MarketRunSale[]>([]);
   const [priceHistory, setPriceHistory] = useState<MarketRunPricePoint[]>([]);
@@ -65,6 +66,8 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
     minute: "2-digit",
     ...(withSeconds ? { second: "2-digit" } : {}),
   }).format(new Date(value));
+
+  if (readOnly) return <PublicMarketHistory currency={currency} isLoading={isLoading} runs={runs} timezone={timezone} />;
 
   if (selectedRun && dashboard) {
     const maxTimelineSales = Math.max(1, ...dashboard.timeline.map(point => point.quantity));
@@ -178,6 +181,50 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
       </article>)}
     </div>}
   </section>;
+}
+
+/** Public visitors see continuous daily activity, never implementation-level restarts. */
+function PublicMarketHistory({ currency, isLoading, runs, timezone }: Pick<Props, "currency" | "isLoading" | "runs" | "timezone">) {
+  const days = useMemo(() => {
+    const grouped = new Map<string, MarketRun[]>();
+    for (const run of runs) {
+      const key = calendarDay(run.startedAt, timezone);
+      grouped.set(key, [...(grouped.get(key) ?? []), run]);
+    }
+    return [...grouped.entries()].map(([key, dayRuns]) => ({ key, runs: dayRuns })).sort((left, right) => right.key.localeCompare(left.key));
+  }, [runs, timezone]);
+  const today = calendarDay(new Date().toISOString(), timezone);
+  const money = (minor: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(minor / 100);
+
+  return <section className="portal-runs-page portal-public-history">
+    <div className="portal-runs-heading"><div><span className="portal-start-kicker">Public market</span><h1 className="portal-page-title">Market history</h1><p>This market stays live continuously. Activity is grouped by day, so automatic background handovers never interrupt the story.</p></div><span>{days.length} days recorded</span></div>
+    <div className="portal-public-history-live"><span>Live now</span><strong>Public Demo market · running continuously</strong><small>Prices refresh every five minutes</small></div>
+    {isLoading ? <p className="portal-runs-empty">Loading market history…</p> : !days.length ? <p className="portal-runs-empty">Today’s activity will appear here once the market records its first update.</p> : <div className="portal-runs-list">
+      {days.map(day => {
+        const simulatedMinutes = day.runs.reduce((total, run) => total + run.simulatedMinutes, 0);
+        const salesCount = day.runs.reduce((total, run) => total + run.salesCount, 0);
+        const revenueMinor = day.runs.reduce((total, run) => total + run.revenueMinor, 0);
+        const priceRounds = Math.floor(simulatedMinutes / 5);
+        const isToday = day.key === today;
+        return <article className="portal-run-card portal-public-history-day" key={day.key}>
+          <div><strong>{isToday ? "Today" : formatMarketDay(day.key, timezone)}</strong><span>{isToday ? "Live market activity so far" : "Public market activity"}</span></div>
+          <span className={`portal-run-status ${isToday ? "running" : "completed"}`}>{isToday ? "live" : "complete"}</span>
+          <dl><div><dt>Price updates</dt><dd>{priceRounds}</dd></div><div><dt>Drinks sold</dt><dd>{salesCount}</dd></div><div><dt>Sales</dt><dd>{money(revenueMinor)}</dd></div></dl>
+          <details className="portal-public-history-details"><summary>View daily activity</summary><p>{day.runs.length} continuous market period{day.runs.length === 1 ? "" : "s"} combined into this day. Prices updated every five minutes.</p></details>
+        </article>;
+      })}
+    </div>}
+  </section>;
+}
+
+function calendarDay(value: string, timezone: string) {
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(value));
+  const lookup = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${lookup.year}-${lookup.month}-${lookup.day}`;
+}
+
+function formatMarketDay(day: string, timezone: string) {
+  return new Intl.DateTimeFormat("en-GB", { dateStyle: "full", timeZone: timezone }).format(new Date(`${day}T12:00:00Z`));
 }
 
 function RunKpi({ label, value }: { label: string; value: string }) {

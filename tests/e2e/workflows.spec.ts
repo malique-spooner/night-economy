@@ -47,6 +47,10 @@ test("the public demo is the real Portal with every mutating control disabled", 
   await expect(page.locator("body")).toHaveAttribute("data-app-view", "portal");
   await expect(page.getByRole("heading", { name: "Portal" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Start real time demo" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Market history", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Market history", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Market history" })).toBeVisible();
+  await expect(page.getByText("Live now", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Market", exact: true })).toHaveAttribute("href", "/tv/public-demo");
   await expect(page.getByRole("link", { name: "Mobile market" })).toHaveAttribute("href", "/menu/public-demo");
 });
