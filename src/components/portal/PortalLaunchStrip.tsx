@@ -48,7 +48,7 @@ export function PortalLaunchStrip({ isServiceActionPending, onEnd, onPause, onQu
     <div className="portal-schedule-summary">
       <div>
         <div className="portal-start-kicker">Market schedule</div>
-        <h2>{next ? `${next.day} · ${next.start}–${next.end}` : "No service scheduled"}</h2>
+        <h2>{readOnly ? "Open 24/7" : next ? `${next.day} · ${next.start}–${next.end}` : "No service scheduled"}</h2>
         <p>{marketStatus}</p>
       </div>
       <div className="portal-service-actions" data-portal-tour="service-controls">
@@ -62,7 +62,7 @@ export function PortalLaunchStrip({ isServiceActionPending, onEnd, onPause, onQu
       </div>
     </div>
 
-    <div className="portal-schedule-days" aria-label="Weekly market schedule">
+    {readOnly ? <div className="portal-public-schedule" aria-label="Public market schedule"><strong>Always open</strong><span>Every day · all day</span><small>Prices update every five minutes</small></div> : <div className="portal-schedule-days" aria-label="Weekly market schedule">
       {schedule.map(entry => <div className={`portal-schedule-day ${entry.enabled ? "is-enabled" : ""}`} key={entry.day}>
         <button aria-pressed={entry.enabled} className="portal-schedule-day-toggle" disabled={readOnly} onClick={() => updateDay(entry.day, { enabled: !entry.enabled })} type="button">
           <strong>{entry.day}</strong>
@@ -71,7 +71,7 @@ export function PortalLaunchStrip({ isServiceActionPending, onEnd, onPause, onQu
         <label>Start<input aria-label={`${entry.day} start`} disabled={readOnly || !entry.enabled} onChange={event => updateDay(entry.day, { start: event.target.value })} type="time" value={entry.start} /></label>
         <label>Finish<input aria-label={`${entry.day} finish`} disabled={readOnly || !entry.enabled} onChange={event => updateDay(entry.day, { end: event.target.value })} type="time" value={entry.end} /></label>
       </div>)}
-    </div>
+    </div>}
   </section>;
 }
 
