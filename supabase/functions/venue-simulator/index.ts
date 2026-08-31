@@ -1,7 +1,7 @@
 import { simulationStart } from "../_shared/serviceSchedule.ts";
 import { buildInstantSimulation, buildLondonFridayRevenuePlan, simulateDemandMinute, type DemandHistorySale } from "../_shared/instantSimulation.ts";
 import { parseMarketCrashSettings } from "../_shared/marketCrash.ts";
-import { marketCycleMinutes, simulationProgress } from "../_shared/simulationClock.ts";
+import { QUICK_START_TICK_SECONDS, marketCycleMinutes, simulationProgress } from "../_shared/simulationClock.ts";
 
 /**
  * Authoritative cloud simulator for manual rehearsals, instant simulations,
@@ -77,10 +77,19 @@ Deno.serve(async request => {
           await save(url, headers, venue.id, { status: "ended", simulated_minute: 0, last_tick_at: new Date().toISOString(), active_run_id: null }).catch(() => undefined);
           throw error;
         }
+      } else if (action === "quick_start" && state.speed > 1) {
+        // A quick demo should be alive as soon as the Portal opens. Seed its
+        // first real five-minute demand and pricing round now, rather than
+        // publishing an empty opening snapshot and waiting fifteen seconds.
+        // This also means the opening movers come from actual mixed baskets,
+        // rather than a static or category-biased placeholder.
+        state = await advance(url, headers, venue.id, venue.slug, {
+          ...state,
+          last_tick_at: new Date(requestedAt.getTime() - QUICK_START_TICK_SECONDS * 1_000).toISOString(),
+        }, state.speed);
       } else {
-        // Publish the opening price at simulated minute zero. The display can
-        // therefore render its first featured chart bar immediately instead
-        // of looking inactive until the first five-minute market round.
+        // Scheduled and real-time services keep a neutral opening snapshot;
+        // their first market round is driven by the normal clock.
         const openingDecisions = await runMarketCycle(venue.slug, simulatedTime(initialMinute, state.started_at), state.active_run_id, initialMinute);
         await publishInternalPrices(url, headers, venue.id, `test_sim_${venue.id}`, openingDecisions);
       }
