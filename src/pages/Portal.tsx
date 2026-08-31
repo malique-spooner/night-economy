@@ -19,7 +19,7 @@ import { useMarketState } from "../hooks/useMarketState";
 import { getCurrentSession, onAuthStateChange, signOut } from "../api/auth";
 import { controlSimulator, getSimulatorState, type SimulatorState } from "../api/simulator";
 import { getMyAccessibleVenues, getMyPlatformAdminAccess, getVenueMemberRole, type AccessibleVenue, type VenueMemberRole } from "../api/memberships";
-import { getMarketRuns, type MarketRun } from "../api/runs";
+import { getMarketRuns, publicDemoDailyRuns, type MarketRun } from "../api/runs";
 import {
   createMarketProductConfiguration,
   getMarketProductPriceHistory,
@@ -42,6 +42,7 @@ type Props = {
 };
 
 export function Portal({ readOnly = false, venueSlug }: Props) {
+  const isPublicDailyVenue = venueSlug === "public-demo";
   // Realtime normally delivers changes instantly. Polling keeps the operator
   // view in sync with the POS if the browser misses a websocket event.
   const { error, refresh, setState, state } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
@@ -609,6 +610,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
                     priceHistoryLoading={priceHistoryLoading}
                     posProducts={posProducts}
                     readOnly={readOnly}
+                    isPublicDailyMarket={isPublicDailyVenue}
                     selectedProductId={selectedProductId}
                     simulatorState={simulatorState}
                     marketSlug={venueSlug}
@@ -619,7 +621,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
                     currency={state.venue.currency}
                     isLoading={runsLoading}
                     products={state.products}
-                    runs={readOnly ? runs.filter(run => run.kind === "scheduled" && run.status === "completed") : runs}
+                    runs={isPublicDailyVenue ? publicDemoDailyRuns(runs) : runs}
                     timezone={state.venue.timezone}
                   />
                 ) : (

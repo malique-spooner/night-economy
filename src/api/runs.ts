@@ -61,6 +61,15 @@ export async function getMarketRuns(venueId: string): Promise<MarketRun[]> {
   }));
 }
 
+/**
+ * Public Demo is a continuous service split into one scheduled market per
+ * calendar day. Rehearsals and legacy empty placeholders are never part of
+ * its public-facing archive.
+ */
+export function publicDemoDailyRuns(runs: MarketRun[]): MarketRun[] {
+  return runs.filter(run => run.kind === "scheduled" && (run.status !== "completed" || run.salesCount > 0));
+}
+
 type MarketRunSaleRow = {
   id: string;
   pos_product_id: string;

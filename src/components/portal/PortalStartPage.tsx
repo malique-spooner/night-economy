@@ -28,6 +28,7 @@ type Props = {
   priceHistoryLoading: boolean;
   posProducts: PosProduct[];
   readOnly?: boolean;
+  isPublicDailyMarket?: boolean;
   selectedProductId: string | null;
   simulatorState: SimulatorState | null;
   marketSlug: string;
@@ -55,6 +56,7 @@ export function PortalStartPage({
   simulatorState,
   posProducts,
   readOnly = false,
+  isPublicDailyMarket = false,
   marketSlug,
   venue,
 }: Props) {
@@ -78,7 +80,7 @@ export function PortalStartPage({
   return (
     <section className="portal-start-page">
       <h1 className="portal-page-title">Portal</h1>
-      <PortalLaunchStrip isServiceActionPending={isServiceActionPending} marketHref={`/tv/${encodeURIComponent(marketSlug)}`} onEnd={onEnd} onPause={onPause} onQuickStart={onQuickStart} onRealTimeStart={onRealTimeStart} onResume={onResume} onSettingsChange={onVenueSettingsChange} readOnly={readOnly} settings={settings} simulatorState={simulatorState} timezone={venue.timezone} />
+      <PortalLaunchStrip isPublicDailyMarket={isPublicDailyMarket} isServiceActionPending={isServiceActionPending} marketHref={`/tv/${encodeURIComponent(marketSlug)}`} onEnd={onEnd} onPause={onPause} onQuickStart={onQuickStart} onRealTimeStart={onRealTimeStart} onResume={onResume} onSettingsChange={onVenueSettingsChange} readOnly={readOnly} settings={settings} simulatorState={simulatorState} timezone={venue.timezone} />
       <PortalCategoryFilters activeCategory={activeCategory} categories={categories} onCategoryChange={setSelectedCategory} />
       <div className="portal-drink-list">
         {visibleGroups.map(([category, categoryProducts]) => (

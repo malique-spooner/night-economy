@@ -41,6 +41,11 @@ Deno.serve(async request => {
     const venues = await restJson<Array<{ id: string; slug: string; timezone: string; currency: string; crash_settings: unknown }>>(url, `/venues?slug=eq.${encodeURIComponent(venueSlug)}&select=id,slug,timezone,currency,crash_settings`, { headers }, "load venue");
     const venue = venues[0];
     if (!venue) return response({ error: "Venue not found" }, 404);
+    // Public Demo is an always-on scheduled market. It must never collect
+    // operator rehearsals, pauses, or manual endings alongside daily history.
+    if (venue.slug === "public-demo" && ["quick_start", "instant_run", "pause", "resume", "end", "event"].includes(action)) {
+      return response({ error: "Public Demo runs automatically as one continuous daily market." }, 403);
+    }
     if (!isScheduler && !isPublicRead) {
       const memberships = await restJson<Array<{ role: string }>>(url, `/venue_members?venue_id=eq.${encodeURIComponent(venue.id)}&user_id=eq.${encodeURIComponent(userId!)}&select=role`, { headers }, "check venue access");
       if (!memberships[0] || !["owner", "admin"].includes(memberships[0].role)) return response({ error: "Only venue owners or admins can run a test service" }, 403);
