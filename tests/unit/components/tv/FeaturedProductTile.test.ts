@@ -53,10 +53,12 @@ describe("featured price bars", () => {
     expect(mature.bars[0].width).toBeLessThan(sparse.bars[0].width);
   });
 
-  it("shows no completed bars before the first five-minute round", () => {
+  it("renders opening reference bars before the first five-minute round", () => {
     const opening = priceBars({ ...product, currentPriceMinor: 1000 }, []);
 
-    expect(opening.bars).toHaveLength(0);
+    expect(opening.bars).toHaveLength(2);
+    expect(opening.bars.map(bar => bar.price)).toEqual([1000, 1000]);
+    expect(opening.bars.every(bar => bar.trend === "hold")).toBe(true);
   });
 
   it("keeps one bar per visible five-minute round and caps the window at eighteen", () => {

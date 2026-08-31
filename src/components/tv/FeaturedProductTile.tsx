@@ -77,7 +77,13 @@ export function featuredNameSize(name: string) {
 
 export function priceBars(product: MarketProduct, history: MarketPriceHistoryPoint[]) {
   const visibleHistory = history.slice(-18);
-  const prices = visibleHistory.map(point => point.priceMinor);
+  // A fresh market has no completed five-minute snapshot yet.  Still render
+  // the opening reference and live price so the featured display never starts
+  // as an empty chart.  Once the first real round arrives, it replaces this
+  // lightweight opening state with recorded prices.
+  const prices = visibleHistory.length
+    ? visibleHistory.map(point => point.priceMinor)
+    : [product.basePriceMinor, product.currentPriceMinor];
 
   const zeroY = 80;
   const displayedPrices = prices;
