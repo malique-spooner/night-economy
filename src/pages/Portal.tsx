@@ -615,7 +615,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
                     venue={scheduleOverride ? { ...state.venue, marketSchedule: scheduleOverride } : state.venue}
                   />
                 ) : activeTab === "runs" ? (
-                  <PortalRunsPage currency={state.venue.currency} isLoading={runsLoading} products={state.products} readOnly={readOnly} runs={runs} timezone={state.venue.timezone} />
+                  <PortalRunsPage currency={state.venue.currency} isLoading={runsLoading} products={state.products} runs={runs} timezone={state.venue.timezone} />
                 ) : (
                   <PortalAccountPage
                     categories={[...new Set(state.products.filter(product => !product.isArchived).map(product => product.category))].sort((left, right) => left.localeCompare(right))}

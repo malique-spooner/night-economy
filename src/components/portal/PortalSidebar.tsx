@@ -61,8 +61,8 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
           onClick={() => onTabChange("runs")}
           type="button"
         >
-          <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="history" /></span><span className="portal-nav-label">{readOnly ? "Market history" : "Run history"}</span>
-          <small>{readOnly ? "Daily activity" : "Previous services"}</small>
+          <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="history" /></span><span className="portal-nav-label">Run history</span>
+          <small>Previous services</small>
         </button>
         <button
           className={`portal-nav-item ${activeTab === "account" ? "active" : ""}`}

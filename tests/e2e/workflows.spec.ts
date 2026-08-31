@@ -46,17 +46,13 @@ test("the public demo is the real Portal with every mutating control disabled", 
   await page.goto("/public-demo");
   await expect(page.locator("body")).toHaveAttribute("data-app-view", "portal");
   await expect(page.getByRole("heading", { name: "Portal" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Open 24/7" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Monday/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /Sunday/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Open TV market/ })).toHaveAttribute("href", "/tv/public-demo");
   await expect(page.getByRole("button", { name: "Start real time demo" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Market history", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Market history", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Market history" })).toBeVisible();
-  await expect(page.getByText("Live now", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: /Open daily dashboard/ }).click();
-  await expect(page.getByRole("button", { name: "Back to market history" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Run history", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Run history", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Previous runs" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Market", exact: true })).toHaveAttribute("href", "/tv/public-demo");
   await expect(page.getByRole("link", { name: "Mobile market" })).toHaveAttribute("href", "/menu/public-demo");
 });
@@ -68,7 +64,7 @@ test("a platform admin can open the read-only Public Demo from the venue selecto
   await page.getByLabel("Switch venue").selectOption("__public_demo");
   await expect(page).toHaveURL(/\/public-demo$/);
   await expect(page.getByRole("heading", { name: "Portal" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Market history", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Run history", exact: true })).toBeVisible();
 });
 
 test("a guest can move through the venue, TV, and mobile market surfaces", async ({ page }) => {

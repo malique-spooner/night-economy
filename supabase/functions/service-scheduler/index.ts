@@ -28,18 +28,11 @@ Deno.serve(async request => {
       const service = byVenue.get(venue.id);
       if (!service) continue;
 
-      // The public demo is intentionally always on. A real-time service lasts
-      // six hours, then the scheduler starts a fresh one on its next pass.
-      // Public visitors only receive read access, so this cannot be paused or
-      // changed from the browser.
-      if (venue.is_public_demo) {
-        if (service.status === "running") {
-          await invokeVenueSimulator(url, key, { venueSlug: venue.slug, action: "tick" });
-          outcomes.push({ venue: venue.slug, action: "ticked-public-demo" });
-        } else {
-          await invokeVenueSimulator(url, key, { venueSlug: venue.slug, action: "quick_start", speed: 1 });
-          outcomes.push({ venue: venue.slug, action: "started-public-demo" });
-        }
+      // Retire the old continuous public-demo run once. Public Demo now uses
+      // the same daily scheduled service lifecycle as every other venue.
+      if (venue.is_public_demo && service.scheduled_slot_key === null && service.status === "running") {
+        await invokeVenueSimulator(url, key, { venueSlug: venue.slug, action: "scheduled_end" });
+        outcomes.push({ venue: venue.slug, action: "ended-legacy-continuous-run" });
         continue;
       }
       const slot = activeSlot(venue.market_schedule ?? [], venue.timezone || "Europe/London", new Date());
