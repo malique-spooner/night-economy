@@ -115,7 +115,7 @@ describe("tvHelpers", () => {
     expect(categoryChangePercent([])).toBe(0);
   });
 
-  it("features priority products first, then largest movers, and skips sold out products", () => {
+  it("features the largest live mover ahead of a static priority drink", () => {
     const featured = getFeaturedProducts([
       product({ id: "sold-out", currentPriceMinor: 1500, isSoldOut: true }),
       product({ id: "small-move", currentPriceMinor: 1030 }),
@@ -125,10 +125,10 @@ describe("tvHelpers", () => {
       product({ id: "inactive", currentPriceMinor: 1500, isLive: false }),
     ]);
 
-    expect(featured.map(item => item.id)).toEqual(["priority"]);
+    expect(featured.map(item => item.id)).toEqual(["large-move"]);
   });
 
-  it("rotates the selected priorities through the category's featured position", () => {
+  it("uses priority drinks only when the category has no current movement", () => {
     const products = [
       product({ id: "first", priority: true }),
       product({ id: "second", priority: true }),
@@ -140,6 +140,14 @@ describe("tvHelpers", () => {
     expect(getCategoryFeaturedProducts(products, 1).map(item => item.id)).toEqual(["second"]);
     expect(getCategoryFeaturedProducts(products, 2).map(item => item.id)).toEqual(["third"]);
     expect(getCategoryFeaturedProducts(products, 3).map(item => item.id)).toEqual(["first"]);
+  });
+
+  it("keeps the feature on a moving drink when static priority drinks are present", () => {
+    const products = [
+      product({ id: "priority", priority: true, currentPriceMinor: 1000 }),
+      product({ id: "mover", currentPriceMinor: 1100 }),
+    ];
+    expect(getCategoryFeaturedProducts(products).map(item => item.id)).toEqual(["mover"]);
   });
 
   it("rotates ordinary live drinks when no priorities are selected", () => {
@@ -167,7 +175,7 @@ describe("tvHelpers", () => {
       product({ id: "inactive", currentPriceMinor: 1500, isLive: false }),
     ];
 
-    expect(getStoryProducts(products).map(item => item.id)).toEqual(["priority", "leader", "steady"]);
+    expect(getStoryProducts(products).map(item => item.id)).toEqual(["leader", "priority"]);
   });
 
   it("does not select inactive products for the customer-facing market", () => {

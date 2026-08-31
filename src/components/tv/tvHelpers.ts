@@ -147,12 +147,17 @@ export function getFeaturedProducts(products: MarketProduct[]) {
 // The story panel cycles through this full ordered list. Priorities and the
 // biggest price moves lead the cycle, but every live drink still gets a turn.
 export function getStoryProducts(products: MarketProduct[]) {
-  return [...products]
-    .filter(product => product.isLive && !product.isSoldOut)
+  const liveProducts = products.filter(product => product.isLive && !product.isSoldOut);
+  const movers = liveProducts.filter(product => Math.abs(productChangePercent(product)) >= 0.05);
+  // The public display must tell the story of the market that is actually
+  // moving. A priority drink remains the fallback when its category is calm,
+  // but it must not pin the TV to a flat price while other drinks are changing.
+  return [...(movers.length ? movers : liveProducts)]
     .sort((a, b) => {
-      if (a.priority !== b.priority) return a.priority ? -1 : 1;
       const movement = Math.abs(productChangePercent(b)) - Math.abs(productChangePercent(a));
-      return movement || a.name.localeCompare(b.name);
+      if (movement) return movement;
+      if (a.priority !== b.priority) return a.priority ? -1 : 1;
+      return a.name.localeCompare(b.name);
     });
 }
 
@@ -161,11 +166,12 @@ export function getStoryProducts(products: MarketProduct[]) {
 // returns. Without priorities, the rest of the live category rotates instead.
 export function getCategoryFeaturedProducts(products: MarketProduct[], rotation = 0) {
   const activeProducts = products.filter(product => product.isLive && !product.isSoldOut);
-  const priorities = activeProducts.filter(product => product.priority);
-  if (priorities.length) {
-    return [priorities[rotation % priorities.length]];
+  const movingProducts = getStoryProducts(activeProducts);
+  if (movingProducts.some(product => Math.abs(productChangePercent(product)) >= 0.05)) {
+    return [movingProducts[rotation % movingProducts.length]];
   }
-  const availableFillers = activeProducts.filter(product => !product.priority);
+  const priorities = activeProducts.filter(product => product.priority);
+  const availableFillers = priorities.length ? priorities : activeProducts;
   const fillerOffset = availableFillers.length ? rotation % availableFillers.length : 0;
   const rotatedFillers = [...availableFillers.slice(fillerOffset), ...availableFillers.slice(0, fillerOffset)];
   return rotatedFillers.slice(0, TV_FEATURED_PRODUCTS_PER_CATEGORY);
