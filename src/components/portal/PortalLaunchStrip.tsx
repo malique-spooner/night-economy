@@ -49,7 +49,7 @@ export function PortalLaunchStrip({ isServiceActionPending, marketHref, onEnd, o
     <div className="portal-schedule-summary">
       <div>
         <div className="portal-start-kicker">Market schedule</div>
-        <h2>{next ? `${next.day} · ${next.start}–${next.end}` : "No service scheduled"}</h2>
+        <h2>{readOnly ? "Open 24/7" : next ? `${next.day} · ${next.start}–${next.end}` : "No service scheduled"}</h2>
         <p>{marketStatus}</p>
       </div>
       <div className="portal-service-actions" data-portal-tour="service-controls">

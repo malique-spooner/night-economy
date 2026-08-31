@@ -19,8 +19,12 @@ export function activeSlot(schedule: ScheduleEntry[], timezone: string, now: Dat
     const scheduledDay = DAYS.indexOf(entry.day);
     const start = minutes(entry.start);
     const end = minutes(entry.end);
-    if (scheduledDay < 0 || start === null || end === null || start === end) continue;
+    if (scheduledDay < 0 || start === null || end === null) continue;
     const dayDelta = (local.dayIndex - scheduledDay + 7) % 7;
+    // Matching times represent an all-day market. The date in the key changes
+    // at local midnight, which gives the scheduler a fresh daily run.
+    if (start === end && dayDelta === 0) return { key: `${local.date}:${entry.day}:${entry.start}`, targetRevenueMinor: entry.targetRevenueMinor };
+    if (start === end) continue;
     const crossesMidnight = end <= start;
     const activeToday = dayDelta === 0 && local.minutes >= start && (crossesMidnight || local.minutes < end);
     const activeAfterMidnight = crossesMidnight && dayDelta === 1 && local.minutes < end;

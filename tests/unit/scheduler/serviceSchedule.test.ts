@@ -14,6 +14,15 @@ describe("cloud service scheduling", () => {
     expect(slot?.key).toBe("2026-07-31:Friday:22:00");
   });
 
+  it("treats matching start and end times as a full local calendar day", () => {
+    const allDay = [
+      { day: "Monday", start: "00:00", end: "00:00", enabled: true },
+      { day: "Tuesday", start: "00:00", end: "00:00", enabled: true },
+    ];
+    expect(activeSlot(allDay, "Europe/London", new Date("2026-08-31T12:00:00.000Z"))?.key).toBe("2026-08-31:Monday:00:00");
+    expect(activeSlot(allDay, "Europe/London", new Date("2026-09-01T12:00:00.000Z"))?.key).toBe("2026-09-01:Tuesday:00:00");
+  });
+
   it("ticks a quick rehearsal even when no scheduled slot is open", () => {
     expect(serviceAction(null, { status: "running", scheduled_slot_key: null })).toBe("tick");
   });

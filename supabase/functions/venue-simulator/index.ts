@@ -15,6 +15,7 @@ type Product = { id: string; display_name: string; category: string; base_price_
 type SimulatedSale = { occurred_at: string; quantity: number; unit_price_minor: number };
 
 const SERVICE_MINUTES = 360;
+const PUBLIC_DEMO_SERVICE_MINUTES = 24 * 60;
 // Five simulated minutes take fifteen real seconds, matching the TV rotation.
 const QUICK_START_SPEED = 20;
 const SERVICE_START = Date.UTC(2026, 6, 28, 17, 0, 0);
@@ -52,14 +53,20 @@ Deno.serve(async request => {
     const nextTargetRevenueMinor = Number.isFinite(targetRevenueMinor) ? Math.max(0, Math.min(5_000_000, Math.round(targetRevenueMinor))) : state.target_revenue_minor;
 
     if (action === "quick_start" || action === "instant_run" || action === "scheduled_start") {
+      // A changed daily slot replaces the previous scheduled market. Closing
+      // it first preserves its completed dashboard before opening the next.
+      if (action === "scheduled_start" && state.active_run_id) await finishRun(url, headers, state.active_run_id, "completed", state.simulated_minute);
       await resetTestService(url, headers, venue.id);
       await setMarketLive(url, headers, venue.id, true);
       const requestedAt = new Date();
       const runStartedAt = requestedAt.toISOString();
       const simulatedStartedAt = simulationStart(venue.timezone || "Europe/London", requestedAt, action === "scheduled_start" ? scheduledSlotKey : null);
+      const initialMinute = action === "scheduled_start" && venue.slug === "public-demo"
+        ? Math.min(PUBLIC_DEMO_SERVICE_MINUTES - 1, Math.max(0, Math.floor((requestedAt.getTime() - Date.parse(simulatedStartedAt)) / 60_000)))
+        : 0;
       const runKind = action === "scheduled_start" ? "scheduled" : action === "instant_run" ? "instant" : "quick";
       const runId = await createRun(url, headers, venue.id, runKind, action === "scheduled_start" ? scheduledSlotKey ?? null : null, runStartedAt);
-      state = await save(url, headers, venue.id, { status: action === "instant_run" ? "paused" : "running", simulated_minute: 0, speed: action === "scheduled_start" ? 1 : (Number.isFinite(speed) ? nextSpeed : QUICK_START_SPEED), target_revenue_minor: nextTargetRevenueMinor, rush_until_minute: 0, slowdown_until_minute: 0, last_tick_at: runStartedAt, started_at: simulatedStartedAt, scheduled_slot_key: action === "scheduled_start" ? scheduledSlotKey ?? null : null, active_run_id: runId });
+      state = await save(url, headers, venue.id, { status: action === "instant_run" ? "paused" : "running", simulated_minute: initialMinute, speed: action === "scheduled_start" ? 1 : (Number.isFinite(speed) ? nextSpeed : QUICK_START_SPEED), target_revenue_minor: nextTargetRevenueMinor, rush_until_minute: 0, slowdown_until_minute: 0, last_tick_at: runStartedAt, started_at: simulatedStartedAt, scheduled_slot_key: action === "scheduled_start" ? scheduledSlotKey ?? null : null, active_run_id: runId });
       if (action === "instant_run") {
         try {
           state = await completeInstantRun(url, headers, venue.id, venue.currency || "GBP", parseMarketCrashSettings(venue.crash_settings), state);
@@ -74,7 +81,7 @@ Deno.serve(async request => {
         // Publish the opening price at simulated minute zero. The display can
         // therefore render its first featured chart bar immediately instead
         // of looking inactive until the first five-minute market round.
-        const openingDecisions = await runMarketCycle(venue.slug, simulatedTime(0, state.started_at), state.active_run_id, 0);
+        const openingDecisions = await runMarketCycle(venue.slug, simulatedTime(initialMinute, state.started_at), state.active_run_id, initialMinute);
         await publishInternalPrices(url, headers, venue.id, `test_sim_${venue.id}`, openingDecisions);
       }
     } else if (action === "event") {
@@ -112,14 +119,15 @@ Deno.serve(async request => {
 });
 
 async function advance(url: string, headers: HeadersInit, venueId: string, venueSlug: string, state: Service, speed: number) {
+  const serviceMinutes = venueSlug === "public-demo" && state.scheduled_slot_key ? PUBLIC_DEMO_SERVICE_MINUTES : SERVICE_MINUTES;
   const tickedAt = new Date();
-  const progress = simulationProgress(state.simulated_minute, state.last_tick_at, tickedAt, speed, SERVICE_MINUTES, state.scheduled_slot_key === null);
+  const progress = simulationProgress(state.simulated_minute, state.last_tick_at, tickedAt, speed, serviceMinutes, state.scheduled_slot_key === null);
   const nextMinute = progress.minute;
   if (nextMinute === state.simulated_minute) return state;
   const products = await restJson<Product[]>(url, `/market_products?venue_id=eq.${encodeURIComponent(venueId)}&select=id,display_name,category,base_price_minor,current_price_minor,pos_product_id,is_live,is_sold_out`, { headers }, "load venue products");
   const active = products.filter(product => product.is_live && !product.is_sold_out && product.pos_product_id);
   if (!active.length) {
-    const status = nextMinute >= SERVICE_MINUTES ? "ended" : "running";
+    const status = nextMinute >= serviceMinutes ? "ended" : "running";
     if (status === "ended") {
       await setMarketLive(url, headers, venueId, false);
       await finishRun(url, headers, state.active_run_id, "completed", nextMinute);
@@ -129,14 +137,14 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
   }
   const connectionId = `test_sim_${venueId}`;
   let pendingSalesRows: Array<Record<string, unknown>> = [];
-  const revenuePlan = buildLondonFridayRevenuePlan(state.target_revenue_minor, SERVICE_MINUTES);
+  const revenuePlan = buildLondonFridayRevenuePlan(state.target_revenue_minor, serviceMinutes);
   const demandHistory = state.active_run_id ? await loadDemandHistory(url, headers, state.active_run_id, state.started_at, state.simulated_minute) : [];
   const cycleMinutes = new Set(marketCycleMinutes(state.simulated_minute, nextMinute));
   for (let minute = state.simulated_minute; minute < nextMinute; minute += 1) {
     const eventMultiplier = minute < state.rush_until_minute ? 2.1 : minute < state.slowdown_until_minute ? 0.38 : 1;
     const minuteSales = simulateDemandMinute(active, revenuePlan[minute], minute, demandHistory, {
       seed: state.active_run_id ?? venueId,
-      serviceMinutes: SERVICE_MINUTES,
+      serviceMinutes,
       eventMultiplier,
     });
     demandHistory.push(...minuteSales);
@@ -164,7 +172,7 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
     }
   }
   await writeRowsInChunks(url, headers, "/pos_sales_events?on_conflict=id", pendingSalesRows, "write simulated basket sales", 1_000, { Prefer: "resolution=ignore-duplicates" });
-  const status = nextMinute >= SERVICE_MINUTES ? "ended" : "running";
+  const status = nextMinute >= serviceMinutes ? "ended" : "running";
   if (status === "ended") {
     await resetPrices(url, headers, venueId);
     await setMarketLive(url, headers, venueId, false);
