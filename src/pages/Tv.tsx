@@ -18,10 +18,18 @@ type Props = {
 // The display is a paced visual experience, independent from when the market
 // writes a new five-minute price round. That keeps a real-time service lively.
 const PRESENTATION_ROTATION_MS = 15_000;
+export const PREPARING_SCREEN_MAX_MS = 8_000;
+
+export function clearStartingParameter() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has("starting")) return;
+  url.searchParams.delete("starting");
+  window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+}
 
 export function Tv({ venueSlug }: Props) {
   const { error, refresh, state: liveState } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
-  const isPreparing = new URLSearchParams(window.location.search).get("starting") === "1";
+  const [isPreparing, setIsPreparing] = useState(() => new URLSearchParams(window.location.search).get("starting") === "1");
   const [presentedState, setPresentedState] = useState<MarketState | null>(null);
   const state = liveState ? { ...liveState, products: presentedState?.venue.id === liveState.venue.id ? presentedState.products : liveState.products } : null;
   const timezone = liveState?.venue.timezone ?? "Europe/London";
@@ -43,6 +51,23 @@ export function Tv({ venueSlug }: Props) {
   const enterFullscreen = () => {
     if (!document.fullscreenElement) void document.documentElement.requestFullscreen?.().catch(() => undefined);
   };
+
+  useEffect(() => {
+    if (!isPreparing) return undefined;
+    // The launch tab includes ?starting=1 only to bridge the short gap before
+    // the market becomes live. Do not let that URL flag turn an ended market
+    // into a permanent loading screen.
+    if (liveState?.venue.marketLive) {
+      setIsPreparing(false);
+      clearStartingParameter();
+      return undefined;
+    }
+    const timer = window.setTimeout(() => {
+      setIsPreparing(false);
+      clearStartingParameter();
+    }, PREPARING_SCREEN_MAX_MS);
+    return () => window.clearTimeout(timer);
+  }, [isPreparing, liveState?.venue.marketLive]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
