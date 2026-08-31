@@ -12,14 +12,15 @@ type Props = {
   onSignOut: () => void;
   onOpenTour: () => void;
   readOnly?: boolean;
+  publicDemoHref?: string | null;
   simulatorHref: string | null;
   totalCount: number;
   venueName: string;
   venueSlug: string;
 };
 
-export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount, onSignOut, onOpenTour, onTabChange, onTogglePinned, readOnly = false, simulatorHref, totalCount, venueName, venueSlug }: Props) {
-  const canSwitchVenue = accessibleVenues.length > 1;
+export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount, onSignOut, onOpenTour, onTabChange, onTogglePinned, publicDemoHref = null, readOnly = false, simulatorHref, totalCount, venueName, venueSlug }: Props) {
+  const canSwitchVenue = accessibleVenues.length + Number(Boolean(publicDemoHref && !accessibleVenues.some(venue => venue.slug === "public-demo"))) > 1;
 
   return (
     <aside className={`portal-sidebar ${isPinned ? "is-pinned" : ""}`}>
@@ -34,8 +35,12 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
       </div>
       <label className="portal-venue-switcher">
         <span>{canSwitchVenue ? "Switch venue" : "Venue"}</span>
-        <select aria-label="Switch venue" disabled={!canSwitchVenue} onChange={event => window.location.assign(`/app/${encodeURIComponent(event.target.value)}`)} value={venueSlug}>
+        <select aria-label="Switch venue" disabled={!canSwitchVenue} onChange={event => {
+          if (event.target.value === "__public_demo") window.location.assign(publicDemoHref ?? "/public-demo");
+          else window.location.assign(`/app/${encodeURIComponent(event.target.value)}`);
+        }} value={venueSlug}>
           {accessibleVenues.length ? accessibleVenues.map(venue => <option key={venue.id} value={venue.slug}>{venue.name}</option>) : <option value={venueSlug}>{venueName}</option>}
+          {publicDemoHref && !accessibleVenues.some(venue => venue.slug === "public-demo") && <option value="__public_demo">Public Demo</option>}
         </select>
       </label>
       <div className="portal-sidebar-stat">

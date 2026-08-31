@@ -61,6 +61,16 @@ test("the public demo is the real Portal with every mutating control disabled", 
   await expect(page.getByRole("link", { name: "Mobile market" })).toHaveAttribute("href", "/menu/public-demo");
 });
 
+test("a platform admin can open the read-only Public Demo from the venue selector", async ({ page }) => {
+  await mockSupabase(page);
+  await signIn(page);
+
+  await page.getByLabel("Switch venue").selectOption("__public_demo");
+  await expect(page).toHaveURL(/\/public-demo$/);
+  await expect(page.getByRole("heading", { name: "Portal" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Market history", exact: true })).toBeVisible();
+});
+
 test("a guest can move through the venue, TV, and mobile market surfaces", async ({ page }) => {
   await mockSupabase(page);
 

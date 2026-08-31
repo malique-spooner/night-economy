@@ -573,6 +573,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
               onTogglePinned={() => setIsNavPinned(current => !current)}
               onSignOut={handleSignOut}
               onOpenTour={() => setIsShowcaseGuideOpen(true)}
+              publicDemoHref={isPlatformAdmin ? "/public-demo" : null}
               readOnly={readOnly}
               simulatorHref={simulatorHref}
               totalCount={state.products.length}
