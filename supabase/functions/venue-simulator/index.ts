@@ -102,6 +102,11 @@ Deno.serve(async request => {
       await finishRun(url, headers, state.active_run_id, action === "scheduled_end" ? "completed" : "ended", state.simulated_minute);
       state = await save(url, headers, venue.id, { status: "ended", speed: nextSpeed, last_tick_at: new Date().toISOString(), active_run_id: null });
     } else if (action === "tick" && state.status === "running") {
+      // Scheduled public markets can run for a full day. Keep their demand
+      // target aligned with the current schedule while they are already open.
+      if (Number.isFinite(targetRevenueMinor) && nextTargetRevenueMinor !== state.target_revenue_minor) {
+        state = await save(url, headers, venue.id, { target_revenue_minor: nextTargetRevenueMinor });
+      }
       state = await advance(url, headers, venue.id, venue.slug, state, nextSpeed);
     }
     if (action === "summary") {

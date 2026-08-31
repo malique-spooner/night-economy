@@ -40,7 +40,7 @@ Deno.serve(async request => {
         // Quick-start rehearsals are cloud-owned too. Previously only a service
         // inside a scheduled slot was ticked, so a rehearsal froze as soon as
         // the operator closed the Portal.
-        await invokeVenueSimulator(url, key, { venueSlug: venue.slug, action: "tick" });
+        await invokeVenueSimulator(url, key, { venueSlug: venue.slug, action: "tick", targetRevenueMinor: slot?.targetRevenueMinor });
         outcomes.push({ venue: venue.slug, action: "ticked" });
       }
     }
