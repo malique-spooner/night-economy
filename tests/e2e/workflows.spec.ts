@@ -55,6 +55,8 @@ test("the public demo is the real Portal with every mutating control disabled", 
   await page.getByRole("button", { name: "Market history", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Market history" })).toBeVisible();
   await expect(page.getByText("Live now", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /Open daily dashboard/ }).click();
+  await expect(page.getByRole("button", { name: "Back to market history" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Market", exact: true })).toHaveAttribute("href", "/tv/public-demo");
   await expect(page.getByRole("link", { name: "Mobile market" })).toHaveAttribute("href", "/menu/public-demo");
 });

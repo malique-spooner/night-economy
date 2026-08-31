@@ -185,6 +185,7 @@ export function PortalRunsPage({ currency, isLoading, products, readOnly = false
 
 /** Public visitors see continuous daily activity, never implementation-level restarts. */
 function PublicMarketHistory({ currency, isLoading, runs, timezone }: Pick<Props, "currency" | "isLoading" | "runs" | "timezone">) {
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
   const days = useMemo(() => {
     const grouped = new Map<string, MarketRun[]>();
     for (const run of runs) {
@@ -194,7 +195,10 @@ function PublicMarketHistory({ currency, isLoading, runs, timezone }: Pick<Props
     return [...grouped.entries()].map(([key, dayRuns]) => ({ key, runs: dayRuns })).sort((left, right) => right.key.localeCompare(left.key));
   }, [runs, timezone]);
   const today = calendarDay(new Date().toISOString(), timezone);
+  const selectedDay = selectedDayKey ? days.find(day => day.key === selectedDayKey) ?? null : null;
   const money = (minor: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(minor / 100);
+
+  if (selectedDay) return <PublicMarketDayDashboard currency={currency} day={selectedDay} isToday={selectedDay.key === today} onBack={() => setSelectedDayKey(null)} timezone={timezone} />;
 
   return <section className="portal-runs-page portal-public-history">
     <div className="portal-runs-heading"><div><span className="portal-start-kicker">Public market</span><h1 className="portal-page-title">Market history</h1><p>This market stays live continuously. Activity is grouped by day, so automatic background handovers never interrupt the story.</p></div><span>{days.length} days recorded</span></div>
@@ -210,10 +214,54 @@ function PublicMarketHistory({ currency, isLoading, runs, timezone }: Pick<Props
           <div><strong>{isToday ? "Today" : formatMarketDay(day.key, timezone)}</strong><span>{isToday ? "Live market activity so far" : "Public market activity"}</span></div>
           <span className={`portal-run-status ${isToday ? "running" : "completed"}`}>{isToday ? "live" : "complete"}</span>
           <dl><div><dt>Price updates</dt><dd>{priceRounds}</dd></div><div><dt>Drinks sold</dt><dd>{salesCount}</dd></div><div><dt>Sales</dt><dd>{money(revenueMinor)}</dd></div></dl>
-          <details className="portal-public-history-details"><summary>View daily activity</summary><p>{day.runs.length} continuous market period{day.runs.length === 1 ? "" : "s"} combined into this day. Prices updated every five minutes.</p></details>
+          <button aria-label={`Open daily dashboard for ${isToday ? "today" : formatMarketDay(day.key, timezone)}`} className="portal-run-open portal-public-day-open" onClick={() => setSelectedDayKey(day.key)} type="button">View daily dashboard →</button>
         </article>;
       })}
     </div>}
+  </section>;
+}
+
+type PublicMarketDay = { key: string; runs: MarketRun[] };
+
+/** A light daily view: it aggregates run summaries and deliberately avoids loading every POS sale. */
+function PublicMarketDayDashboard({ currency, day, isToday, onBack, timezone }: { currency: string; day: PublicMarketDay; isToday: boolean; onBack: () => void; timezone: string }) {
+  const simulatedMinutes = day.runs.reduce((total, run) => total + run.simulatedMinutes, 0);
+  const salesCount = day.runs.reduce((total, run) => total + run.salesCount, 0);
+  const revenueMinor = day.runs.reduce((total, run) => total + run.revenueMinor, 0);
+  const priceRounds = Math.floor(simulatedMinutes / 5);
+  const averageDrinkMinor = salesCount ? Math.round(revenueMinor / salesCount) : 0;
+  const money = (minor: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(minor / 100);
+  const periods = [...day.runs].sort((left, right) => left.startedAt.localeCompare(right.startedAt));
+
+  return <section className="portal-runs-page portal-run-dashboard portal-public-day-dashboard">
+    <button className="portal-run-back" onClick={onBack} type="button">← Back to market history</button>
+    <header className="portal-run-hero">
+      <div>
+        <span className="portal-start-kicker">Public market</span>
+        <h1 className="portal-page-title">{isToday ? "Today’s market" : formatMarketDay(day.key, timezone)} dashboard</h1>
+        <p>One continuous public market day, summarised without loading every individual sale.</p>
+      </div>
+      <span className={`portal-run-status ${isToday ? "running" : "completed"}`}>{isToday ? "live" : "complete"}</span>
+    </header>
+    <div className="portal-run-kpis portal-public-day-kpis">
+      <RunKpi label="Time live" value={formatDuration(simulatedMinutes)} />
+      <RunKpi label="Drinks sold" value={String(salesCount)} />
+      <RunKpi label="Sales" value={money(revenueMinor)} />
+      <RunKpi label="Average drink" value={salesCount ? money(averageDrinkMinor) : "—"} />
+      <RunKpi label="Price updates" value={String(priceRounds)} />
+    </div>
+    <div className="portal-run-dashboard-grid portal-public-day-grid">
+      <section className="portal-run-panel" aria-labelledby="public-day-periods">
+        <PanelHeading eyebrow="Trading flow" id="public-day-periods" title="Market periods" />
+        <ol className="portal-public-day-periods">
+          {periods.map(period => <li key={period.id}><div><strong>{formatPeriodTime(period.startedAt, timezone)}</strong><span>{formatDuration(period.simulatedMinutes)} active · {period.salesCount} drinks</span></div><b>{money(period.revenueMinor)}</b></li>)}
+        </ol>
+      </section>
+      <section className="portal-run-panel" aria-labelledby="public-day-summary">
+        <PanelHeading eyebrow="At a glance" id="public-day-summary" title="How the market moved" />
+        <p className="portal-public-day-summary">The market was active for {formatDuration(simulatedMinutes).toLowerCase()}, with {priceRounds} five-minute price updates. {salesCount ? `${salesCount} drinks were sold at an average of ${money(averageDrinkMinor)}.` : "Sales will appear here as they are recorded."}</p>
+      </section>
+    </div>
   </section>;
 }
 
@@ -225,6 +273,16 @@ function calendarDay(value: string, timezone: string) {
 
 function formatMarketDay(day: string, timezone: string) {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "full", timeZone: timezone }).format(new Date(`${day}T12:00:00Z`));
+}
+
+function formatDuration(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return hours ? `${hours}h ${String(remainder).padStart(2, "0")}m` : `${remainder}m`;
+}
+
+function formatPeriodTime(value: string, timezone: string) {
+  return new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: timezone }).format(new Date(value));
 }
 
 function RunKpi({ label, value }: { label: string; value: string }) {
