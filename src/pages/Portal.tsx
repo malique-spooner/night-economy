@@ -553,7 +553,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
       setAuthError("");
       setIsSigningOut(true);
       await signOut();
-      window.location.assign("/");
+      window.location.assign("/sign-in");
     } catch (error) {
       setIsSigningOut(false);
       setAuthError(error instanceof Error ? error.message : "Could not sign out");

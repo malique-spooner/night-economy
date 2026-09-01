@@ -8327,5 +8327,5 @@ body[data-app-view='portal'] .portal-market-rounds-wrap{display:grid;gap:8px}
 body[data-app-view='portal'] .portal-market-rounds-head{display:flex;justify-content:space-between;gap:10px;color:rgba(245,240,230,.58);font:9px 'DM Mono',monospace;letter-spacing:.13em;text-transform:uppercase}
 body[data-app-view='portal'] .portal-market-rounds-head small{font:inherit;letter-spacing:inherit;text-transform:none}
 body[data-app-view='portal'] .portal-market-rounds{max-height:154px;overflow-y:auto;padding-right:4px}
-body[data-app-view='portal'] .portal-market-history .portal-feature-chart{min-height:160px;padding:0}
-body[data-app-view='portal'] .portal-market-history .portal-feature-chart svg{height:160px;margin:0}
+body[data-app-view='portal'] .portal-market-history .portal-feature-chart{align-items:center;display:flex;min-height:126px;padding:0}
+body[data-app-view='portal'] .portal-market-history .portal-feature-chart svg{height:122px;margin:0;max-width:680px;width:100%}

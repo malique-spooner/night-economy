@@ -150,7 +150,7 @@ export function PortalSignIn({ venueSlug }: Props) {
         )}
         {(message || !supabaseStatus.ready) && <p className={`portal-signin-status ${isError ? "error" : ""}`} aria-live="polite">{message || "Sign-in is not configured yet."}</p>}
         {!isRecovery && <a className="portal-public-demo-link" href="/public-demo">Try the public demo <span aria-hidden="true">→</span></a>}
-        {hasNoVenueAccess && <button className="portal-signin-signout" type="button" onClick={() => { void signOut().finally(() => window.location.assign("/")); }}>Sign out and use another venue account</button>}
+        {hasNoVenueAccess && <button className="portal-signin-signout" type="button" onClick={() => { void signOut().finally(() => window.location.assign("/sign-in")); }}>Sign out and use another venue account</button>}
         <div className="portal-signin-footer"><a href="mailto:hello@nighteconomy.app?subject=Portal%20access">Contact support</a></div>
       </section>
     </main>
