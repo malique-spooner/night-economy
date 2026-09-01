@@ -8321,8 +8321,6 @@ body[data-app-view='portal'] .portal-signout b{display:block;margin:0;line-heigh
   body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-nav-item,
   body[data-app-view='portal'] .portal-sidebar.is-pinned .portal-signout{box-sizing:border-box;width:100%!important}
 }
-/* Keep the featured price graph stable when the TV rotates. */
-.feature-chart-delta{animation:none!important}
 /* Expanded drink detail shows every five-minute price window without making
    a long public market push the rest of the operator table off-screen. */
 body[data-app-view='portal'] .portal-market-rounds-wrap{display:grid;gap:8px}
