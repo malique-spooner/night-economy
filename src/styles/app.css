@@ -8323,3 +8323,9 @@ body[data-app-view='portal'] .portal-signout b{display:block;margin:0;line-heigh
 }
 /* Keep the featured price graph stable when the TV rotates. */
 .feature-chart-delta{animation:none!important}
+/* Expanded drink detail shows every five-minute price window without making
+   a long public market push the rest of the operator table off-screen. */
+body[data-app-view='portal'] .portal-market-rounds-wrap{display:grid;gap:8px}
+body[data-app-view='portal'] .portal-market-rounds-head{display:flex;justify-content:space-between;gap:10px;color:rgba(245,240,230,.58);font:9px 'DM Mono',monospace;letter-spacing:.13em;text-transform:uppercase}
+body[data-app-view='portal'] .portal-market-rounds-head small{font:inherit;letter-spacing:inherit;text-transform:none}
+body[data-app-view='portal'] .portal-market-rounds{max-height:154px;overflow-y:auto;padding-right:4px}

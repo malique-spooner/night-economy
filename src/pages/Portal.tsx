@@ -263,7 +263,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
 
     let cancelled = false;
     setPriceHistoryLoading(true);
-    void getMarketProductPriceHistory(state.venue.id, selectedProductId)
+    void getMarketProductPriceHistory(state.venue.id, selectedProductId, simulatorState?.service.activeRunId ?? undefined)
       .then(history => {
         if (!cancelled) setPriceHistory(history);
       })
@@ -278,7 +278,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
       });
 
     return () => { cancelled = true; };
-  }, [selectedProductId, state?.source, state?.venue.id]);
+  }, [selectedProductId, simulatorState?.service.activeRunId, simulatorState?.service.minute, state?.source, state?.venue.id]);
 
   useEffect(() => {
     if (!state) return;

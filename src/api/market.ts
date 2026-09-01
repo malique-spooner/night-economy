@@ -267,7 +267,9 @@ export async function getMarketProductPriceHistories(venueId: string, productIds
 
   const { data, error } = await query
     .order("created_at", { ascending: false })
-    .limit(200);
+    // A 24-hour Public Demo can have 288 five-minute price rounds. Retain the
+    // whole current market rather than silently dropping the opening third.
+    .limit(500);
   throwIfSupabaseQueryError(error, "Could not load price history");
 
   const rows = (data ?? []) as MarketPriceSnapshotRow[];
