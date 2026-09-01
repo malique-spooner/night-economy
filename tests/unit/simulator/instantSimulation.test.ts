@@ -84,6 +84,19 @@ describe("buildInstantSimulation", () => {
     for (const category of ["Beer", "Wine", "Cocktails", "Spirits"]) expect(maximumMovementByCategory[category]).toBeGreaterThan(4);
   });
 
+  it("keeps the same pricing activity when a normal market is open all day", () => {
+    // Four times the target over four times the duration keeps the normal
+    // Showcase demand pace. This prevents a 24-hour venue looking frozen.
+    const plan = buildInstantSimulation(liveLikeCatalogue, 4_000_000, 1_440, undefined, { seed: "public-demo-daily" });
+    const productsById = new Map(liveLikeCatalogue.map(product => [product.id, product]));
+    const movingCategories = new Set(plan.rounds.flatMap(round => round.decisions)
+      .filter(decision => decision.movement !== "hold")
+      .map(decision => productsById.get(decision.productId)?.category));
+
+    expect(plan.rounds).toHaveLength(288);
+    for (const category of ["Beer", "Wine", "Cocktails", "Spirits"]) expect(movingCategories).toContain(category);
+  });
+
   it("allows a zero takings target without inventing sales", () => {
     expect(buildInstantSimulation(products, 0).sales).toHaveLength(0);
   });
