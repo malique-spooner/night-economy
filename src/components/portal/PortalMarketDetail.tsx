@@ -1,6 +1,7 @@
 import type { MarketPriceHistoryPoint } from "../../api/market";
 import type { MarketProduct } from "../../engine/types";
 import { formatMoney } from "../format";
+import { priceBars } from "../tv/FeaturedProductTile";
 
 type Props = {
   history: MarketPriceHistoryPoint[];
@@ -19,26 +20,6 @@ function changeFor(product: MarketProduct) {
     : 0;
 }
 
-export function priceChart(prices: number[], basePriceMinor: number) {
-  const width = 520;
-  const height = 104;
-  const padding = 8;
-  const zeroY = height / 2;
-  const maxDeviation = Math.max(...prices.map(price => Math.abs(price - basePriceMinor)), 1);
-  const plotHeight = zeroY - padding;
-  const point = (price: number, index: number) => {
-    const x = padding + (index / (prices.length - 1)) * (width - padding * 2);
-    const y = zeroY - ((price - basePriceMinor) / maxDeviation) * plotHeight;
-    return { x, y };
-  };
-  const points = prices.length > 1 ? prices.map(point) : [];
-  return {
-    last: points.at(-1) ?? { x: width / 2, y: zeroY },
-    path: points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" "),
-    zeroY,
-  };
-}
-
 export function PortalMarketDetail({ history, isLoading, marketLive, product }: Props) {
   if (!product) return null;
 
@@ -46,8 +27,8 @@ export function PortalMarketDetail({ history, isLoading, marketLive, product }: 
   const change = changeFor(product);
   const atFloor = product.currentPriceMinor <= product.floorPriceMinor;
   const atCeiling = product.currentPriceMinor >= product.ceilingPriceMinor;
-  const prices = [product.basePriceMinor, ...history.map(point => point.priceMinor)];
-  const chart = priceChart(prices, product.basePriceMinor);
+  const chart = priceBars(product, history);
+  const chartId = `portal-feature-chart-${product.id.replace(/[^a-z0-9]/gi, "")}`;
   const priceWindows = history.slice().reverse();
 
   return (
@@ -73,13 +54,20 @@ export function PortalMarketDetail({ history, isLoading, marketLive, product }: 
           <span>{marketLive ? "Current price and completed rounds" : "Price history"}</span>
           <small>{isLoading ? "Loading rounds…" : marketLive ? "Live now · next price is published at the end of this round" : history.length ? `${history.length} completed 5-minute rounds` : "No completed rounds yet"}</small>
         </div>
-        <svg viewBox="0 0 520 104" role="img" aria-label={`${product.name} price history`} preserveAspectRatio="none">
-          <line x1="8" x2="512" y1={chart.zeroY} y2={chart.zeroY} />
-          {prices.length > 1 && <path d={chart.path} className={change >= 0 ? "up" : "down"} />}
-          {history.length > 0 && <circle cx={chart.last.x} cy={chart.last.y} r="3" className={change >= 0 ? "up" : "down"} />}
-          {prices.length === 1 && <circle cx="260" cy="52" r="4" className="neutral" />}
-        </svg>
-        <div className="portal-market-history-axis"><span>Opening {formatMoney(product.basePriceMinor)}</span><span>Now {formatMoney(product.currentPriceMinor)}</span></div>
+        <div className="feature-chart portal-feature-chart" aria-label="Recent price movement">
+          <svg viewBox="0 0 590 160" preserveAspectRatio="none" role="img" aria-label={`${product.name} price history`}>
+            <line className="feature-chart-zero" x1="8" x2="516" y1={chart.zeroY} y2={chart.zeroY} />
+            <text className="feature-chart-base-label" x="520" y={chart.zeroY + 3}>{formatMoney(product.basePriceMinor)} BASE</text>
+            {chart.bars.map((bar, index) => (
+              <g className="feature-chart-bar-group" key={`${chartId}-bar-${index}`}>
+                <rect className={`feature-chart-delta ${bar.trend}`} height={bar.height} rx="2" style={{ animationDelay: `${index * 42}ms`, transformOrigin: bar.trend === "up" ? "center bottom" : bar.trend === "dn" ? "center top" : "center center" }} width={bar.width} x={bar.x} y={bar.y} />
+                {bar.showLabel && <text className={`feature-chart-bar-price ${bar.trend}`} textAnchor="middle" x={bar.x + bar.width / 2} y={bar.labelY}>{formatMoney(bar.price)}</text>}
+              </g>
+            ))}
+            <text className="feature-chart-time" x="8" y="157">OPEN</text>
+            <text className="feature-chart-time" x="516" y="157" textAnchor="end">NOW</text>
+          </svg>
+        </div>
       </div>
       {priceWindows.length > 0 && (
         <section className="portal-market-rounds-wrap">
