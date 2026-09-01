@@ -115,11 +115,26 @@ export function Tv({ venueSlug }: Props) {
         // `simulatedTime` is stored at the last completed minute. Advance it
         // by the real time since that tick so the displayed clock does not
         // remain up to a minute behind the actual market.
+        const simulatedAt = Date.parse(simulation.service.simulatedTime);
         const lastTickAt = Date.parse(simulation.service.lastTickAt ?? simulation.service.simulatedTime);
         const elapsedSinceTick = simulation.service.running && !Number.isNaN(lastTickAt)
           ? Math.max(0, realAt - lastTickAt)
           : 0;
-        setPresentationAnchor({ realAt, simulatedAt: Date.parse(simulation.service.simulatedTime) + elapsedSinceTick * speed });
+        if (speed > 1) {
+          // Quick demos seed their first five-minute market round immediately
+          // so drinks move from the start. That must not make the display jump
+          // ahead: it always runs from 18:00 to midnight in 18 real minutes.
+          const seededMinutes = Math.ceil((speed * PRESENTATION_ROTATION_MS) / 60_000);
+          const elapsedBeforeLastTick = Math.max(0, ((simulation.service.minute - seededMinutes) / speed) * 60_000);
+          const launchedAt = lastTickAt - elapsedBeforeLastTick;
+          const demoElapsed = simulation.service.running && !Number.isNaN(launchedAt)
+            ? Math.max(0, realAt - launchedAt)
+            : 0;
+          const marketStart = simulatedAt - simulation.service.minute * 60_000;
+          setPresentationAnchor({ realAt, simulatedAt: marketStart + Math.min(360 * 60_000, demoElapsed * speed) });
+        } else {
+          setPresentationAnchor({ realAt, simulatedAt: simulatedAt + elapsedSinceTick * speed });
+        }
         setRoundAnchorAt(new Date(realAt).toISOString());
       })
       .catch(() => {
