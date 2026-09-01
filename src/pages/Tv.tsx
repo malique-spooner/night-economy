@@ -112,7 +112,14 @@ export function Tv({ venueSlug }: Props) {
         const speed = Math.max(1, simulation.service.speed);
         const realAt = Date.now();
         setSimulationSpeed(speed);
-        setPresentationAnchor({ realAt, simulatedAt: Date.parse(simulation.service.simulatedTime) });
+        // `simulatedTime` is stored at the last completed minute. Advance it
+        // by the real time since that tick so the displayed clock does not
+        // remain up to a minute behind the actual market.
+        const lastTickAt = Date.parse(simulation.service.lastTickAt ?? simulation.service.simulatedTime);
+        const elapsedSinceTick = simulation.service.running && !Number.isNaN(lastTickAt)
+          ? Math.max(0, realAt - lastTickAt)
+          : 0;
+        setPresentationAnchor({ realAt, simulatedAt: Date.parse(simulation.service.simulatedTime) + elapsedSinceTick * speed });
         setRoundAnchorAt(new Date(realAt).toISOString());
       })
       .catch(() => {

@@ -12,6 +12,7 @@ export type SimulatorState = {
     minute: number;
     running: boolean;
     simulatedTime: string;
+    lastTickAt?: string | null;
     speed: number;
     targetRevenueMinor: number;
     rushUntilMinute?: number;
