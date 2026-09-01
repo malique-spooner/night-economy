@@ -1,32 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { MarketProduct } from "../../engine/types";
-import { getMarketProductPriceHistory, type MarketPriceHistoryPoint } from "../../api/market";
+import type { MarketPriceHistoryPoint } from "../../api/market";
 import { formatMoney } from "../format";
 import { defaultDrinkImage, formatChangePercent, movementLabel, productTrend } from "./tvHelpers";
 
 type Props = {
-  activeRunId?: string;
   currency: string;
-  historyRunReady: boolean;
+  history: MarketPriceHistoryPoint[];
   product: MarketProduct;
   rank: number;
-  venueId: string;
 };
 
-export function FeaturedProductTile({ activeRunId, currency, historyRunReady, product, rank, venueId }: Props) {
+export function FeaturedProductTile({ currency, history, product, rank }: Props) {
   const trend = productTrend(product);
   const nameSize = featuredNameSize(product.name);
-  const [history, setHistory] = useState<MarketPriceHistoryPoint[]>([]);
-
-  useEffect(() => {
-    let active = true;
-    setHistory([]);
-    if (!historyRunReady) return () => { active = false; };
-    void getMarketProductPriceHistory(venueId, product.id, activeRunId)
-      .then(points => { if (active) setHistory(points.slice(-30)); })
-      .catch(() => { if (active) setHistory([]); });
-    return () => { active = false; };
-  }, [activeRunId, historyRunReady, product.id, product.currentPriceMinor, venueId]);
 
   const chart = useMemo(() => priceBars(product, history), [history, product]);
   const chartId = `feature-chart-${product.id.replace(/[^a-z0-9]/gi, "")}`;

@@ -246,7 +246,18 @@ export async function getPosProducts(venueId: string): Promise<PosProduct[]> {
 
 /** Returns the actual completed market rounds for one product, oldest first. */
 export async function getMarketProductPriceHistory(venueId: string, productId: string, activeRunId?: string): Promise<MarketPriceHistoryPoint[]> {
-  if (!supabase) return [];
+  const histories = await getMarketProductPriceHistories(venueId, [productId], activeRunId);
+  return histories.get(productId) ?? [];
+}
+
+/**
+ * Returns completed price rounds for a whole TV board in one request. Keeping
+ * this batch together means a new featured drink already has its graph when
+ * the display rotates, instead of flashing a two-bar loading fallback.
+ */
+export async function getMarketProductPriceHistories(venueId: string, productIds: string[], activeRunId?: string): Promise<Map<string, MarketPriceHistoryPoint[]>> {
+  const histories = new Map(productIds.map(productId => [productId, [] as MarketPriceHistoryPoint[]]));
+  if (!supabase) return histories;
 
   let query = supabase
     .from("market_price_snapshots")
@@ -261,14 +272,17 @@ export async function getMarketProductPriceHistory(venueId: string, productId: s
 
   const rows = (data ?? []) as MarketPriceSnapshotRow[];
   const runRows = selectMarketHistoryRun(rows, activeRunId);
-  const points = runRows
-    .reverse()
-    .map(row => mapMarketPriceSnapshotRow(row as MarketPriceSnapshotRow, productId))
-    .filter((point): point is MarketPriceHistoryPoint => point !== null);
-
-  // A retried market cycle can write the same five-minute round twice. The TV
-  // still renders one point and one activity bar for that period.
-  return [...new Map(points.map(point => [point.at, point])).values()];
+  for (const productId of productIds) {
+    const points = runRows
+      .slice()
+      .reverse()
+      .map(row => mapMarketPriceSnapshotRow(row as MarketPriceSnapshotRow, productId))
+      .filter((point): point is MarketPriceHistoryPoint => point !== null);
+    // A retried market cycle can write the same five-minute round twice. The
+    // TV still renders one point and one activity bar for that period.
+    histories.set(productId, [...new Map(points.map(point => [point.at, point])).values()]);
+  }
+  return histories;
 }
 
 export function selectMarketHistoryRun(rows: MarketPriceSnapshotRow[], activeRunId?: string) {

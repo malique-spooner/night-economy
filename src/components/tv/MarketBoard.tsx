@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { MarketProduct, Venue } from "../../engine/types";
+import { getMarketProductPriceHistories, type MarketPriceHistoryPoint } from "../../api/market";
 import { FeaturedProductTile } from "./FeaturedProductTile";
 import { BoardDepth } from "./BoardDepth";
 import { MarketProductRow } from "./MarketProductRow";
@@ -28,8 +29,11 @@ type Props = {
 
 export function MarketBoard({ activeRunId, featuredCategory, historyRunReady, onCategoryChange, products, roundSequence, venue }: Props) {
   const [featureRotationByCategory, setFeatureRotationByCategory] = useState<Record<string, number>>({});
+  const [priceHistories, setPriceHistories] = useState<Map<string, MarketPriceHistoryPoint[]>>(new Map());
   const lastAdvancedRound = useRef(0);
   const activeProducts = products.filter(product => product.isLive);
+  const productIds = useMemo(() => activeProducts.map(product => product.id), [activeProducts]);
+  const productKey = productIds.join("|");
   const groups = sortTvCategories(groupProductsByCategory(activeProducts));
   const pages = groups.flatMap(([category, categoryProducts]) => {
     const sortedProducts = sortTvBoardProducts(categoryProducts);
@@ -54,6 +58,18 @@ export function MarketBoard({ activeRunId, featuredCategory, historyRunReady, on
   const [pageIndex, setPageIndex] = useState(0);
   const pageKey = pages.map(page => `${page.category}-${page.categoryPageIndex}`).join("|");
   const pageCategories = pages.map(page => page.category);
+
+  useEffect(() => {
+    if (!historyRunReady || !productIds.length) return undefined;
+    let active = true;
+    // Do not clear the previous chart while a new round is loading. The next
+    // featured product can use the already-batched history without flashing a
+    // two-bar placeholder at the 15-second presentation change.
+    void getMarketProductPriceHistories(venue.id, productIds, activeRunId)
+      .then(histories => { if (active) setPriceHistories(histories); })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [activeRunId, historyRunReady, productKey, roundSequence, venue.id]);
 
   useEffect(() => {
     if (!featuredCategory) return;
@@ -104,7 +120,7 @@ export function MarketBoard({ activeRunId, featuredCategory, historyRunReady, on
 
       <div className="board-featured">
         {featuredProducts.map((product, index) => (
-          <FeaturedProductTile activeRunId={activeRunId} currency={venue.currency} historyRunReady={historyRunReady} product={product} rank={index + 1} venueId={venue.id} key={product.id} />
+          <FeaturedProductTile currency={venue.currency} history={priceHistories.get(product.id) ?? []} product={product} rank={index + 1} key={product.id} />
         ))}
       </div>
 
