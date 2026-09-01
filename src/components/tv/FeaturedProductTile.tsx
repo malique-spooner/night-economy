@@ -37,7 +37,6 @@ export function FeaturedProductTile({ currency, history, product, rank }: Props)
                 className={`feature-chart-delta ${bar.trend}`}
                 height={bar.height}
                 rx="2"
-                style={{ animationDelay: `${index * 42}ms`, transformOrigin: bar.trend === "up" ? "center bottom" : bar.trend === "dn" ? "center top" : "center center" }}
                 width={bar.width}
                 x={bar.x}
                 y={bar.y}
