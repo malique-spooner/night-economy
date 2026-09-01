@@ -1,15 +1,22 @@
 import { useLayoutEffect, useState } from "react";
 
-const steps = [
+const showcaseSteps = [
   { target: "service-controls", title: "Run the 18-minute demo", body: "Press Start 18-min demo to run a safe Showcase demonstration using sample data." },
   { target: "market", title: "See the TV view", body: "Market opens the guest-facing screen your venue would show on its display." },
   { target: "mobile", title: "See the phone view", body: "Mobile market opens the guest-facing menu for customers’ phones." },
   { target: "runs", title: "Review what happened", body: "Run history keeps the results from previous services." },
 ];
 
-export function PortalTour({ isServiceOpen, onClose }: { isServiceOpen: boolean; onClose: () => void }) {
+const publicDemoSteps = [
+  { target: "service-controls", title: "Open the live market", body: "Open TV market to see the guest-facing live prices. Public Demo runs automatically every day." },
+  { target: "mobile", title: "See the phone view", body: "Mobile market opens the guest-facing menu for customers’ phones." },
+  { target: "runs", title: "Review what happened", body: "Run history keeps one completed market for each day." },
+];
+
+export function PortalTour({ isPublicDailyMarket = false, isServiceOpen, onClose }: { isPublicDailyMarket?: boolean; isServiceOpen: boolean; onClose: () => void }) {
   const [step, setStep] = useState(0);
   const [position, setPosition] = useState({ top: 96, left: 20, side: "left" as "left" | "right" });
+  const steps = isPublicDailyMarket ? publicDemoSteps : showcaseSteps;
   const current = steps[step];
   useLayoutEffect(() => {
     const target = document.querySelector<HTMLElement>(`[data-portal-tour='${current.target}']`) ?? document.querySelector<HTMLElement>("[data-portal-tour='start']");
@@ -40,8 +47,9 @@ export function PortalTour({ isServiceOpen, onClose }: { isServiceOpen: boolean;
     return () => { observer?.disconnect(); sidebar?.removeEventListener("transitionend", place); window.removeEventListener("resize", place); window.removeEventListener("scroll", place, true); };
   }, [current.target]);
   const { side, ...style } = position;
+  const showRunningMessage = !isPublicDailyMarket && step === 0 && isServiceOpen;
   return <section className={`portal-tour portal-tour-${side}`} role="dialog" aria-modal="true" aria-labelledby="portal-tour-title" style={style}>
-    <span>{step + 1} / {steps.length}</span><h2 id="portal-tour-title">{step === 0 && isServiceOpen ? "Demo already running" : current.title}</h2><p>{step === 0 && isServiceOpen ? "The demo is already running. Use Pause, Resume or End right here to control it." : current.body}</p>
+    <span>{step + 1} / {steps.length}</span><h2 id="portal-tour-title">{showRunningMessage ? "Demo already running" : current.title}</h2><p>{showRunningMessage ? "The demo is already running. Use Pause, Resume or End right here to control it." : current.body}</p>
     <div><button disabled={step === 0} onClick={() => setStep(value => value - 1)} type="button">Back</button>{step === steps.length - 1 ? <button onClick={onClose} type="button">Done</button> : <button onClick={() => setStep(value => value + 1)} type="button">Next</button>}</div>
   </section>;
 }

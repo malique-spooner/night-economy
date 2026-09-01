@@ -581,7 +581,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
               venueName={state.venue.name}
               venueSlug={venueSlug}
               />
-              {isShowcaseGuideOpen && <PortalTour isServiceOpen={Boolean(simulatorState?.service.isOpen ?? simulatorState?.service.running ?? simulatorState?.service.paused)} onClose={() => { window.localStorage.setItem("night-economy-showcase-guide-seen", "true"); setIsShowcaseGuideOpen(false); }} />}
+              {isShowcaseGuideOpen && <PortalTour isPublicDailyMarket={isPublicDailyVenue} isServiceOpen={Boolean(simulatorState?.service.isOpen ?? simulatorState?.service.running ?? simulatorState?.service.paused)} onClose={() => { window.localStorage.setItem("night-economy-showcase-guide-seen", "true"); setIsShowcaseGuideOpen(false); }} />}
             <main className="portal-main">
               <div className="portal-workspace">
                 {activeTab === "start" ? (
