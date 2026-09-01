@@ -159,6 +159,12 @@ export function Tv({ venueSlug }: Props) {
   useEffect(() => {
     if (!presentationAnchor) return undefined;
     const updateClock = () => {
+      // A 1× scheduled market is real time. Reading the venue's actual clock
+      // directly avoids a visible delay introduced by polling simulator state.
+      if (simulationSpeed === 1) {
+        setClock(formatClock(new Date(), timezone));
+        return;
+      }
       const elapsed = Math.max(0, Date.now() - presentationAnchor.realAt);
       setClock(formatClock(new Date(presentationAnchor.simulatedAt + elapsed * simulationSpeed), timezone));
     };
