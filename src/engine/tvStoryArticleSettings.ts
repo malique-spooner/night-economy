@@ -17,13 +17,14 @@ export const tvStoryArticleOptions: TvStoryArticleOption[] = (Object.entries(lab
   labels.map((label, index) => ({ id: `${state}-${index + 1}`, label, state }))
 ));
 
-// Keep the editorial mix intentionally weighted towards the value stories.
-// These defaults are applied to every venue, but each article can be changed
-// independently from its own Settings page.
+// Keep the editorial mix intentionally weighted towards the value stories:
+// 12 easing, 9 featured, 6 steady and 3 rising selections preserve the 4:3:2:1
+// editorial balance while providing enough variety for a long-running board.
+// Each venue can still tailor its own choices from Settings.
 export const defaultTvStoryArticleIds = [
-  "easing-1", "easing-2", "easing-3", "easing-6", "easing-7", "easing-8", "easing-10", "easing-14",
-  "featured-1", "featured-2", "featured-7", "featured-8", "featured-14", "featured-15",
-  "steady-1", "steady-2", "steady-3", "steady-6", "steady-8",
+  "easing-1", "easing-2", "easing-3", "easing-4", "easing-5", "easing-6", "easing-7", "easing-8", "easing-9", "easing-10", "easing-11", "easing-14",
+  "featured-1", "featured-2", "featured-3", "featured-6", "featured-7", "featured-8", "featured-9", "featured-14", "featured-15",
+  "steady-1", "steady-2", "steady-3", "steady-4", "steady-6", "steady-8",
   "rising-1", "rising-2", "rising-10",
 ];
 
