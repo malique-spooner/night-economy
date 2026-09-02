@@ -19,6 +19,7 @@ import {
   sortTvBoardProducts,
   sortTvCategories,
 } from "../../../../src/components/tv/tvHelpers";
+import { weightedStoryProduct } from "../../../../src/components/tv/TvStoryPanel";
 
 const baseProduct: MarketProduct = {
   id: "product_base",
@@ -195,5 +196,24 @@ describe("tvHelpers", () => {
     expect(marketBoardLabel({ marketLive: false })).toBe("Paused Market Board");
     expect(mobilePriceStatusLabel({ marketLive: true })).toBe("Live prices");
     expect(mobilePriceStatusLabel({ marketLive: false })).toBe("Paused prices");
+  });
+});
+
+describe("weighted TV stories", () => {
+  const storyProducts = [
+    product({ id: "ease", currentPriceMinor: 900 }),
+    product({ id: "feature", currentPriceMinor: 1000, priority: true }),
+    product({ id: "steady", currentPriceMinor: 1000 }),
+    product({ id: "rise", currentPriceMinor: 1100 }),
+  ];
+
+  it("uses the planned 4:3:2:1 easing, featured, steady and rising rotation", () => {
+    expect(Array.from({ length: 10 }, (_, round) => weightedStoryProduct(storyProducts, round)?.id)).toEqual([
+      "ease", "ease", "ease", "ease", "feature", "feature", "feature", "steady", "steady", "rise",
+    ]);
+  });
+
+  it("falls back to another live state when the planned state has no drink", () => {
+    expect(weightedStoryProduct([product({ id: "only-rise", currentPriceMinor: 1100 })], 0)?.id).toBe("only-rise");
   });
 });

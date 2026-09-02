@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { MarketProduct, Venue } from "../../engine/types";
 import { formatMoney } from "../format";
-import { categoryLabel, defaultDrinkImage, formatChangePercent, getStoryProducts, productChangePercent, productTrend } from "./tvHelpers";
+import { categoryLabel, defaultDrinkImage, formatChangePercent, productChangePercent, productTrend } from "./tvHelpers";
 import { storyArticle } from "./storyArticles";
 
 type Props = {
@@ -13,23 +13,16 @@ type Props = {
 
 export function TvStoryPanel({ category, products, roundSequence, venue }: Props) {
   const [articleIndex, setArticleIndex] = useState(0);
-  const [storyIndex, setStoryIndex] = useState(0);
-  const storyProducts = useMemo(
-    () => getStoryProducts(products.filter(product => product.category === category)),
-    [category, products],
+  const storyProduct = useMemo(
+    () => weightedStoryProduct(products.filter(product => product.category === category), roundSequence),
+    [category, products, roundSequence],
   );
 
   useEffect(() => {
-    setStoryIndex(index => index % Math.max(storyProducts.length, 1));
-  }, [storyProducts.length]);
-
-  useEffect(() => {
-    if (!roundSequence || !storyProducts.length) return;
-    setStoryIndex(index => (index + 1) % storyProducts.length);
+    if (!roundSequence || !storyProduct) return;
     setArticleIndex(index => index + 1);
-  }, [roundSequence, storyProducts.length]);
+  }, [roundSequence, storyProduct]);
 
-  const storyProduct = storyProducts[storyIndex] ?? null;
   const trend = storyProduct ? productTrend(storyProduct) : "dn";
   const story = storyProduct ? storyArticle(storyProduct, articleIndex, venue.currency, marketPosition(storyProduct), demandSignal(storyProduct), venue.tvStoryArticleIds) : null;
 
@@ -53,6 +46,36 @@ export function TvStoryPanel({ category, products, roundSequence, venue }: Props
       </div>
     </div>
   );
+}
+
+const storyStateRotation = ["easing", "easing", "easing", "easing", "featured", "featured", "featured", "steady", "steady", "rising"] as const;
+
+// The right-hand TV story is editorial, not a report of whichever movement
+// happens to be largest. Its ten-round cycle deliberately gives easing four
+// slots, featured three, steady two and rising one. Missing states fall back
+// to the next available slot, so the panel always has a relevant drink.
+export function weightedStoryProduct(products: MarketProduct[], roundSequence: number) {
+  const liveProducts = products.filter(product => product.isLive && !product.isSoldOut);
+  const byState = {
+    easing: liveProducts.filter(product => !product.priority && productTrend(product) === "dn"),
+    featured: liveProducts.filter(product => product.priority),
+    steady: liveProducts.filter(product => !product.priority && productTrend(product) === "hold"),
+    rising: liveProducts.filter(product => !product.priority && productTrend(product) === "up"),
+  };
+  const ordered = (items: MarketProduct[]) => [...items].sort((left, right) => {
+    const movement = Math.abs(productChangePercent(right)) - Math.abs(productChangePercent(left));
+    return movement || left.name.localeCompare(right.name);
+  });
+  const start = Math.max(0, roundSequence) % storyStateRotation.length;
+
+  for (let offset = 0; offset < storyStateRotation.length; offset += 1) {
+    const state = storyStateRotation[(start + offset) % storyStateRotation.length];
+    const candidates = ordered(byState[state]);
+    if (!candidates.length) continue;
+    const stateTurns = storyStateRotation.slice(0, Math.max(0, roundSequence) + 1).filter(item => item === state).length;
+    return candidates[(Math.max(0, stateTurns - 1)) % candidates.length];
+  }
+  return ordered(liveProducts)[0] ?? null;
 }
 
 function marketPosition(product: MarketProduct) {
