@@ -17,10 +17,15 @@ export const tvStoryArticleOptions: TvStoryArticleOption[] = (Object.entries(lab
   labels.map((label, index) => ({ id: `${state}-${index + 1}`, label, state }))
 ));
 
-// Start with the full editorial library enabled so a long-running board has
-// genuine variety. The TV's category selector—not the number enabled—keeps
-// the on-screen mix at 4 easing : 3 featured : 2 steady : 1 rising.
-export const defaultTvStoryArticleIds = tvStoryArticleOptions.map(article => article.id);
+// A hand-picked editorial library: varied enough for a long-running board,
+// but without the more cryptic labels. The TV's category selector—not this
+// list—keeps the on-screen mix at 4 easing : 3 featured : 2 steady : 1 rising.
+export const defaultTvStoryArticleIds = [
+  "easing-1", "easing-2", "easing-3", "easing-4", "easing-5", "easing-6", "easing-7", "easing-8", "easing-9", "easing-10", "easing-12", "easing-15",
+  "featured-1", "featured-2", "featured-3", "featured-4", "featured-5", "featured-6", "featured-7", "featured-8", "featured-9", "featured-10", "featured-11", "featured-12", "featured-14", "featured-15",
+  "steady-1", "steady-2", "steady-3", "steady-4", "steady-5", "steady-6", "steady-7", "steady-8", "steady-10", "steady-13", "steady-14",
+  "rising-1", "rising-2", "rising-4", "rising-6", "rising-7", "rising-10", "rising-15",
+];
 
 const articleIdSet = new Set(tvStoryArticleOptions.map(article => article.id));
 
