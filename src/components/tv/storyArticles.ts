@@ -79,6 +79,13 @@ const articles: Record<ArticleState, Article[]> = {
   ],
 };
 
+export function storyArticlePreview(id: string) {
+  const match = /^(featured|rising|easing|steady)-(\d+)$/.exec(id);
+  if (!match) return null;
+  const article = articles[match[1] as ArticleState][Number(match[2]) - 1];
+  return article ? `${article.headline} ${article.body}` : null;
+}
+
 export function storyArticle(product: MarketProduct, storyIndex: number, currency: string, marketPosition: string, demandSignal: string, enabledIds: string[]) {
   const state: ArticleState = product.priority ? "featured" : productTrend(product) === "up" ? "rising" : productTrend(product) === "dn" ? "easing" : "steady";
   const enabledArticles = articles[state].filter((_, index) => enabledIds.includes(`${state}-${index + 1}`));

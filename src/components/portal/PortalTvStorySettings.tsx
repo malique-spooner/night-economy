@@ -1,4 +1,5 @@
 import { tvStoryArticleOptions, type TvStoryArticleState } from "../../engine/tvStoryArticleSettings";
+import { storyArticlePreview } from "../tv/storyArticles";
 
 type Props = {
   disabled?: boolean;
@@ -37,7 +38,7 @@ export function PortalTvStorySettings({ disabled = false, enabledIds, onChange }
         return <section className={`portal-tv-story-group ${state}`} key={state}>
           <div className="portal-tv-story-group-head"><div><strong>{stateCopy[state].title}</strong><small>{stateCopy[state].description}</small></div><b>{selected} on</b></div>
           <div className="portal-tv-story-options">
-            {options.map(article => <label className={enabled.has(article.id) ? "is-enabled" : ""} key={article.id}>
+            {options.map(article => <label className={enabled.has(article.id) ? "is-enabled" : ""} key={article.id} title={storyArticlePreview(article.id) ?? article.label}>
               <input checked={enabled.has(article.id)} disabled={disabled} onChange={() => toggle(article.id)} type="checkbox" />
               <span>{article.label}</span>
             </label>)}
