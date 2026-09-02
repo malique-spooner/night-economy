@@ -119,14 +119,14 @@ test("password update and portal sign-out buttons complete their secure workflow
   const cloud = await mockSupabase(page);
   await signIn(page);
   await page.goto("/sign-in/demo-venue#type=recovery");
-  await page.getByLabel("New password", { exact: true }).fill("a new secure password");
-  await page.getByLabel("Confirm password", { exact: true }).fill("a new secure password");
+  await page.getByRole("textbox", { name: "New password", exact: true }).fill("a new secure password");
+  await page.getByRole("textbox", { name: "Confirm password", exact: true }).fill("a new secure password");
   await page.getByRole("button", { name: "Update password" }).click();
   await expect(page).toHaveURL(/\/app\/demo-venue$/);
   expect(cloud.authRequests).toContain("update-user");
 
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/sign-in$/);
   expect(cloud.authRequests).toContain("logout");
 });
 
@@ -138,7 +138,7 @@ test("an account without venue membership can use the access-denied sign-out but
   await page.getByRole("button", { name: "Sign in securely" }).click();
   await expect(page.getByText("This account does not have access to a Night Economy venue.")).toBeVisible();
   await page.getByRole("button", { name: "Sign out and use another venue account" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/sign-in$/);
   expect(cloud.authRequests).toContain("logout");
 });
 
@@ -302,7 +302,7 @@ test("an owner signs in and clicks through scheduling, service controls, history
   await mondayTarget.blur();
   await expect.poll(() => writes.some(write => write.path === "/rest/v1/venues" && JSON.stringify(write.body).includes('"day":"Monday"') && JSON.stringify(write.body).includes('"targetRevenueMinor":1234500'))).toBe(true);
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/sign-in$/);
   expect(cloud.authRequests).toContain("logout");
 });
 

@@ -61,6 +61,19 @@ const expectedMigrations = [
   "20260827080854_clone_showcase_for_the_last_judgment.sql",
   "20260830074202_create_public_demo_venue.sql",
   "20260830082235_allow_public_demo_portal_reads.sql",
+  "20260830084701_rename_public_demo_venue.sql",
+  "20260830085543_set_public_demo_schedule_24_7.sql",
+  "20260831091038_remove_global_demo_access.sql",
+  "20260831092559_set_public_demo_daily_service_window.sql",
+  "20260831093532_restore_public_demo_all_day_market.sql",
+  "20260831094138_allow_full_day_public_demo_runs.sql",
+  "20260831095120_prevent_duplicate_public_daily_runs.sql",
+  "20260831095829_grant_global_admin_public_demo_access.sql",
+  "20260831100253_increase_public_demo_market_activity.sql",
+  "20260831103228_normalise_public_demo_daily_market.sql",
+  "20260901183444_convert_venue_wines_to_large_glasses.sql",
+  "20260901191856_increase-public-demo-all-day-target.sql",
+  "20260902091058_add-tv-story-article-settings.sql",
 ];
 
 const migrationFiles = readdirSync(migrationsDir)
@@ -139,6 +152,11 @@ function checkRequiredPatterns() {
       label: "venues persist a non-empty TV story category selection",
       source: migrationSql["20260808153024_add_tv_story_categories.sql"],
       pattern: /add column if not exists tv_story_categories jsonb not null default '\["Cocktails"\]'::jsonb[\s\S]+jsonb_array_length\(tv_story_categories\) > 0[\s\S]+grant update \(tv_story_categories\) on public\.venues to authenticated/i,
+    },
+    {
+      label: "venues persist individually selectable TV story articles",
+      source: migrationSql["20260902091058_add-tv-story-article-settings.sql"],
+      pattern: /add column if not exists tv_story_article_ids jsonb not null default[\s\S]+venues_tv_story_article_ids_array[\s\S]+grant update \(tv_story_article_ids\) on public\.venues to authenticated/i,
     },
     {
       label: "market logo deletion is restricted to venue admins",

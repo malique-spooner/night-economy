@@ -1,6 +1,8 @@
-# TV news desk — 60 complete stories
+# TV news desk — 60 selectable stories
 
-These are 60 individually written nightlife-market stories. The bracketed values are filled from real live data: drink name, current price, opening price, movement, category position, and demand signal. There are no prefix-and-ending combinations.
+These are 60 individually written nightlife-market stories. The bracketed values are filled from real live data: drink name, current price, opening price, movement, market position, and demand signal. There are no prefix-and-ending combinations.
+
+Venue owners and admins can see every story and turn each one on or off in **Settings → TV story articles**. Hover a label there to preview its full text.
 
 ## Featured stories
 
@@ -76,4 +78,15 @@ These are 60 individually written nightlife-market stories. The bracketed values
 
 ## What every story adds
 
-Each headline is paired with its own written body. That body uses the actual market state rather than making up a claim: current and opening price, percentage movement where relevant, category position for price increases, and a demand signal relative to that category. The panel always follows the left-hand category and changes every 15 seconds.
+Each headline is paired with its own written body. That body uses the actual market state rather than making up a claim: current and opening price, percentage movement where relevant, market position, and a direct demand signal such as “orders are landing quickly.” The panel always follows the left-hand category and changes every 15 seconds.
+
+## Editorial rotation
+
+The TV uses a 10-slot weighted rotation among live drinks that match each state:
+
+- Easing price: 4 slots
+- Featured drink: 3 slots
+- Steady price: 2 slots
+- Rising price: 1 slot
+
+If a planned state has no suitable live drink, the TV uses the next available state. The default active selection contains 8 easing, 6 featured, 5 steady, and 3 rising labels; venue settings can change that selection at any time.

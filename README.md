@@ -39,7 +39,7 @@ flowchart LR
 
 ## Evidence of engineering quality
 
-- 126 unit/integration tests plus 14 browser workflows cover product and service behaviour.
+- 132 unit/integration tests plus 15 browser workflows cover product and service behaviour.
 - The release suite verifies source reachability, environment safety, Supabase SQL/function safeguards, pricing-engine parity, routing, and a production preview.
 - The public production site is deployed on [Cloudflare Pages](https://night-economy.pages.dev/).
 
