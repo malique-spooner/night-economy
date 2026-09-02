@@ -31,7 +31,7 @@ export function TvStoryPanel({ category, products, roundSequence, venue }: Props
 
   const storyProduct = storyProducts[storyIndex] ?? null;
   const trend = storyProduct ? productTrend(storyProduct) : "dn";
-  const story = storyProduct ? storyArticle(storyProduct, articleIndex, venue.currency, categoryPosition(storyProduct, storyProducts), relativeDemand(storyProduct, storyProducts)) : null;
+  const story = storyProduct ? storyArticle(storyProduct, articleIndex, venue.currency, marketPosition(storyProduct), demandSignal(storyProduct)) : null;
 
   return (
     <div className={`rpanel story-${trend} ${storyProduct?.isSoldOut ? "story-sold-out" : ""}`}>
@@ -55,15 +55,16 @@ export function TvStoryPanel({ category, products, roundSequence, venue }: Props
   );
 }
 
-function categoryPosition(product: MarketProduct, products: MarketProduct[]) {
-  const rank = products.findIndex(item => item.id === product.id) + 1;
-  return rank === 1 ? "at the front of the category" : `#${rank} in the current category read`;
+function marketPosition(product: MarketProduct) {
+  if (product.priority) return "firmly in the spotlight";
+  if (productTrend(product) === "up") return "making its move on the board";
+  if (productTrend(product) === "dn") return "at a tempting price";
+  return "holding steady on the board";
 }
 
-function relativeDemand(product: MarketProduct, products: MarketProduct[]) {
-  if (products.length < 2) return "The room is still setting the early pace";
-  const average = products.reduce((total, item) => total + item.salesVelocity, 0) / products.length;
-  if (product.salesVelocity > average * 1.2) return "Demand is running above the category average";
-  if (product.salesVelocity < average * 0.8) return "Demand is quieter than the category average";
-  return "Demand is tracking with the rest of the category";
+function demandSignal(product: MarketProduct) {
+  if (product.salesVelocity >= 2) return "Orders are landing quickly";
+  if (product.salesVelocity >= 0.75) return "It is getting a steady run of orders";
+  if (product.salesVelocity > 0) return "It is still very much in the mix";
+  return "The room is just getting started";
 }

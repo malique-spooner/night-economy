@@ -18,7 +18,7 @@ const articles: Record<ArticleState, Article[]> = {
     { kicker: "Crowd favourite", headline: "[drink] has found its people.", body: "The room is keeping it in the conversation; [demand-lower]." },
     { kicker: "The board’s pick", headline: "[drink] is the recommendation you did not ask for.", body: "But at [price], it is a very convincing one. [demand]." },
     { kicker: "A small obsession", headline: "[drink] has become a recurring thought.", body: "It opened at [opening], and the room is still giving it plenty of oxygen." },
-    { kicker: "After-dark dispatch", headline: "[drink] is making a case for ‘one more’.", body: "[price] is the live call. [demand] across this category." },
+    { kicker: "After-dark dispatch", headline: "[drink] is making a case for ‘one more’.", body: "[price] is the live call. [demand]." },
     { kicker: "The mood board", headline: "[drink] is exactly where the night is at.", body: "Its opening price was [opening]; the current market is writing a more interesting chapter." },
     { kicker: "Unofficial advice", headline: "Do not overthink [drink].", body: "It is featured for a reason: [demand-lower], with [price] on the board." },
     { kicker: "The quiet flex", headline: "[drink] has made being popular look effortless.", body: "There is no need for a speech—the price is [price] and the room is doing the rest." },
@@ -29,14 +29,14 @@ const articles: Record<ArticleState, Article[]> = {
     { kicker: "Price gossip", headline: "[drink] has developed expensive taste.", body: "It is [change] from opening and now sits [position]. [demand]." },
     { kicker: "The plot thickens", headline: "[drink] is heading north with purpose.", body: "From [opening] to [price], this is not a subtle little move." },
     { kicker: "A gentle warning", headline: "[drink] is getting ideas above its glass.", body: "[change] from opening. [demand] and the board has responded." },
-    { kicker: "Upwardly mobile", headline: "[drink] has entered its ambitious era.", body: "The current call is [price], putting it [position] in the category read." },
+    { kicker: "Upwardly mobile", headline: "[drink] has entered its ambitious era.", body: "The current call is [price]. It is [position]." },
     { kicker: "The bar is watching", headline: "[drink] is making the other drinks nervous.", body: "It has moved [change] since opening, with [demand-lower]." },
     { kicker: "No small talk", headline: "[drink] is climbing without asking permission.", body: "[price] is the number now; [opening] was merely the introduction." },
     { kicker: "Market mischief", headline: "[drink] has chosen confidence tonight.", body: "[demand] and the price is up [change] from where it began." },
     { kicker: "A very public glow-up", headline: "[drink] is looking rather pleased with itself.", body: "The board puts it at [price], [change] clear of opening." },
     { kicker: "The higher ground", headline: "[drink] has taken the scenic route upward.", body: "It is now [position], and [demand-lower]." },
     { kicker: "Current affairs", headline: "[drink] is raising the bar. Literally.", body: "Opening at [opening], it is now called at [price]." },
-    { kicker: "A little dramatic", headline: "[drink] has made an entrance on the board.", body: "[change] from opening is enough to make the category look twice." },
+    { kicker: "A little dramatic", headline: "[drink] has made an entrance on the board.", body: "[change] from opening is enough to make people look twice." },
     { kicker: "The word is out", headline: "[drink] is no longer pretending to be affordable.", body: "[demand] as it trades [position]." },
     { kicker: "Under pressure", headline: "[drink] is handling popularity beautifully.", body: "The price has moved to [price], up [change] from opening." },
     { kicker: "Night shift news", headline: "[drink] is making upward movement look easy.", body: "It started at [opening]; the live price is now [price]." },
@@ -78,7 +78,7 @@ const articles: Record<ArticleState, Article[]> = {
   ],
 };
 
-export function storyArticle(product: MarketProduct, storyIndex: number, currency: string, categoryPosition: string, demandSignal: string) {
+export function storyArticle(product: MarketProduct, storyIndex: number, currency: string, marketPosition: string, demandSignal: string) {
   const state: ArticleState = product.priority ? "featured" : productTrend(product) === "up" ? "rising" : productTrend(product) === "dn" ? "easing" : "steady";
   const article = articles[state][(stableNumber(product.id) + storyIndex) % articles[state].length];
   const values: Record<string, string> = {
@@ -86,7 +86,7 @@ export function storyArticle(product: MarketProduct, storyIndex: number, currenc
     "[price]": formatMoney(product.currentPriceMinor, currency),
     "[opening]": formatMoney(product.basePriceMinor, currency),
     "[change]": formatChangePercent(product),
-    "[position]": categoryPosition,
+    "[position]": marketPosition,
     "[demand]": demandSignal,
     "[demand-lower]": lowerFirst(demandSignal),
   };
