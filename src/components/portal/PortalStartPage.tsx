@@ -69,6 +69,7 @@ export function PortalStartPage({
   const settings: VenueMarketSettings = {
     marketLive: venue.marketLive,
     tvStoryCategories: venue.tvStoryCategories,
+    tvStoryArticleIds: venue.tvStoryArticleIds,
     crashIntervalMinutes: venue.crashIntervalMinutes,
     crashSettings: venue.crashSettings,
     marketSchedule: venue.marketSchedule,

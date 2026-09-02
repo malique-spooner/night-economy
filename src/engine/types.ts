@@ -6,6 +6,7 @@ export type Venue = {
   timezone: string;
   marketLive: boolean;
   tvStoryCategories: string[];
+  tvStoryArticleIds: string[];
   marketSchedule: MarketScheduleEntry[];
   crashIntervalMinutes: CrashIntervalMinutes;
   crashSettings: MarketCrashSettings;
@@ -24,7 +25,7 @@ export type MarketCrashSettings = {
 
 export type VenueMarketSettings = Pick<
   Venue,
-  "marketLive" | "tvStoryCategories" | "crashIntervalMinutes" | "crashSettings" | "marketSchedule" | "launchDate" | "launchStartTime" | "launchEndTime"
+  "marketLive" | "tvStoryCategories" | "tvStoryArticleIds" | "crashIntervalMinutes" | "crashSettings" | "marketSchedule" | "launchDate" | "launchStartTime" | "launchEndTime"
 >;
 
 export type MarketProduct = {

@@ -1,9 +1,10 @@
 import type { MarketProduct } from "../../engine/types";
 import { formatMoney } from "../format";
 import { formatChangePercent, productTrend } from "./tvHelpers";
+import type { TvStoryArticleState } from "../../engine/tvStoryArticleSettings";
 
 type Article = { body: string; headline: string; kicker: string };
-type ArticleState = "featured" | "rising" | "easing" | "steady";
+type ArticleState = TvStoryArticleState;
 
 // 60 complete stories, deliberately written as individual nightlife-news items.
 // Placeholders are replaced with live market values at the moment the item airs.
@@ -78,9 +79,10 @@ const articles: Record<ArticleState, Article[]> = {
   ],
 };
 
-export function storyArticle(product: MarketProduct, storyIndex: number, currency: string, marketPosition: string, demandSignal: string) {
+export function storyArticle(product: MarketProduct, storyIndex: number, currency: string, marketPosition: string, demandSignal: string, enabledIds: string[]) {
   const state: ArticleState = product.priority ? "featured" : productTrend(product) === "up" ? "rising" : productTrend(product) === "dn" ? "easing" : "steady";
-  const article = articles[state][(stableNumber(product.id) + storyIndex) % articles[state].length];
+  const enabledArticles = articles[state].filter((_, index) => enabledIds.includes(`${state}-${index + 1}`));
+  const article = (enabledArticles.length ? enabledArticles : articles[state])[(stableNumber(product.id) + storyIndex) % (enabledArticles.length || articles[state].length)];
   const values: Record<string, string> = {
     "[drink]": product.name,
     "[price]": formatMoney(product.currentPriceMinor, currency),

@@ -1,4 +1,5 @@
 import type { CrashDurationMinutes, CrashIntervalMinutes, MarketCrashSettings, VenueMarketSettings } from "./types";
+import { defaultTvStoryArticleIds } from "./tvStoryArticleSettings";
 
 const crashIntervalOptions = [15, 30, 60, 120] as const satisfies readonly CrashIntervalMinutes[];
 const crashDurationOptions = [5, 10] as const satisfies readonly CrashDurationMinutes[];
@@ -13,6 +14,7 @@ export function defaultVenueMarketSettings(now = new Date()): VenueMarketSetting
   return {
     marketLive: false,
     tvStoryCategories: ["Cocktails"],
+    tvStoryArticleIds: defaultTvStoryArticleIds,
     marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }],
     crashIntervalMinutes: 30,
     crashSettings: defaultMarketCrashSettings(),

@@ -632,6 +632,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
                     isSignedIn={isSignedIn}
                     isReadOnly={readOnly}
                     onCrashSettingsChange={crashSettings => { void handleVenueSettingsChange({ crashSettings }); }}
+                    onTvStoryArticleIdsChange={tvStoryArticleIds => { void handleVenueSettingsChange({ tvStoryArticleIds }); }}
                     products={state.products}
                     role={memberRole}
                     source={state.source}

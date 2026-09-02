@@ -1,6 +1,7 @@
 import type { MarketCrashSettings, MarketProduct, Venue } from "../../engine/types";
 import type { VenueMemberRole } from "../../api/memberships";
 import { PortalCrashSettings } from "./PortalCrashSettings";
+import { PortalTvStorySettings } from "./PortalTvStorySettings";
 
 type Props = {
   categories: string[];
@@ -9,13 +10,14 @@ type Props = {
   isSignedIn: boolean;
   isReadOnly?: boolean;
   onCrashSettingsChange: (settings: MarketCrashSettings) => void;
+  onTvStoryArticleIdsChange: (articleIds: string[]) => void;
   products: MarketProduct[];
   role: VenueMemberRole | null;
   source: "seed" | "supabase";
   venue: Venue;
 };
 
-export function PortalAccountPage({ categories, canManageCrashSettings, email, isReadOnly = false, isSignedIn, onCrashSettingsChange, products, role, source, venue }: Props) {
+export function PortalAccountPage({ categories, canManageCrashSettings, email, isReadOnly = false, isSignedIn, onCrashSettingsChange, onTvStoryArticleIdsChange, products, role, source, venue }: Props) {
   const access = isReadOnly ? "Public read-only access" : source === "seed" ? "Demo access" : role ? `${role[0].toUpperCase()}${role.slice(1)} access` : "No venue access";
 
   return (
@@ -28,6 +30,8 @@ export function PortalAccountPage({ categories, canManageCrashSettings, email, i
 
       <PortalCrashSettings categories={categories} currency={venue.currency} disabled={!canManageCrashSettings} onChange={onCrashSettingsChange} products={products} serviceMinutes={serviceMinutesFor(venue.marketSchedule)} settings={venue.crashSettings} />
       {!canManageCrashSettings && <small className="portal-crash-access-note">Owner or admin access required to change the crash plan.</small>}
+
+      <PortalTvStorySettings disabled={!canManageCrashSettings} enabledIds={venue.tvStoryArticleIds} onChange={onTvStoryArticleIdsChange} />
 
       <article className="portal-account-card portal-settings-details">
         <h2>Venue</h2>

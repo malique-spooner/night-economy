@@ -11,6 +11,7 @@ import {
   type MarketProductRow,
   type VenueRow,
 } from "../../../src/api/market";
+import { defaultTvStoryArticleIds } from "../../../src/engine/tvStoryArticleSettings";
 
 const venueRow: VenueRow = {
   id: "venue_123",
@@ -50,6 +51,7 @@ describe("mapVenueRow", () => {
       timezone: "Europe/London",
       marketLive: true,
       tvStoryCategories: ["Cocktails"],
+      tvStoryArticleIds: defaultTvStoryArticleIds,
       marketSchedule: [{ day: "Friday", start: "18:00", end: "00:00", enabled: true }],
       crashIntervalMinutes: 60,
       crashSettings: { durationMinutes: 10, categoryCrashCounts: {} },

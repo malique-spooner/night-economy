@@ -1,6 +1,7 @@
 import { seedProducts, seedVenue } from "../demo/marketSeed";
 import type { CrashIntervalMinutes, MarketProduct, Venue, VenueMarketSettings, MarketScheduleEntry } from "../engine/types";
 import { defaultVenueMarketSettings, isCrashIntervalMinutes, normalizeMarketCrashSettings, normalizeTimeInput } from "../engine/venueSettings";
+import { normalizeTvStoryArticleIds } from "../engine/tvStoryArticleSettings";
 import { supabase } from "./client";
 
 export type MarketState = {
@@ -68,6 +69,7 @@ export type VenueRow = {
   timezone: string;
   market_live?: boolean | null;
   tv_story_categories?: unknown;
+  tv_story_article_ids?: unknown;
   market_schedule?: unknown;
   crash_interval_minutes?: number | null;
   crash_settings?: unknown;
@@ -140,6 +142,7 @@ export function mapVenueRow(row: VenueRow): Venue {
     timezone: row.timezone,
     marketLive: row.market_live ?? defaults.marketLive,
     tvStoryCategories: parseTvStoryCategories(row.tv_story_categories, defaults.tvStoryCategories),
+    tvStoryArticleIds: normalizeTvStoryArticleIds(row.tv_story_article_ids, defaults.tvStoryArticleIds),
     marketSchedule: Array.isArray(row.market_schedule) ? row.market_schedule as MarketScheduleEntry[] : defaults.marketSchedule,
     crashIntervalMinutes,
     crashSettings: normalizeMarketCrashSettings(row.crash_settings),
@@ -471,6 +474,7 @@ export function toVenueMarketSettingsRowPatch(patch: VenueMarketSettingsPatch) {
   const rowPatch = {
     ...(patch.marketLive !== undefined ? { market_live: patch.marketLive } : {}),
     ...(patch.tvStoryCategories !== undefined ? { tv_story_categories: patch.tvStoryCategories } : {}),
+    ...(patch.tvStoryArticleIds !== undefined ? { tv_story_article_ids: patch.tvStoryArticleIds } : {}),
     ...(patch.crashIntervalMinutes !== undefined
       ? { crash_interval_minutes: patch.crashIntervalMinutes as CrashIntervalMinutes }
       : {}),

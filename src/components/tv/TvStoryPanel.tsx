@@ -31,7 +31,7 @@ export function TvStoryPanel({ category, products, roundSequence, venue }: Props
 
   const storyProduct = storyProducts[storyIndex] ?? null;
   const trend = storyProduct ? productTrend(storyProduct) : "dn";
-  const story = storyProduct ? storyArticle(storyProduct, articleIndex, venue.currency, marketPosition(storyProduct), demandSignal(storyProduct)) : null;
+  const story = storyProduct ? storyArticle(storyProduct, articleIndex, venue.currency, marketPosition(storyProduct), demandSignal(storyProduct), venue.tvStoryArticleIds) : null;
 
   return (
     <div className={`rpanel story-${trend} ${storyProduct?.isSoldOut ? "story-sold-out" : ""}`}>
