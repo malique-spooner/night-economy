@@ -32,7 +32,7 @@ The project includes both a local Friday-night POS simulator and a cloud-side se
 
 ### Build security and operations in early
 
-The product uses Supabase Auth and Row Level Security for venue-scoped data, immutable SQL migrations for changes, scheduled Edge Functions for service automation, and Cloudflare Pages for the frontend. The repository includes automated checks for source reachability, SQL safety, public routes, pricing-engine parity, and browser workflows.
+The product uses Supabase Auth and Row Level Security for venue-scoped data, immutable SQL migrations for changes, scheduled Edge Functions for service automation, and Cloudflare Worker Static Assets for the frontend. The repository includes automated checks for source reachability, SQL safety, public routes, pricing-engine parity, and browser workflows.
 
 ## Technical architecture
 
@@ -49,7 +49,7 @@ flowchart TB
   DB --> Realtime[Supabase Realtime]
   Realtime --> TV
   Realtime --> Mobile
-  Pages[Cloudflare Pages] --> Portal
+  Worker[Cloudflare Worker Static Assets] --> Portal
   Pages --> TV
   Pages --> Mobile
 ```

@@ -10,6 +10,9 @@ const directRoutes = [
   "/?view=tv",
   "/?view=mobile",
   "/?view=portal",
+  "/portal",
+  "/tv-view",
+  "/mobile-view",
   "/tv/demo-venue",
   "/menu/demo-venue",
   "/app/demo-venue",
@@ -18,7 +21,7 @@ const directRoutes = [
 ];
 
 await run("npm", ["run", "build"]);
-const cloudflareRoutes = await assertCloudflareRedirects();
+await assertCloudflareWorkerAssets();
 
 const server = spawn(
   "npm",
@@ -44,14 +47,6 @@ try {
       throw new Error(`${route} returned ${response.status}`);
     }
     console.log(`ok ${route}`);
-  }
-
-  for (const [route, target] of Object.entries(cloudflareRoutes)) {
-    const response = await fetch(`${baseUrl}${target}`);
-    if (!response.ok) {
-      throw new Error(`${route} resolved to ${target}, but ${target} returned ${response.status}`);
-    }
-    console.log(`ok ${route} -> ${target}`);
   }
 
   console.log("Preview smoke test passed.");
@@ -104,55 +99,9 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function assertCloudflareRedirects() {
-  const redirects = await readFile("dist/_redirects", "utf8");
-  const rules = parseRedirectRules(redirects);
-  const expectedRules = [
-    { source: "/*", target: "/index.html", status: "200" },
-  ];
-
-  if (JSON.stringify(rules) !== JSON.stringify(expectedRules)) {
-    throw new Error("Cloudflare Pages redirects must send all app routes to the React entrypoint.");
+async function assertCloudflareWorkerAssets() {
+  const config = JSON.parse(await readFile("wrangler.domain-proxy.jsonc", "utf8"));
+  if (config.assets?.directory !== "./dist" || config.assets?.not_found_handling !== "single-page-application") {
+    throw new Error("Cloudflare Worker must serve the built app from dist with SPA routing enabled.");
   }
-
-  const expectedRouteTargets = {
-    "/tv/demo-venue": "/index.html",
-    "/menu/demo-venue": "/index.html",
-    "/app/demo-venue": "/index.html",
-    "/simulator/demo-venue": "/index.html",
-    "/venue/demo-venue": "/index.html",
-    "/not-a-real-route": "/index.html",
-  };
-
-  for (const [route, target] of Object.entries(expectedRouteTargets)) {
-    const actualTarget = resolveRedirectTarget(route, rules);
-    if (actualTarget !== target) {
-      throw new Error(`Cloudflare route ${route} resolved to ${actualTarget}, expected ${target}.`);
-    }
-  }
-
-  return expectedRouteTargets;
-}
-
-function parseRedirectRules(source) {
-  return source
-    .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(line => line && !line.startsWith("#"))
-    .map(line => {
-      const [ruleSource, target, status] = line.split(/\s+/);
-      return { source: ruleSource, target, status };
-    });
-}
-
-function resolveRedirectTarget(route, rules) {
-  return rules.find(rule => matchesRedirectSource(route, rule.source))?.target;
-}
-
-function matchesRedirectSource(route, source) {
-  if (source.endsWith("/*")) {
-    return route === source.slice(0, -2) || route.startsWith(source.slice(0, -1));
-  }
-
-  return route === source;
 }

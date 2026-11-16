@@ -35,22 +35,22 @@ flowchart LR
 - A guest mobile menu that reads the same live market state as the TV.
 - A POS-style Friday service simulator and a cloud-side simulator for repeatable rehearsals.
 - A pricing engine that publishes controlled five-minute price rounds, with shared logic guarded against cloud/local drift.
-- Supabase Auth, Row Level Security, scheduled Edge Functions, migrations, and Cloudflare Pages deployment.
+- Supabase Auth, Row Level Security, scheduled Edge Functions, migrations, and Cloudflare Worker Static Assets deployment.
 
 ## Evidence of engineering quality
 
 - 132 unit/integration tests plus 15 browser workflows cover product and service behaviour.
 - The release suite verifies source reachability, environment safety, Supabase SQL/function safeguards, pricing-engine parity, routing, and a production preview.
-- The public production site is served at [maliquespooner.com/night](https://maliquespooner.com/night/), with Cloudflare Pages retained as its separately managed origin.
+- The public production app is served directly from a Cloudflare Worker at `maliquespooner.com/night-economy/portal`, `/tv-view`, and `/mobile-view`.
 
 New to this codebase? Begin with [START-HERE.md](START-HERE.md) for a plain-English map of the project.
 
-The browser application has one React/Vite/TypeScript entrypoint at `index.html`. Supabase owns persistent state and service automation; Cloudflare Pages serves the compiled frontend at `maliquespooner.com/night-economy/` through a separately deployed path proxy Worker. The application source, Pages build, and proxy configuration stay in this repository.
+The browser application has one React/Vite/TypeScript entrypoint at `index.html`. Supabase owns persistent state and service automation; a Cloudflare Worker serves the compiled frontend directly from this repository's `dist/` build at `maliquespooner.com/night-economy/`. The app no longer fetches its frontend from a Pages hostname.
 
 ## Stack
 
 - React + Vite + TypeScript
-- Cloudflare Pages for frontend hosting
+- Cloudflare Workers Static Assets for frontend hosting
 - Supabase Postgres/Auth for backend, data, and login
 - Supabase Edge Functions for market jobs
 - Vitest for pricing engine tests
@@ -72,7 +72,7 @@ See [docs/README.md](docs/README.md) for the complete documentation index and vi
 
 ## Repository Map
 
-- `src/` — the Cloudflare Pages React app, grouped into API access, reusable components, market logic, and route-level pages.
+- `src/` — the React app, grouped into API access, reusable components, market logic, and route-level pages.
 - `pos-simulator/` — the standalone Friday-service POS simulator and its local browser UI.
 - `supabase/functions/` — deployed scheduler, simulator, and pricing Edge Functions; shared scheduler logic lives in `_shared/`.
 - `supabase/migrations/` — immutable database history in application order. Do not squash migrations already applied to a project.
@@ -140,16 +140,18 @@ SUPABASE_SERVICE_ROLE_KEY=...
 SCHEDULER_SECRET=...
 ```
 
-Never expose `SUPABASE_SERVICE_ROLE_KEY` in the browser or Cloudflare Pages frontend variables.
+Never expose `SUPABASE_SERVICE_ROLE_KEY` in the browser or public Cloudflare Worker assets.
 `npm run check:env` rejects service-role JWTs and Supabase secret keys in any `VITE_` browser variable.
 
-## Cloudflare Pages
+## Cloudflare Worker Static Assets
 
-Cloudflare Pages config lives in `wrangler.jsonc`:
+Worker and static asset configuration lives in `wrangler.domain-proxy.jsonc`:
 
 ```text
-name: night-economy
-pages_build_output_dir: ./dist
+name: night-economy-domain-proxy
+assets.directory: ./dist
+assets.binding: ASSETS
+assets.not_found_handling: single-page-application
 ```
 
 Build command:
@@ -164,7 +166,7 @@ Build output directory:
 dist
 ```
 
-Frontend variables:
+Frontend environment variables are read at build time:
 
 ```text
 VITE_SUPABASE_URL
@@ -173,17 +175,17 @@ VITE_SUPABASE_PUBLISHABLE_KEY
 
 Local builds can use `npm run build`. Production deploys should use `npm run build:production` so missing Supabase config fails before Cloudflare publishes the site. This production build sets the `/night-economy/` base path so the application works under the shared domain.
 
-`public/_redirects` sends all app routes to `index.html`, the React entrypoint.
+The Worker serves `dist/` directly and falls back to `index.html` for application routes.
 
 Local `npm run check` verifies the Cloudflare config with `npm run cloudflare:config`.
 
-To publish the already-built frontend to production from this repository:
+To build and publish the app to the portfolio domain:
 
 ```bash
-npx wrangler pages deploy dist --project-name night-economy --branch main --commit-dirty=true
+npm run deploy:production
 ```
 
-Run `npm run build:production` first. This publishes only the compiled frontend; Supabase migrations and Edge Functions follow the separate steps in [docs/deployment.md](docs/deployment.md).
+This publishes the compiled frontend as Worker assets; Supabase migrations and Edge Functions follow the separate steps in [docs/deployment.md](docs/deployment.md).
 
 ## Pre-Deploy Check
 
@@ -194,4 +196,4 @@ npm run smoke:preview
 ```
 
 It builds the app, starts Vite's production preview server, and checks the React root, local view shortcuts, and production venue routes.
-It also validates the Cloudflare Pages redirect rule so production venue routes hit the React app.
+It also checks the Cloudflare Worker SPA asset configuration.

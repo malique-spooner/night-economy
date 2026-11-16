@@ -7,7 +7,7 @@ const checks = [
     required: true,
   },
   {
-    name: "Cloudflare Pages config",
+    name: "Cloudflare Worker config",
     command: ["npm", "run", "cloudflare:config"],
     required: true,
   },

@@ -29,7 +29,7 @@ VITE_SUPABASE_URL
 VITE_SUPABASE_PUBLISHABLE_KEY
 ```
 
-Never put `SUPABASE_SERVICE_ROLE_KEY` or `SCHEDULER_SECRET` in Cloudflare Pages frontend variables.
+Never put `SUPABASE_SERVICE_ROLE_KEY` or `SCHEDULER_SECRET` in frontend build variables.
 
 ## 2. Supabase SQL
 
@@ -111,40 +111,34 @@ Invoke it only with the scheduler header:
 x-night-economy-scheduler-secret: <SCHEDULER_SECRET>
 ```
 
-## 4. Cloudflare Pages
+## 4. Cloudflare Worker Static Assets
 
-Cloudflare Pages config is in `wrangler.jsonc`.
+Cloudflare Worker and static asset config is in `wrangler.domain-proxy.jsonc`.
 
 Use:
 
 ```text
 Build command: npm run build:production
-Build output: dist
+Static assets directory: dist
 Node.js: 22+
 ```
 
-Set only these frontend variables in Cloudflare Pages:
+Set only these frontend build variables:
 
 ```text
 VITE_SUPABASE_URL
 VITE_SUPABASE_PUBLISHABLE_KEY
 ```
 
-`public/_redirects` sends all routes to `index.html`, the React app entrypoint.
+The Worker serves the static build and uses `index.html` as the SPA fallback.
 
-After a successful production build, publish the compiled frontend:
-
-```bash
-npx wrangler pages deploy dist --project-name night-economy --branch main --commit-dirty=true
-```
-
-This deploys the contents of `dist/` to the production branch. It does not apply Supabase migrations or deploy Edge Functions; complete those earlier steps separately.
-
-The Pages project remains independently managed at `night-economy.pages.dev`. A separate Worker in `wrangler.domain-proxy.jsonc` forwards `maliquespooner.com/night-economy/*` to that Pages project. Deploy or update the path route with:
+Build and publish the app:
 
 ```bash
-npm run deploy:domain-proxy
+npm run deploy:production
 ```
+
+This deploys the contents of `dist/` directly to the Worker serving `maliquespooner.com/night-economy/*`. It does not apply Supabase migrations or deploy Edge Functions; complete those earlier steps separately.
 
 The Agri demo remains a separate Worker mounted at `maliquespooner.com/agri/` in its own repository.
 

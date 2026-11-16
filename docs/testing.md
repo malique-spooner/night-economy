@@ -30,12 +30,6 @@ npm run source:verify
 npm run check
 ```
 
-To validate the deployed Cloudflare Pages build without mutating production Supabase data:
-
-```bash
-E2E_BASE_URL=https://night-economy.pages.dev npx playwright test
-```
-
 The Playwright suite mocks write boundaries deterministically. Real cloud state is checked separately with:
 
 ```bash
@@ -44,4 +38,4 @@ npm run supabase:verify-cloud-sync
 
 `source:verify` fails when an application file is no longer reachable from `src/main.tsx`, preventing abandoned components and helpers from accumulating unnoticed.
 
-Local Playwright runs also start the standalone Friday POS simulator and click its event and sold-out controls. Deployed runs skip only that local-only page because it is not hosted on Cloudflare Pages.
+Local Playwright runs also start the standalone Friday POS simulator and click its event and sold-out controls.

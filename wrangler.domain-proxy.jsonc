@@ -4,6 +4,12 @@
   "main": "./domain-proxy.js",
   "compatibility_date": "2026-11-16",
   "workers_dev": false,
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
   "routes": [
     { "pattern": "maliquespooner.com/night-economy", "zone_id": "2b53ad6cb755ec018e8807a7d5c288c9" },
     { "pattern": "maliquespooner.com/night-economy/*", "zone_id": "2b53ad6cb755ec018e8807a7d5c288c9" },

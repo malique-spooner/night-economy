@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("Friday POS simulator buttons trigger events and show their outcomes", async ({ page }) => {
-  test.skip(Boolean(process.env.E2E_BASE_URL), "The standalone local POS simulator is not part of the Cloudflare Pages deployment.");
+  test.skip(Boolean(process.env.E2E_BASE_URL), "The standalone POS simulator is local-only and is not part of the deployed Worker assets.");
 
   await page.goto("http://127.0.0.1:3002");
 

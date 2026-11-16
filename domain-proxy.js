@@ -1,9 +1,8 @@
 const prefix = "/night-economy";
 const legacyPrefix = "/night";
-const pagesOrigin = "https://night-economy.pages.dev";
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     const incoming = new URL(request.url);
     if (incoming.pathname === legacyPrefix || incoming.pathname.startsWith(`${legacyPrefix}/`)) {
       const legacyPath = incoming.pathname.slice(legacyPrefix.length) || "/";
@@ -27,10 +26,8 @@ export default {
       return Response.redirect(new URL(`${prefix}/portal${incoming.search}`, incoming), 302);
     }
 
-    const upstream = new URL(pagesOrigin);
-    upstream.pathname = incoming.pathname.slice(prefix.length) || "/";
-    upstream.search = incoming.search;
-
-    return fetch(new Request(upstream, request));
+    const assetUrl = new URL(request.url);
+    assetUrl.pathname = incoming.pathname.slice(prefix.length) || "/";
+    return env.ASSETS.fetch(new Request(assetUrl, request));
   },
 };
