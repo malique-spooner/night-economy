@@ -5,6 +5,8 @@
   "compatibility_date": "2026-11-16",
   "workers_dev": false,
   "routes": [
+    { "pattern": "maliquespooner.com/night-economy", "zone_id": "2b53ad6cb755ec018e8807a7d5c288c9" },
+    { "pattern": "maliquespooner.com/night-economy/*", "zone_id": "2b53ad6cb755ec018e8807a7d5c288c9" },
     { "pattern": "maliquespooner.com/night", "zone_id": "2b53ad6cb755ec018e8807a7d5c288c9" },
     { "pattern": "maliquespooner.com/night/*", "zone_id": "2b53ad6cb755ec018e8807a7d5c288c9" }
   ]

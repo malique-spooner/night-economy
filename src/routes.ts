@@ -13,12 +13,23 @@ const previewViewRoutes: Record<string, AppRoute> = {
   logo: { surface: "logo" },
 };
 
+const publicRouteAliases: Record<string, AppRoute> = {
+  portal: { surface: "public-demo" },
+  "tv-view": { surface: "tv", slug: "public-demo" },
+  "mobile-view": { surface: "menu", slug: "public-demo" },
+};
+
 const pathSurfaces = new Set<AppSurface>(["site", "tv", "menu", "app", "venue", "sign-in", "simulator", "logo", "public-demo"]);
 const appBasePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export function appPath(path: string) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${appBasePath}${normalizedPath}` || "/";
+  const publicViewPaths: Record<string, string> = {
+    "/public-demo": "/portal",
+    "/tv/public-demo": "/tv-view",
+    "/menu/public-demo": "/mobile-view",
+  };
+  return `${appBasePath}${publicViewPaths[normalizedPath] ?? normalizedPath}` || "/";
 }
 
 export function resolveAppRoute(pathname: string, search = ""): AppRoute {
@@ -31,6 +42,9 @@ export function resolveAppRoute(pathname: string, search = ""): AppRoute {
     ? pathname.slice(appBasePath.length) || "/"
     : pathname;
   const [surface, slug] = appPathname.split("/").filter(Boolean);
+  if (!slug && surface && publicRouteAliases[surface]) {
+    return publicRouteAliases[surface];
+  }
   if (isPathSurface(surface)) {
     return { surface, slug };
   }

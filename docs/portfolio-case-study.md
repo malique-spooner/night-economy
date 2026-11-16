@@ -67,4 +67,4 @@ This is a working product prototype, not a claim that dynamic pricing is ready f
 
 Use a laptop for the best experience.
 
-Start at the [public demo](https://maliquespooner.com/night/public-demo/). No sign-in is required. The market stays live continuously, while the Portal is deliberately view-only; open Market and Mobile Market from there to see the connected guest-facing experiences.
+Start at the [portal](https://maliquespooner.com/night-economy/portal). No sign-in is required. The market stays live continuously, while the Portal is deliberately view-only; open Market and Mobile Market from there to see the connected guest-facing experiences.
