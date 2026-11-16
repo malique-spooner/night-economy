@@ -1,4 +1,5 @@
 import type { MarketProduct, Venue } from "../../engine/types";
+import { appPath } from "../../routes";
 
 export type ProductTrend = "up" | "dn" | "hold";
 
@@ -10,23 +11,23 @@ export const TV_FEATURED_PRODUCTS_PER_CATEGORY = 1;
 
 const defaultDrinkArtwork = {
   beer: [
-    "/images/default-drink-art/beer.webp",
-    "/images/default-drink-art/beer/beer-2.webp",
-    "/images/default-drink-art/beer/beer-3.webp",
-    "/images/default-drink-art/beer/beer-4.webp",
+    appPath("/images/default-drink-art/beer.webp"),
+    appPath("/images/default-drink-art/beer/beer-2.webp"),
+    appPath("/images/default-drink-art/beer/beer-3.webp"),
+    appPath("/images/default-drink-art/beer/beer-4.webp"),
   ],
-  cocktails: ["/images/default-drink-art/cocktails.webp"],
+  cocktails: [appPath("/images/default-drink-art/cocktails.webp")],
   spirits: [
-    "/images/default-drink-art/spirits.webp",
-    "/images/default-drink-art/spirits/spirits-2.webp",
-    "/images/default-drink-art/spirits/spirits-3.webp",
-    "/images/default-drink-art/spirits/spirits-4.webp",
+    appPath("/images/default-drink-art/spirits.webp"),
+    appPath("/images/default-drink-art/spirits/spirits-2.webp"),
+    appPath("/images/default-drink-art/spirits/spirits-3.webp"),
+    appPath("/images/default-drink-art/spirits/spirits-4.webp"),
   ],
   wine: [
-    "/images/default-drink-art/wine.webp",
-    "/images/default-drink-art/wine/wine-2.webp",
-    "/images/default-drink-art/wine/wine-3.webp",
-    "/images/default-drink-art/wine/wine-4.webp",
+    appPath("/images/default-drink-art/wine.webp"),
+    appPath("/images/default-drink-art/wine/wine-2.webp"),
+    appPath("/images/default-drink-art/wine/wine-3.webp"),
+    appPath("/images/default-drink-art/wine/wine-4.webp"),
   ],
 } as const;
 

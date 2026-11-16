@@ -4,7 +4,7 @@
 
 Night Economy lets a venue run a live drinks market: operators manage the catalogue and service, while guests see current prices on a TV display and mobile menu.
 
-**[Try the public demo](https://night-economy.pages.dev/public-demo)** · **[Read the case study](docs/portfolio-case-study.md)** · **[View deployment guide](docs/deployment.md)**
+**[Try the public demo](https://maliquespooner.com/night/public-demo/)** · **[Read the case study](docs/portfolio-case-study.md)** · **[View deployment guide](docs/deployment.md)**
 
 ## Why this exists
 
@@ -12,7 +12,7 @@ Venue teams need a simple way to make a drinks offer feel active without losing 
 
 ## See it in action
 
-Open the [public demo](https://night-economy.pages.dev/public-demo) on a laptop—no sign-in required. It is a read-only live venue: its real-time market runs continuously, prices change every five minutes, and the TV presentation changes every 15 seconds. Open the Market and Mobile Market from the demo to see the guest-facing views update from the same service.
+Open the [public demo](https://maliquespooner.com/night/public-demo/) on a laptop—no sign-in required. It is a read-only live venue: its real-time market runs continuously, prices change every five minutes, and the TV presentation changes every 15 seconds. Open the Market and Mobile Market from the demo to see the guest-facing views update from the same service.
 
 Public visitors cannot edit drinks, settings, POS links, or service controls. Private operator access remains separate.
 
@@ -41,11 +41,11 @@ flowchart LR
 
 - 132 unit/integration tests plus 15 browser workflows cover product and service behaviour.
 - The release suite verifies source reachability, environment safety, Supabase SQL/function safeguards, pricing-engine parity, routing, and a production preview.
-- The public production site is deployed on [Cloudflare Pages](https://night-economy.pages.dev/).
+- The public production site is served at [maliquespooner.com/night](https://maliquespooner.com/night/), with Cloudflare Pages retained as its separately managed origin.
 
 New to this codebase? Begin with [START-HERE.md](START-HERE.md) for a plain-English map of the project.
 
-The browser application has one React/Vite/TypeScript entrypoint at `index.html`. Supabase owns persistent state and service automation; Cloudflare Pages serves only the compiled frontend.
+The browser application has one React/Vite/TypeScript entrypoint at `index.html`. Supabase owns persistent state and service automation; Cloudflare Pages serves the compiled frontend at `maliquespooner.com/night/` through a separately deployed path proxy Worker. The application source, Pages build, and proxy configuration stay in this repository.
 
 ## Stack
 
@@ -171,7 +171,7 @@ VITE_SUPABASE_URL
 VITE_SUPABASE_PUBLISHABLE_KEY
 ```
 
-Local builds can use `npm run build`. Production deploys should use `npm run build:production` so missing Supabase config fails before Cloudflare publishes the site.
+Local builds can use `npm run build`. Production deploys should use `npm run build:production` so missing Supabase config fails before Cloudflare publishes the site. This production build sets the `/night/` base path so the application works under the shared domain.
 
 `public/_redirects` sends all app routes to `index.html`, the React entrypoint.
 

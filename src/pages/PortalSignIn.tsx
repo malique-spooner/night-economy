@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { getCurrentSession, onAuthStateChange, sendPasswordReset, signInWithEmail, signOut, updatePassword } from "../api/auth";
 import { supabaseStatus } from "../api/client";
 import { getMyAccessibleVenues } from "../api/memberships";
+import { appPath } from "../routes";
 
 type Props = {
   venueSlug?: string;
@@ -19,7 +20,7 @@ export function PortalSignIn({ venueSlug }: Props) {
   const [hasNoVenueAccess, setHasNoVenueAccess] = useState(false);
   const requestedTab = new URLSearchParams(window.location.search).get("next");
   const requestedVenueSlug = venueSlug?.trim() || undefined;
-  const destinationFor = (slug: string) => `/app/${encodeURIComponent(slug)}${requestedTab === "runs" ? "?tab=runs" : ""}`;
+  const destinationFor = (slug: string) => `${appPath(`/app/${encodeURIComponent(slug)}`)}${requestedTab === "runs" ? "?tab=runs" : ""}`;
 
   useEffect(() => {
     async function continueIfSignedIn() {
@@ -72,7 +73,7 @@ export function PortalSignIn({ venueSlug }: Props) {
       setIsError(false);
       setMessage("");
       setStatus("resetting");
-      const resetPath = requestedVenueSlug ? `/sign-in/${encodeURIComponent(requestedVenueSlug)}` : "/sign-in";
+      const resetPath = appPath(requestedVenueSlug ? `/sign-in/${encodeURIComponent(requestedVenueSlug)}` : "/sign-in");
       await sendPasswordReset(email, `${window.location.origin}${resetPath}`);
       setMessage("Password reset link sent. Check your inbox.");
     } catch (error) {
@@ -114,7 +115,7 @@ export function PortalSignIn({ venueSlug }: Props) {
   return (
     <main className="portal-signin-page">
       <section className="portal-signin-card" aria-labelledby="portal-signin-title">
-        <a className="portal-signin-back" href={requestedVenueSlug ? `/venue/${encodeURIComponent(requestedVenueSlug)}` : "/"}>← Back</a>
+        <a className="portal-signin-back" href={requestedVenueSlug ? appPath(`/venue/${encodeURIComponent(requestedVenueSlug)}`) : appPath("/")}>← Back</a>
         <p className="portal-signin-kicker">Night Economy</p>
         <h1 id="portal-signin-title">{isRecovery ? "New password" : "Sign in"}</h1>
         {isRecovery ? (
@@ -149,8 +150,8 @@ export function PortalSignIn({ venueSlug }: Props) {
         </form>
         )}
         {(message || !supabaseStatus.ready) && <p className={`portal-signin-status ${isError ? "error" : ""}`} aria-live="polite">{message || "Sign-in is not configured yet."}</p>}
-        {!isRecovery && <a className="portal-public-demo-link" href="/public-demo">Try the public demo <span aria-hidden="true">→</span></a>}
-        {hasNoVenueAccess && <button className="portal-signin-signout" type="button" onClick={() => { void signOut().finally(() => window.location.assign("/sign-in")); }}>Sign out and use another venue account</button>}
+        {!isRecovery && <a className="portal-public-demo-link" href={appPath("/public-demo")}>Try the public demo <span aria-hidden="true">→</span></a>}
+        {hasNoVenueAccess && <button className="portal-signin-signout" type="button" onClick={() => { void signOut().finally(() => window.location.assign(appPath("/sign-in"))); }}>Sign out and use another venue account</button>}
         <div className="portal-signin-footer"><a href="mailto:hello@nighteconomy.app?subject=Portal%20access">Contact support</a></div>
       </section>
     </main>

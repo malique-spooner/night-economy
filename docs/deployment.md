@@ -140,6 +140,14 @@ npx wrangler pages deploy dist --project-name night-economy --branch main --comm
 
 This deploys the contents of `dist/` to the production branch. It does not apply Supabase migrations or deploy Edge Functions; complete those earlier steps separately.
 
+The Pages project remains independently managed at `night-economy.pages.dev`. A separate Worker in `wrangler.domain-proxy.jsonc` forwards `maliquespooner.com/night/*` to that Pages project. Deploy or update the path route with:
+
+```bash
+npm run deploy:domain-proxy
+```
+
+The Agri demo remains a separate Worker mounted at `maliquespooner.com/agri/` in its own repository.
+
 ## 5. Post-Deploy Smoke
 
 Check:

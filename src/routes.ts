@@ -14,6 +14,12 @@ const previewViewRoutes: Record<string, AppRoute> = {
 };
 
 const pathSurfaces = new Set<AppSurface>(["site", "tv", "menu", "app", "venue", "sign-in", "simulator", "logo", "public-demo"]);
+const appBasePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+export function appPath(path: string) {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${appBasePath}${normalizedPath}` || "/";
+}
 
 export function resolveAppRoute(pathname: string, search = ""): AppRoute {
   const requestedView = new URLSearchParams(search).get("view");
@@ -21,7 +27,10 @@ export function resolveAppRoute(pathname: string, search = ""): AppRoute {
     return previewViewRoutes[requestedView];
   }
 
-  const [surface, slug] = pathname.split("/").filter(Boolean);
+  const appPathname = appBasePath && (pathname === appBasePath || pathname.startsWith(`${appBasePath}/`))
+    ? pathname.slice(appBasePath.length) || "/"
+    : pathname;
+  const [surface, slug] = appPathname.split("/").filter(Boolean);
   if (isPathSurface(surface)) {
     return { surface, slug };
   }

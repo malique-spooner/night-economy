@@ -3,6 +3,7 @@ import type { SimulatorState } from "../../api/simulator";
 import type { MarketProduct, Venue, VenueMarketSettings } from "../../engine/types";
 import type { MarketPriceHistoryPoint, MarketProductPatch, PosProduct, VenueMarketSettingsPatch } from "../../api/market";
 import { groupProductsByCategory } from "../tv/tvHelpers";
+import { appPath } from "../../routes";
 import { PortalCategoryFilters } from "./PortalCategoryFilters";
 import { PortalDrinkGroup } from "./PortalDrinkGroup";
 import { PortalLaunchStrip } from "./PortalLaunchStrip";
@@ -81,7 +82,7 @@ export function PortalStartPage({
   return (
     <section className="portal-start-page">
       <h1 className="portal-page-title">Portal</h1>
-      <PortalLaunchStrip isPublicDailyMarket={isPublicDailyMarket} isServiceActionPending={isServiceActionPending} marketHref={`/tv/${encodeURIComponent(marketSlug)}`} onEnd={onEnd} onPause={onPause} onQuickStart={onQuickStart} onRealTimeStart={onRealTimeStart} onResume={onResume} onSettingsChange={onVenueSettingsChange} readOnly={readOnly} settings={settings} simulatorState={simulatorState} timezone={venue.timezone} />
+      <PortalLaunchStrip isPublicDailyMarket={isPublicDailyMarket} isServiceActionPending={isServiceActionPending} marketHref={appPath(`/tv/${encodeURIComponent(marketSlug)}`)} onEnd={onEnd} onPause={onPause} onQuickStart={onQuickStart} onRealTimeStart={onRealTimeStart} onResume={onResume} onSettingsChange={onVenueSettingsChange} readOnly={readOnly} settings={settings} simulatorState={simulatorState} timezone={venue.timezone} />
       <PortalCategoryFilters activeCategory={activeCategory} categories={categories} onCategoryChange={setSelectedCategory} />
       <div className="portal-drink-list">
         {visibleGroups.map(([category, categoryProducts]) => (

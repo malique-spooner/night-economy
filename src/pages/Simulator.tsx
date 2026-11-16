@@ -4,6 +4,7 @@ import { getMyAccessibleVenues, getMyPlatformAdminAccess, type AccessibleVenue }
 import { getSimulatorDashboard, type SimulatorDashboard } from "../api/simulator";
 import { updateVenueMarketSettings } from "../api/market";
 import { useMarketState } from "../hooks/useMarketState";
+import { appPath } from "../routes";
 import type { MarketScheduleEntry } from "../engine/types";
 
 type Props = {
@@ -85,7 +86,7 @@ export function Simulator({ venueSlug }: Props) {
     try {
       setIsSigningOut(true);
       await signOut();
-      window.location.assign("/sign-in");
+      window.location.assign(appPath("/sign-in"));
     } catch (error) {
       setIsSigningOut(false);
       setMessage(error instanceof Error ? error.message : "Could not sign out.");
@@ -95,10 +96,10 @@ export function Simulator({ venueSlug }: Props) {
   if (!isResolved) return <main className="simulator-page">Checking simulator access…</main>;
   if (isSigningOut) return <main className="simulator-page">Signing out…</main>;
   if (!isSignedIn) {
-    window.location.replace(`/sign-in/${encodeURIComponent(venueSlug)}`);
+    window.location.replace(appPath(`/sign-in/${encodeURIComponent(venueSlug)}`));
     return <main className="simulator-page">Taking you to sign in…</main>;
   }
-  if (!isPlatformAdmin) return <main className="simulator-page simulator-denied"><h1>Simulator access is restricted</h1><p>This development tool is only available to the Night Economy account.</p><a href={`/app/${encodeURIComponent(venueSlug)}`}>Return to the portal</a></main>;
+  if (!isPlatformAdmin) return <main className="simulator-page simulator-denied"><h1>Simulator access is restricted</h1><p>This development tool is only available to the Night Economy account.</p><a href={appPath(`/app/${encodeURIComponent(venueSlug)}`)}>Return to the portal</a></main>;
 
   const service = dashboard?.service;
   const status = service?.running ? "Running" : service?.paused ? "Paused" : service?.ended ? "Ended" : "Scheduled";
@@ -109,8 +110,8 @@ export function Simulator({ venueSlug }: Props) {
   return (
     <main className="simulator-page">
       <header className="simulator-topbar">
-        <a className="simulator-brand" href={`/app/${encodeURIComponent(venueSlug)}`}><span>NE</span> Night Economy</a>
-        <div><a href={`/app/${encodeURIComponent(venueSlug)}`}>Portal</a><button onClick={() => { void handleSignOut(); }} type="button">Sign out</button></div>
+        <a className="simulator-brand" href={appPath(`/app/${encodeURIComponent(venueSlug)}`)}><span>NE</span> Night Economy</a>
+        <div><a href={appPath(`/app/${encodeURIComponent(venueSlug)}`)}>Portal</a><button onClick={() => { void handleSignOut(); }} type="button">Sign out</button></div>
       </header>
       <section className="simulator-hero">
         <h1>Simulator</h1>
@@ -118,7 +119,7 @@ export function Simulator({ venueSlug }: Props) {
       <section className="simulator-graph-card" aria-label="Live simulated sales over time">
         <div className="simulator-graph-head">
           <div><h2>Sales over time</h2></div>
-          {venues.length > 1 && <label><span>Venue simulation</span><select onChange={event => window.location.assign(`/simulator/${encodeURIComponent(event.target.value)}`)} value={venueSlug}>{venues.map(venue => <option key={venue.id} value={venue.slug}>{venue.name}</option>)}</select></label>}
+          {venues.length > 1 && <label><span>Venue simulation</span><select onChange={event => window.location.assign(appPath(`/simulator/${encodeURIComponent(event.target.value)}`))} value={venueSlug}>{venues.map(venue => <option key={venue.id} value={venue.slug}>{venue.name}</option>)}</select></label>}
         </div>
         <SalesGraph points={dashboard?.salesGraph ?? []} minute={service?.minute ?? 0} />
         <div className="simulator-graph-key"><span><i />Sales per five minutes</span><b>{service ? `Live at ${clock}` : "Waiting to start"}</b></div>
