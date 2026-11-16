@@ -5,6 +5,12 @@ export type AppRoute = {
   slug?: string;
 };
 
+export function appPath(path: string): string {
+  const base = import.meta.env.BASE_URL.replace(/\/+$/, "");
+  const suffix = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${suffix}` || "/";
+}
+
 const previewViewRoutes: Record<string, AppRoute> = {
   site: { surface: "site" },
   tv: { surface: "tv", slug: "demo-venue" },
@@ -21,7 +27,9 @@ export function resolveAppRoute(pathname: string, search = ""): AppRoute {
     return previewViewRoutes[requestedView];
   }
 
-  const [surface, slug] = pathname.split("/").filter(Boolean);
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments[0] === "night") segments.shift();
+  const [surface, slug] = segments;
   if (isPathSurface(surface)) {
     return { surface, slug };
   }

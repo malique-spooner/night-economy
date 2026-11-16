@@ -1,4 +1,5 @@
 import type { AccessibleVenue } from "../../api/memberships";
+import { appPath } from "../../routes";
 
 export type PortalTab = "start" | "runs" | "account";
 
@@ -36,8 +37,8 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
       <label className="portal-venue-switcher">
         <span>{canSwitchVenue ? "Switch venue" : "Venue"}</span>
         <select aria-label="Switch venue" disabled={!canSwitchVenue} onChange={event => {
-          if (event.target.value === "__public_demo") window.location.assign(publicDemoHref ?? "/public-demo");
-          else window.location.assign(`/app/${encodeURIComponent(event.target.value)}`);
+          if (event.target.value === "__public_demo") window.location.assign(publicDemoHref ?? appPath("/public-demo"));
+          else window.location.assign(appPath(`/app/${encodeURIComponent(event.target.value)}`));
         }} value={venueSlug}>
           {accessibleVenues.length ? accessibleVenues.map(venue => <option key={venue.id} value={venue.slug}>{venue.name}</option>) : <option value={venueSlug}>{venueName}</option>}
           {publicDemoHref && !accessibleVenues.some(venue => venue.slug === "public-demo") && <option value="__public_demo">Public Demo</option>}
@@ -72,11 +73,11 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
           <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="settings" /></span><span className="portal-nav-label">Settings</span>
           <small>Venue and display</small>
         </button>
-        <a className="portal-nav-item portal-nav-link" data-portal-tour="market" href={`/tv/${encodeURIComponent(venueSlug)}`} rel="noreferrer" target="_blank">
+        <a className="portal-nav-item portal-nav-link" data-portal-tour="market" href={appPath(`/tv/${encodeURIComponent(venueSlug)}`)} rel="noreferrer" target="_blank">
           <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="market" /></span><span className="portal-nav-label">Market</span>
           <small>TV display</small>
         </a>
-        <a className="portal-nav-item portal-nav-link" data-portal-tour="mobile" href={`/menu/${encodeURIComponent(venueSlug)}`} rel="noreferrer" target="_blank">
+        <a className="portal-nav-item portal-nav-link" data-portal-tour="mobile" href={appPath(`/menu/${encodeURIComponent(venueSlug)}`)} rel="noreferrer" target="_blank">
           <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="mobile" /></span><span className="portal-nav-label">Mobile market</span>
           <small>Guest menu</small>
         </a>
@@ -88,7 +89,7 @@ export function PortalSidebar({ accessibleVenues, activeTab, isPinned, liveCount
         {simulatorHref && <a className="portal-nav-item portal-nav-link" href={simulatorHref}>
           <span className="portal-nav-icon" aria-hidden="true"><NavIcon name="simulator" /></span><span className="portal-nav-label">Simulator</span>
         </a>}
-        {readOnly ? <a className="portal-signout" href="/sign-in"><span aria-hidden="true" className="portal-signout-icon"><NavIcon name="signout" /></span><b>Sign in</b></a> : <button className="portal-signout" type="button" onClick={onSignOut}><span aria-hidden="true" className="portal-signout-icon"><NavIcon name="signout" /></span><b>Sign out</b></button>}
+        {readOnly ? <a className="portal-signout" href={appPath("/sign-in")}><span aria-hidden="true" className="portal-signout-icon"><NavIcon name="signout" /></span><b>Sign in</b></a> : <button className="portal-signout" type="button" onClick={onSignOut}><span aria-hidden="true" className="portal-signout-icon"><NavIcon name="signout" /></span><b>Sign out</b></button>}
       </div>
     </aside>
   );

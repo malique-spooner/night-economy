@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { getCurrentSession, onAuthStateChange, sendPasswordReset, signInWithEmail, signOut, updatePassword } from "../api/auth";
+import { appPath } from "../routes";
 import { supabaseStatus } from "../api/client";
 import { getMyAccessibleVenues } from "../api/memberships";
 
@@ -26,7 +27,7 @@ export function PortalSignIn({ venueSlug }: Props) {
       if (isRecovery || !await getCurrentSession()) return;
       const accessibleVenues = await getMyAccessibleVenues();
       const destination = accessibleVenues.find(venue => venue.slug === requestedVenueSlug) ?? accessibleVenues[0];
-      if (destination) window.location.replace(destinationFor(destination.slug));
+      if (destination) window.location.replace(appPath(destinationFor(destination.slug)));
     }
 
     void continueIfSignedIn();
@@ -51,7 +52,7 @@ export function PortalSignIn({ venueSlug }: Props) {
       const destination = accessibleVenues.find(venue => venue.slug === requestedVenueSlug) ?? accessibleVenues[0];
       if (!destination) throw new Error("This account does not have access to a Night Economy venue.");
       const destinationHref = destinationFor(destination.slug);
-      window.location.assign(destinationHref);
+      window.location.assign(appPath(destinationHref));
     } catch (error) {
       const nextMessage = error instanceof Error ? error.message : "Could not sign in. Check your details and try again.";
       setIsError(true);
@@ -73,7 +74,7 @@ export function PortalSignIn({ venueSlug }: Props) {
       setMessage("");
       setStatus("resetting");
       const resetPath = requestedVenueSlug ? `/sign-in/${encodeURIComponent(requestedVenueSlug)}` : "/sign-in";
-      await sendPasswordReset(email, `${window.location.origin}${resetPath}`);
+      await sendPasswordReset(email, `${window.location.origin}${appPath(resetPath)}`);
       setMessage("Password reset link sent. Check your inbox.");
     } catch (error) {
       setIsError(true);
@@ -103,7 +104,7 @@ export function PortalSignIn({ venueSlug }: Props) {
       const accessibleVenues = await getMyAccessibleVenues();
       const destination = accessibleVenues.find(venue => venue.slug === requestedVenueSlug) ?? accessibleVenues[0];
       if (!destination) throw new Error("This account does not have access to a Night Economy venue.");
-      window.location.replace(destinationFor(destination.slug));
+      window.location.replace(appPath(destinationFor(destination.slug)));
     } catch (error) {
       setIsError(true);
       setMessage(error instanceof Error ? error.message : "We could not update the password. Request a new reset link.");
@@ -114,7 +115,7 @@ export function PortalSignIn({ venueSlug }: Props) {
   return (
     <main className="portal-signin-page">
       <section className="portal-signin-card" aria-labelledby="portal-signin-title">
-        <a className="portal-signin-back" href={requestedVenueSlug ? `/venue/${encodeURIComponent(requestedVenueSlug)}` : "/"}>← Back</a>
+        <a className="portal-signin-back" href={appPath(requestedVenueSlug ? `/venue/${encodeURIComponent(requestedVenueSlug)}` : "/")}>← Back</a>
         <p className="portal-signin-kicker">Night Economy</p>
         <h1 id="portal-signin-title">{isRecovery ? "New password" : "Sign in"}</h1>
         {isRecovery ? (
@@ -149,8 +150,8 @@ export function PortalSignIn({ venueSlug }: Props) {
         </form>
         )}
         {(message || !supabaseStatus.ready) && <p className={`portal-signin-status ${isError ? "error" : ""}`} aria-live="polite">{message || "Sign-in is not configured yet."}</p>}
-        {!isRecovery && <a className="portal-public-demo-link" href="/public-demo">Try the public demo <span aria-hidden="true">→</span></a>}
-        {hasNoVenueAccess && <button className="portal-signin-signout" type="button" onClick={() => { void signOut().finally(() => window.location.assign("/sign-in")); }}>Sign out and use another venue account</button>}
+        {!isRecovery && <a className="portal-public-demo-link" href={appPath("/public-demo")}>Try the public demo <span aria-hidden="true">→</span></a>}
+        {hasNoVenueAccess && <button className="portal-signin-signout" type="button" onClick={() => { void signOut().finally(() => window.location.assign(appPath("/sign-in"))); }}>Sign out and use another venue account</button>}
         <div className="portal-signin-footer"><a href="mailto:hello@nighteconomy.app?subject=Portal%20access">Contact support</a></div>
       </section>
     </main>

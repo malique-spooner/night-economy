@@ -1,14 +1,16 @@
+import { appPath } from "../routes";
+
 type Props = {
   venueSlug?: string;
 };
 
 export function Site({ venueSlug }: Props) {
-  const signInHref = venueSlug ? `/sign-in/${encodeURIComponent(venueSlug)}` : "/sign-in";
+  const signInHref = appPath(venueSlug ? `/sign-in/${encodeURIComponent(venueSlug)}` : "/sign-in");
 
   return (
     <main id="siteView" className="site-holding" aria-labelledby="site-holding-title">
       <header className="site-holding-nav">
-        <a aria-label="Night Economy" className="site-holding-mark" href="/">
+        <a aria-label="Night Economy" className="site-holding-mark" href={appPath("/")}>
           <span>NE</span>
           <strong>Night Economy</strong>
         </a>

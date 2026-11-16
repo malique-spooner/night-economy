@@ -1,10 +1,11 @@
 import { NightEconomyLogo } from "../components/brand/NightEconomyLogo";
+import { appPath } from "../routes";
 
 export function LogoDemo() {
   return (
     <main className="logo-demo-page">
       <header className="logo-demo-header">
-        <a href="/" className="logo-demo-back">← Night Economy</a>
+        <a href={appPath("/")} className="logo-demo-back">← Night Economy</a>
         <p>Animated identity study</p>
       </header>
       <section className="logo-demo-intro">

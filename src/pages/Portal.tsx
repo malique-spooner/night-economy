@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { PortalAccountPage } from "../components/portal/PortalAccountPage";
+import { appPath } from "../routes";
 import { PortalRunsPage } from "../components/portal/PortalRunsPage";
 import { PortalSidebar, type PortalTab } from "../components/portal/PortalSidebar";
 import { PortalStartPage } from "../components/portal/PortalStartPage";
@@ -97,7 +98,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
 
   useEffect(() => {
     if (readOnly || !isAuthResolved || isSignedIn || isSigningOut) return;
-    window.location.replace(`/sign-in/${encodeURIComponent(venueSlug)}`);
+    window.location.replace(appPath(`/sign-in/${encodeURIComponent(venueSlug)}`));
   }, [isAuthResolved, isSignedIn, isSigningOut, readOnly, venueSlug]);
 
   useEffect(() => {
@@ -172,7 +173,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
     let cancelled = false;
     void getMyAccessibleVenues().then(venues => {
       const destination = venues[0];
-      if (!cancelled && destination) window.location.replace(`/app/${encodeURIComponent(destination.slug)}`);
+      if (!cancelled && destination) window.location.replace(appPath(`/app/${encodeURIComponent(destination.slug)}`));
     }).catch(() => {
       // The error screen remains visible when the session has no venue access.
     });
@@ -220,7 +221,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
     void getMyAccessibleVenues().then(venues => {
       const destination = venues.find(venue => venue.slug !== venueSlug) ?? venues[0];
       if (!cancelled && destination && destination.slug !== venueSlug) {
-        window.location.replace(`/app/${encodeURIComponent(destination.slug)}`);
+        window.location.replace(appPath(`/app/${encodeURIComponent(destination.slug)}`));
       }
     }).catch(() => {
       // Keep the access message if the account genuinely has no venue access.
@@ -319,7 +320,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
   }
 
   const liveCount = state.products.filter(product => !product.isArchived && !product.isSoldOut && product.isLive).length;
-  const simulatorHref = isPlatformAdmin ? `/simulator/${encodeURIComponent(venueSlug)}` : null;
+  const simulatorHref = isPlatformAdmin ? appPath(`/simulator/${encodeURIComponent(venueSlug)}`) : null;
   const canPersist = !readOnly && canEditMarketProducts({ isSignedIn, role: memberRole, source: state.source });
   const canManageSettings = !readOnly && canManageVenueSettings({ role: memberRole, source: state.source });
   const accessMessage = readOnly ? "Public demo — changes are disabled" : portalAccessMessage({
@@ -553,7 +554,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
       setAuthError("");
       setIsSigningOut(true);
       await signOut();
-      window.location.assign("/sign-in");
+      window.location.assign(appPath("/sign-in"));
     } catch (error) {
       setIsSigningOut(false);
       setAuthError(error instanceof Error ? error.message : "Could not sign out");
@@ -574,7 +575,7 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
               onTogglePinned={() => setIsNavPinned(current => !current)}
               onSignOut={handleSignOut}
               onOpenTour={() => setIsShowcaseGuideOpen(true)}
-              publicDemoHref={isPlatformAdmin ? "/public-demo" : null}
+              publicDemoHref={isPlatformAdmin ? appPath("/public-demo") : null}
               readOnly={readOnly}
               simulatorHref={simulatorHref}
               totalCount={state.products.length}
@@ -595,11 +596,11 @@ export function Portal({ readOnly = false, venueSlug }: Props) {
                     onSelectProduct={handleToggleProductHistory}
                     onVenueSettingsChange={handleVenueSettingsChange}
                     onQuickStart={() => {
-                      window.open(`/tv/${encodeURIComponent(venueSlug)}?starting=1`, "_blank", "noopener,noreferrer");
+                      window.open(appPath(`/tv/${encodeURIComponent(venueSlug)}?starting=1`), "_blank", "noopener,noreferrer");
                       void handleQuickStart();
                     }}
                     onRealTimeStart={() => {
-                      window.open(`/tv/${encodeURIComponent(venueSlug)}?starting=1`, "_blank", "noopener,noreferrer");
+                      window.open(appPath(`/tv/${encodeURIComponent(venueSlug)}?starting=1`), "_blank", "noopener,noreferrer");
                       void handleRealTimeStart();
                     }}
                     onPause={handlePause}

@@ -1,4 +1,5 @@
 import type { MarketProduct, Venue } from "../../engine/types";
+import { appPath } from "../../routes";
 
 export type ProductTrend = "up" | "dn" | "hold";
 
@@ -42,8 +43,8 @@ export function defaultDrinkImage(category: string, key?: string) {
       : normalized.includes("wine")
         ? defaultDrinkArtwork.wine
         : defaultDrinkArtwork.cocktails;
-  if (!key) return collection[0];
-  return collection[stableImageIndex(key, collection.length)];
+  if (!key) return appPath(collection[0]);
+  return appPath(collection[stableImageIndex(key, collection.length)]);
 }
 
 function stableImageIndex(key: string, count: number) {
