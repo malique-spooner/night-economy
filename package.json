@@ -18,7 +18,7 @@
     "launch:readiness": "node scripts/check-launch-readiness.mjs",
     "build": "tsc -b && vite build",
     "build:production": "npm run runtime:verify && npm run check:env && VITE_APP_BASE_PATH=/night/ npm run build",
-    "deploy:domain-proxy": "wrangler deploy --config wrangler.domain-proxy.jsonc",
+    "deploy:domain-proxy": "npx wrangler deploy --config wrangler.domain-proxy.jsonc",
     "cloudflare:config": "node scripts/verify-cloudflare-pages.mjs",
     "check:env": "node scripts/validate-env.mjs",
     "runtime:verify": "node scripts/verify-runtime.mjs",
