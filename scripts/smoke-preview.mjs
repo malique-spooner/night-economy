@@ -5,6 +5,7 @@ const host = "127.0.0.1";
 const port = Number(process.env.SMOKE_PREVIEW_PORT ?? 4173);
 const baseUrl = `http://${host}:${port}`;
 const directRoutes = [
+  "/Night-Economy/",
   "/",
   "/?view=site",
   "/?view=tv",

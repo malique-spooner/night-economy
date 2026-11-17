@@ -31,7 +31,7 @@ export function Site({ venueSlug }: Props) {
           <p className="night-project-eyebrow"><i aria-hidden="true" /> An interactive product concept</p>
           <h1 id="night-project-title">A night out,<br /><em>in motion.</em></h1>
           <p className="night-project-intro">A hospitality pricing concept exploring how drink prices can respond to demand, while giving guests a more engaging way to discover the menu.</p>
-          <a className="night-project-primary" href={path("/portal")}>Open the portal <span aria-hidden="true">→</span></a>
+          <a className="night-project-primary" href={path("/portal")}>Enter Night Economy <span aria-hidden="true">→</span></a>
           <p className="night-project-footnote">Public demo · venue and market activity are simulated</p>
         </div>
         <div className="night-project-market-card">

@@ -138,9 +138,9 @@ Build and publish the app:
 npm run deploy:production
 ```
 
-This deploys the contents of `dist/` directly to the Worker serving `maliquespooner.com/night-economy/*`. It does not apply Supabase migrations or deploy Edge Functions; complete those earlier steps separately.
+This deploys the contents of `dist/` directly to the Worker serving `maliquespooner.com/Night-Economy/*`. It does not apply Supabase migrations or deploy Edge Functions; complete those earlier steps separately.
 
-The Agri demo remains a separate Worker mounted at `maliquespooner.com/agri/` in its own repository.
+Origin & Acre is served by a separate Worker at `maliquespooner.com/Origin-Acre/` in its own repository. The former `/agri` paths redirect to the matching new routes.
 
 ## 5. Post-Deploy Smoke
 

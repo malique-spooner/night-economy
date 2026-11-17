@@ -17,7 +17,7 @@
     "setup:env": "node scripts/create-local-env.mjs",
     "launch:readiness": "node scripts/check-launch-readiness.mjs",
     "build": "tsc -b && vite build",
-    "build:production": "npm run runtime:verify && npm run check:env && VITE_APP_BASE_PATH=/night-economy/ npm run build",
+    "build:production": "npm run runtime:verify && npm run check:env && VITE_APP_BASE_PATH=/Night-Economy/ npm run build",
     "deploy:production": "npm run build:production && npx wrangler deploy --config wrangler.domain-proxy.jsonc",
     "deploy:domain-proxy": "npx wrangler deploy --config wrangler.domain-proxy.jsonc",
     "cloudflare:config": "node scripts/verify-cloudflare-worker.mjs",

@@ -14,7 +14,7 @@ const previewViewRoutes: Record<string, AppRoute> = {
 };
 
 const publicRouteAliases: Record<string, AppRoute> = {
-  trailer: { surface: "trailer" },
+  trailer: { surface: "site" },
   portal: { surface: "public-demo" },
   "tv-view": { surface: "tv", slug: "public-demo" },
   "mobile-view": { surface: "menu", slug: "public-demo" },
@@ -42,6 +42,7 @@ export function resolveAppRoute(pathname: string, search = ""): AppRoute {
   const appPathname = appBasePath && (pathname === appBasePath || pathname.startsWith(`${appBasePath}/`))
     ? pathname.slice(appBasePath.length) || "/"
     : pathname;
+  if (appBasePath && pathname === appBasePath) return { surface: "site" };
   const [surface, slug] = appPathname.split("/").filter(Boolean);
   if (!slug && surface && publicRouteAliases[surface]) {
     return publicRouteAliases[surface];

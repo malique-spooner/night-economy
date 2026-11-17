@@ -1,10 +1,12 @@
 # Night Economy
 
+Project landing: [maliquespooner.com/Night-Economy](https://maliquespooner.com/Night-Economy/). Previous `/night` and `/night-economy` links redirect here or to their matching app views.
+
 > A live drinks-pricing prototype for venues: one operator portal, one market engine, and guest-facing TV and mobile displays that stay in sync.
 
 Night Economy lets a venue run a live drinks market: operators manage the catalogue and service, while guests see current prices on a TV display and mobile menu.
 
-**[Portal](https://maliquespooner.com/night-economy/portal)** · **[TV view](https://maliquespooner.com/night-economy/tv-view)** · **[Mobile view](https://maliquespooner.com/night-economy/mobile-view)** · **[Read the case study](docs/portfolio-case-study.md)** · **[View deployment guide](docs/deployment.md)**
+**[Portal](https://maliquespooner.com/Night-Economy/portal)** · **[TV view](https://maliquespooner.com/Night-Economy/tv-view)** · **[Mobile view](https://maliquespooner.com/Night-Economy/mobile-view)** · **[Read the case study](docs/portfolio-case-study.md)** · **[View deployment guide](docs/deployment.md)**
 
 ## Why this exists
 
@@ -12,7 +14,7 @@ Venue teams need a simple way to make a drinks offer feel active without losing 
 
 ## See it in action
 
-Open the [public demo](https://maliquespooner.com/night-economy/portal) on a laptop—no sign-in required. It is a read-only live venue: its real-time market runs continuously, prices change every five minutes, and the TV presentation changes every 15 seconds. Open the Market and Mobile Market from the demo to see the guest-facing views update from the same service.
+Open the [public demo](https://maliquespooner.com/Night-Economy/portal) on a laptop—no sign-in required. It is a read-only live venue: its real-time market runs continuously, prices change every five minutes, and the TV presentation changes every 15 seconds. Open the Market and Mobile Market from the demo to see the guest-facing views update from the same service.
 
 Public visitors cannot edit drinks, settings, POS links, or service controls. Private operator access remains separate.
 
@@ -41,11 +43,11 @@ flowchart LR
 
 - 132 unit/integration tests plus 15 browser workflows cover product and service behaviour.
 - The release suite verifies source reachability, environment safety, Supabase SQL/function safeguards, pricing-engine parity, routing, and a production preview.
-- The public production app is served directly from a Cloudflare Worker at `maliquespooner.com/night-economy/portal`, `/tv-view`, and `/mobile-view`.
+- The public production app is served directly from a Cloudflare Worker at `maliquespooner.com/Night-Economy/portal`, `/tv-view`, and `/mobile-view`.
 
 New to this codebase? Begin with [START-HERE.md](START-HERE.md) for a plain-English map of the project.
 
-The browser application has one React/Vite/TypeScript entrypoint at `index.html`. Supabase owns persistent state and service automation; a Cloudflare Worker serves the compiled frontend directly from this repository's `dist/` build at `maliquespooner.com/night-economy/`. The app no longer fetches its frontend from a Pages hostname.
+The browser application has one React/Vite/TypeScript entrypoint at `index.html`. Supabase owns persistent state and service automation; a Cloudflare Worker serves the compiled frontend directly from this repository's `dist/` build at `maliquespooner.com/Night-Economy/`. The app no longer fetches its frontend from a Pages hostname.
 
 ## Stack
 

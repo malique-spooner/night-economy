@@ -24,7 +24,7 @@ if (config.assets?.run_worker_first !== true) {
   errors.push(`${configPath}: assets.run_worker_first must be true for prefix routing.`);
 }
 
-for (const route of ["maliquespooner.com/night-economy/*", "maliquespooner.com/night/*"]) {
+for (const route of ["maliquespooner.com/Night-Economy", "maliquespooner.com/Night-Economy/*", "maliquespooner.com/night-economy/*", "maliquespooner.com/night/*"]) {
   if (!config.routes?.some(candidate => candidate.pattern === route)) {
     errors.push(`${configPath}: missing route ${route}.`);
   }
@@ -35,8 +35,8 @@ if (packageJson.engines?.node !== ">=22") {
   errors.push("package.json: engines.node must be >=22.");
 }
 
-if (!packageJson.scripts?.["build:production"]?.includes("VITE_APP_BASE_PATH=/night-economy/")) {
-  errors.push("package.json: build:production must set the /night-economy/ asset base path.");
+if (!packageJson.scripts?.["build:production"]?.includes("VITE_APP_BASE_PATH=/Night-Economy/")) {
+  errors.push("package.json: build:production must set the /Night-Economy/ asset base path.");
 }
 
 if (errors.length) {

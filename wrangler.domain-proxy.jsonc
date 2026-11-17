@@ -11,6 +11,8 @@
     "run_worker_first": true
   },
   "routes": [
+    { "pattern": "maliquespooner.com/Night-Economy", "zone_id": "2b53ad6cb755ec018e8807a7d5c288c9" },
+    { "pattern": "maliquespooner.com/Night-Economy/*", "zone_id": "2b53ad6cb755ec018e8807a7d5c288c9" },
     { "pattern": "maliquespooner.com/night-economy", "zone_id": "2b53ad6cb755ec018e8807a7d5c288c9" },
     { "pattern": "maliquespooner.com/night-economy/*", "zone_id": "2b53ad6cb755ec018e8807a7d5c288c9" },
     { "pattern": "maliquespooner.com/night", "zone_id": "2b53ad6cb755ec018e8807a7d5c288c9" },
