@@ -96,7 +96,7 @@ Deno.serve(async request => {
         // Scheduled and real-time services keep a neutral opening snapshot;
         // their first market round is driven by the normal clock.
         const openingDecisions = await runMarketCycle(venue.slug, simulatedTime(initialMinute, state.started_at), state.active_run_id, initialMinute);
-        await publishInternalPrices(url, headers, venue.id, `test_sim_${venue.id}`, openingDecisions);
+        await publishInternalPrices(url, headers, openingDecisions);
       }
     } else if (action === "event") {
       if (!['rush', 'slowdown'].includes(eventType)) return response({ error: "Unknown simulator event" }, 400);
@@ -184,7 +184,7 @@ async function advance(url: string, headers: HeadersInit, venueId: string, venue
     await writeRowsInChunks(url, headers, "/pos_sales_events?on_conflict=id", pendingSalesRows, "write simulated basket sales", 1_000, { Prefer: "resolution=ignore-duplicates" });
     pendingSalesRows = [];
     const decisions = await runMarketCycle(venueSlug, simulatedTime(cycleMinute, state.started_at), state.active_run_id, cycleMinute);
-    await publishInternalPrices(url, headers, venueId, connectionId, decisions);
+    await publishInternalPrices(url, headers, decisions);
     for (const decision of decisions) {
       const product = active.find(item => item.id === decision.productId);
       if (product) product.current_price_minor = decision.newPriceMinor;
@@ -253,8 +253,6 @@ async function runMarketCycle(venueSlug: string, cycleEnd: string, runId: string
 async function publishInternalPrices(
   url: string,
   headers: HeadersInit,
-  venueId: string,
-  connectionId: string,
   decisions: Array<{ productId: string; oldPriceMinor: number; newPriceMinor: number }>,
 ) {
   const changed = decisions.filter(decision => decision.oldPriceMinor !== decision.newPriceMinor);
@@ -274,17 +272,11 @@ async function publishInternalPrices(
   });
   if (!lines.length) return;
 
-  const publicationId = `publication_${crypto.randomUUID()}`;
-  await restRequest(url, "/price_publications", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ id: publicationId, venue_id: venueId, pos_connection_id: connectionId, reason: "venue_test_service", status: "published", published_at: new Date().toISOString() }),
-  }, "create internal price publication");
-  await restRequest(url, "/price_publication_lines", {
-    method: "POST",
-    headers,
-    body: JSON.stringify(lines.map(line => ({ publication_id: publicationId, market_product_id: line.productId, pos_product_id: line.posProductId, old_price_minor: line.oldPriceMinor, new_price_minor: line.newPriceMinor, status: "published", response: { provider: "internal-simulator", status: "published" } }))),
-  }, "write internal price publication lines");
+  // Simulator prices are already reflected in market_products. Persisting a
+  // publication header and one audit line per changed product duplicates that
+  // state without representing an external POS write; it also grows without
+  // bound for the always-on public demo. Real POS publication history remains
+  // owned by the integration path.
   await Promise.all(lines.map(line => restRequest(url, `/pos_products?id=eq.${encodeURIComponent(line.posProductId)}`, {
     method: "PATCH",
     headers,
