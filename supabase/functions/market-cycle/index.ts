@@ -3,6 +3,7 @@ import {
   momentumFromDecisions,
   priceMarket,
   selectAdaptiveMarketSales,
+  type MarketPriceDecision,
   type MarketMomentum,
   type TimedMarketPricingSale,
   type PriceableMarketProduct,
@@ -79,8 +80,8 @@ async function handleRequest(request: Request) {
   if (Number.isNaN(cycleEnd.getTime())) return json({ error: "cycleEnd must be a valid ISO timestamp" }, 400);
   const cycleStart = new Date(cycleEnd.getTime() - MARKET_CYCLE_MS);
   const evidenceStart = new Date(cycleEnd.getTime() - MAX_MARKET_EVIDENCE_MS);
-  const latestSnapshots = await restJson<Array<{ snapshot: { roundEnd?: string; momentum?: MarketMomentum } | null }>>(
-    `${supabaseUrl}/rest/v1/market_price_snapshots?venue_id=eq.${encodeURIComponent(venue.id)}&run_id=${runId ? `eq.${encodeURIComponent(runId)}` : "is.null"}&select=snapshot&order=created_at.desc&limit=1`,
+  const latestSnapshots = await restJson<Array<{ id: string; snapshot: { roundEnd?: string; momentum?: MarketMomentum } | null }>>(
+    `${supabaseUrl}/rest/v1/market_price_snapshots?venue_id=eq.${encodeURIComponent(venue.id)}&run_id=${runId ? `eq.${encodeURIComponent(runId)}` : "is.null"}&select=id,snapshot&order=created_at.desc&limit=1`,
     { headers },
     "load latest market snapshot",
   );
@@ -103,7 +104,6 @@ async function handleRequest(request: Request) {
     minutesAgo: Math.max(0, (cycleEnd.getTime() - new Date(sale.occurred_at).getTime()) / 60_000),
   }));
   const adaptiveSales = selectAdaptiveMarketSales(products, timedSales);
-  const freshImportedLines = timedSales.filter(sale => sale.minutesAgo <= 5).length;
   const previousMomentum = latestSnapshots[0]?.snapshot?.momentum ?? {};
   const normalDecisions = priceMarket(products, adaptiveSales.signalSales, previousMomentum, {}, adaptiveSales.freshSales);
   const crash = Number.isFinite(serviceMinute) ? activeMarketCrash(Math.max(0, Math.floor(serviceMinute)), parseMarketCrashSettings(venue.crash_settings)) : null;
@@ -123,24 +123,19 @@ async function handleRequest(request: Request) {
   );
 
   const snapshot = {
-    venueId: venue.id,
-    venueSlug,
     runId,
-    reason: crash ? "market_crash" : reason,
-    salesWindow: { start: cycleStart.toISOString(), end: cycleEnd.toISOString(), importedLines: freshImportedLines },
-    evidenceWindow: { start: evidenceStart.toISOString(), end: cycleEnd.toISOString(), categoryMinutes: adaptiveSales.categoryWindows },
-    roundStart: cycleStart.toISOString(),
     roundEnd: cycleEnd.toISOString(),
-    decisions,
+    decisions: decisions.map(compactDecision),
     momentum: momentumFromDecisions(decisions),
     ...(crash ? { crash } : {}),
   };
 
+  const snapshotId = crypto.randomUUID();
   await restRequest(`${supabaseUrl}/rest/v1/market_price_snapshots`, {
     method: "POST",
     headers,
     body: JSON.stringify({
-      id: crypto.randomUUID(),
+      id: snapshotId,
       venue_id: venue.id,
       run_id: runId,
       reason: crash ? "market_crash" : reason,
@@ -149,7 +144,40 @@ async function handleRequest(request: Request) {
     }),
   }, "write market snapshot");
 
+  const previousSnapshot = latestSnapshots[0];
+  if (previousSnapshot) {
+    const compactedPreviousSnapshot = compactHistoricalSnapshot(previousSnapshot.snapshot);
+    await restRequest(`${supabaseUrl}/rest/v1/market_price_snapshots?id=eq.${encodeURIComponent(previousSnapshot.id)}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ snapshot: compactedPreviousSnapshot }),
+    }, "compact previous market snapshot");
+  }
+
   return json({ ok: true, engine: "night-economy-v2", snapshot });
+}
+
+function compactDecision(decision: MarketPriceDecision) {
+  return Object.fromEntries(Object.entries(decision).filter(([key]) => key !== "momentum" && key !== "targetPriceMinor"));
+}
+
+function compactHistoricalSnapshot(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const snapshot = { ...(value as Record<string, unknown>) };
+  delete snapshot.momentum;
+  delete snapshot.venueId;
+  delete snapshot.venueSlug;
+  delete snapshot.reason;
+  delete snapshot.salesWindow;
+  delete snapshot.evidenceWindow;
+  delete snapshot.roundStart;
+  if (Array.isArray(snapshot.decisions)) {
+    snapshot.decisions = snapshot.decisions.map(decision => {
+      if (!decision || typeof decision !== "object" || Array.isArray(decision)) return decision;
+      return Object.fromEntries(Object.entries(decision as Record<string, unknown>).filter(([key]) => key !== "momentum" && key !== "targetPriceMinor"));
+    });
+  }
+  return snapshot;
 }
 
 async function restJson<T>(url: string, init: RequestInit, action: string): Promise<T> {

@@ -222,14 +222,19 @@ async function completeInstantRun(url: string, headers: HeadersInit, venueId: st
 
   const snapshotRows = plan.rounds.map(round => {
     const roundEnd = simulatedTime(round.minute, state.started_at);
-    const roundStart = simulatedTime(round.minute - 5, state.started_at);
+    const decisions = round.decisions.map(decision => {
+      const history: Record<string, unknown> = { ...decision };
+      delete history.momentum;
+      delete history.targetPriceMinor;
+      return history;
+    });
     return {
       id: crypto.randomUUID(),
       venue_id: venueId,
       run_id: runId,
       reason: round.decisions.some(decision => decision.reason.startsWith("Market crash:")) ? "market_crash" : "venue_test_service",
       status: "published",
-      snapshot: { venueId, reason: round.decisions.some(decision => decision.reason.startsWith("Market crash:")) ? "market_crash" : "venue_test_service", runId, salesWindow: { start: roundStart, end: roundEnd, importedLines: round.importedLines }, roundStart, roundEnd, decisions: round.decisions, momentum: round.momentum, ...(round.crash ? { crash: round.crash } : {}) },
+      snapshot: { runId, roundEnd, decisions, ...(round.crash ? { crash: round.crash } : {}) },
     };
   });
   await writeRowsInChunks(url, headers, "/market_price_snapshots", snapshotRows, "write instant-run price rounds", 100);
