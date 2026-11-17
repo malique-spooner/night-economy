@@ -7,9 +7,9 @@ export default {
     if (incoming.pathname === legacyPrefix || incoming.pathname.startsWith(`${legacyPrefix}/`)) {
       const legacyPath = incoming.pathname.slice(legacyPrefix.length) || "/";
       const legacyAliases = {
-        "/": "/portal",
-        "/public-demo": "/portal",
-        "/public-demo/": "/portal",
+        "/": "/trailer",
+        "/public-demo": "/trailer",
+        "/public-demo/": "/trailer",
         "/tv/public-demo": "/tv-view",
         "/tv/public-demo/": "/tv-view",
         "/menu/public-demo": "/mobile-view",
@@ -23,7 +23,7 @@ export default {
     }
 
     if (incoming.pathname === prefix || incoming.pathname === `${prefix}/`) {
-      return Response.redirect(new URL(`${prefix}/portal${incoming.search}`, incoming), 302);
+      return Response.redirect(new URL(`${prefix}/trailer${incoming.search}`, incoming), 302);
     }
 
     const assetUrl = new URL(request.url);

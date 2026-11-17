@@ -6,6 +6,7 @@ import { PortalSignIn } from "./pages/PortalSignIn";
 import { Simulator } from "./pages/Simulator";
 import { Site } from "./pages/Site";
 import { Tv } from "./pages/Tv";
+import { Trailer } from "./pages/Trailer";
 import { resolveAppRoute } from "./routes";
 
 export function App() {
@@ -32,6 +33,7 @@ export function App() {
   }, [appView]);
 
   if (route.surface === "tv") return <Tv venueSlug={route.slug ?? "demo-venue"} />;
+  if (route.surface === "trailer") return <Trailer />;
   if (route.surface === "menu") return <Menu venueSlug={route.slug ?? "demo-venue"} />;
   if (route.surface === "app") return <Portal venueSlug={route.slug ?? "demo-venue"} />;
   if (route.surface === "public-demo") return <Portal readOnly venueSlug="public-demo" />;

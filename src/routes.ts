@@ -1,4 +1,4 @@
-type AppSurface = "site" | "tv" | "menu" | "app" | "venue" | "sign-in" | "simulator" | "logo" | "public-demo";
+type AppSurface = "site" | "trailer" | "tv" | "menu" | "app" | "venue" | "sign-in" | "simulator" | "logo" | "public-demo";
 
 export type AppRoute = {
   surface: AppSurface;
@@ -14,12 +14,13 @@ const previewViewRoutes: Record<string, AppRoute> = {
 };
 
 const publicRouteAliases: Record<string, AppRoute> = {
+  trailer: { surface: "trailer" },
   portal: { surface: "public-demo" },
   "tv-view": { surface: "tv", slug: "public-demo" },
   "mobile-view": { surface: "menu", slug: "public-demo" },
 };
 
-const pathSurfaces = new Set<AppSurface>(["site", "tv", "menu", "app", "venue", "sign-in", "simulator", "logo", "public-demo"]);
+const pathSurfaces = new Set<AppSurface>(["site", "trailer", "tv", "menu", "app", "venue", "sign-in", "simulator", "logo", "public-demo"]);
 const appBasePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export function appPath(path: string) {
