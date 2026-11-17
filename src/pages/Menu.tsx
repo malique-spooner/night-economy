@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { getMarketProductPriceHistories, type MarketPriceHistoryPoint } from "../api/market";
 import { MobileCategoryRail } from "../components/mobile/MobileCategoryRail";
 import { MobileHero } from "../components/mobile/MobileHero";
 import { MobileMarketSection } from "../components/mobile/MobileMarketSection";
@@ -12,6 +14,31 @@ type Props = {
 
 export function Menu({ venueSlug }: Props) {
   const { error, state } = useMarketState(venueSlug, { pollIntervalMs: 30_000 });
+  const [priceHistories, setPriceHistories] = useState<Map<string, MarketPriceHistoryPoint[]>>(() => new Map());
+  const productIdsKey = state?.products.filter(product => product.isLive).map(product => product.id).join("|") ?? "";
+
+  useEffect(() => {
+    if (state?.source !== "supabase" || !productIdsKey) {
+      setPriceHistories(new Map());
+      return undefined;
+    }
+    let cancelled = false;
+    const productIds = productIdsKey.split("|").filter(Boolean);
+    const refresh = async () => {
+      try {
+        const histories = await getMarketProductPriceHistories(state.venue.id, productIds);
+        if (!cancelled) setPriceHistories(histories);
+      } catch {
+        // Keep the last complete graph set visible if this refresh misses.
+      }
+    };
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 60_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [productIdsKey, state?.source, state?.venue.id]);
 
   if (error) return <main className="page">Could not load menu: {error}</main>;
   if (!state) return <main className="page">Loading menu...</main>;
@@ -40,7 +67,7 @@ export function Menu({ venueSlug }: Props) {
           <main className="mobile-menu">
             <MobileCategoryRail categories={categoryLinks} />
             {groups.map(([category, products]) => (
-              <MobileMarketSection category={category} products={products} venue={state.venue} key={category} />
+              <MobileMarketSection category={category} historyByProductId={priceHistories} products={products} venue={state.venue} key={category} />
             ))}
           </main>
         </div>

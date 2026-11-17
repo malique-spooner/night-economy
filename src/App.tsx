@@ -11,6 +11,8 @@ import { resolveAppRoute } from "./routes";
 
 export function App() {
   const route = resolveAppRoute(window.location.pathname, window.location.search);
+  const isPublicMarketView = route.surface === "tv" && route.slug === "public-demo";
+  const isPhoneViewport = window.matchMedia("(max-width: 760px)").matches;
   const appView = route.surface === "simulator"
     ? "simulator"
     : route.surface === "logo"
@@ -24,13 +26,21 @@ export function App() {
         : route.surface;
 
   useEffect(() => {
+    if (isPublicMarketView && isPhoneViewport) {
+      const mobilePath = window.location.pathname.replace(/\/tv-view\/?$/, "/mobile-view").replace(/\/tv\/public-demo\/?$/, "/menu/public-demo");
+      window.location.replace(`${mobilePath}${window.location.search}${window.location.hash}`);
+      return;
+    }
+
     document.body.dataset.appView = appView;
     document.documentElement.dataset.appView = appView;
     return () => {
       delete document.body.dataset.appView;
       delete document.documentElement.dataset.appView;
     };
-  }, [appView]);
+  }, [appView, isPhoneViewport, isPublicMarketView]);
+
+  if (isPublicMarketView && isPhoneViewport) return null;
 
   if (route.surface === "tv") return <Tv venueSlug={route.slug ?? "demo-venue"} />;
   if (route.surface === "trailer") return <Trailer />;

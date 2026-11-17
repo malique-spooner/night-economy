@@ -1,35 +1,39 @@
 import type { MarketProduct } from "../../engine/types";
+import type { MarketPriceHistoryPoint } from "../../api/market";
 import { formatMoney } from "../format";
-import { defaultDrinkImage, formatChangePercent, productTrend } from "../tv/tvHelpers";
-import { mobileAccent, mobileHook, mobileMovementMark } from "./mobileHelpers";
+import { formatChangePercent, productTrend } from "../tv/tvHelpers";
+import { mobileAccent, mobileMovementMark } from "./mobileHelpers";
+import { mobileDrinkArtwork } from "./mobileArtwork";
+import { MobilePriceChart } from "./MobilePriceChart";
 
 type Props = {
   currency: string;
+  history: MarketPriceHistoryPoint[];
+  layout: number;
   product: MarketProduct;
-  rank: number;
 };
 
-export function MobileMarketRow({ currency, product, rank }: Props) {
+export function MobileMarketRow({ currency, history, layout, product }: Props) {
   const trend = productTrend(product);
   const accent = mobileAccent(product);
 
   return (
-    <article className={`mobile-market-row ${trend} accent-${accent}`}>
+    <article className={`mobile-market-row mobile-layout-${layout} ${trend} accent-${accent}`}>
       <div className="mobile-drink-mark" aria-hidden="true">
-        <img alt="" src={product.logoUrl ?? defaultDrinkImage(product.category, product.id)} />
+        <img alt="" src={mobileDrinkArtwork(product)} />
       </div>
       <div className="mobile-market-main">
         <div className="mobile-market-name">
           <strong>{product.name}</strong>
-          <span>{mobileHook(product)}</span>
+          {product.isSoldOut ? <span className="mobile-market-unavailable">Unavailable</span> : null}
         </div>
-        <div className={`mobile-market-price ${trend}`}>{formatMoney(product.currentPriceMinor, currency)}</div>
+        <MobilePriceChart history={history} product={product} />
       </div>
-      <div className="mobile-market-meta">
-        <span className={trend}>
-          {mobileMovementMark(product)} {formatChangePercent(product).replace("+", "")}
+      <div className="mobile-market-quote">
+        <strong className={`mobile-market-price ${trend}`}>{formatMoney(product.currentPriceMinor, currency)}</strong>
+        <span className={`mobile-market-change ${trend}`} aria-label={`Market change ${formatChangePercent(product)}`}>
+          <i aria-hidden="true">{mobileMovementMark(product)}</i>{formatChangePercent(product).replace("+", "")}
         </span>
-        <span>#{String(rank).padStart(2, "0")}</span>
       </div>
     </article>
   );

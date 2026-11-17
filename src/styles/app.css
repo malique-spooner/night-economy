@@ -8246,6 +8246,793 @@ body[data-app-view='site'] .site-scroll-story .site-why-shell{width:min(1180px,1
   body[data-app-view='portal'] .portal-filter-row{top:52px}
 }
 
+/* Guest mobile market: editorial menu hierarchy with calm, scannable price rows. */
+body[data-app-view='mobile'] .mobile-view {
+  min-height:100svh;
+  background:radial-gradient(ellipse at 85% 0%,rgba(61,214,140,.14),transparent 34%),linear-gradient(180deg,#080d0b 0%,#0c1110 48%,#080c0b 100%);
+}
+body[data-app-view='mobile'] .mobile-view .mobile-shell {
+  width:min(100%,520px);
+  max-width:520px;
+  min-height:100svh;
+  margin:0 auto;
+  padding:24px 20px calc(36px + env(safe-area-inset-bottom));
+  gap:0;
+}
+body[data-app-view='mobile'] .mobile-hero {
+  display:grid;
+  gap:7px;
+  padding:0 0 22px;
+  border-bottom:1px solid rgba(244,247,240,.12);
+}
+body[data-app-view='mobile'] .mobile-hero-topline {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+body[data-app-view='mobile'] .mobile-hero-title {
+  color:#f3f6ed;
+  font:800 12px/1 'DM Mono',monospace;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+body[data-app-view='mobile'] .mobile-hero-title b { color:#3dd68c; }
+body[data-app-view='mobile'] .mobile-live-indicator {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  color:rgba(243,246,237,.6);
+  font:700 9px/1 'DM Mono',monospace;
+  letter-spacing:.1em;
+}
+body[data-app-view='mobile'] .mobile-live-indicator i {
+  width:7px;height:7px;border-radius:50%;background:#65e5a0;
+  box-shadow:0 0 12px rgba(101,229,160,.7);
+}
+body[data-app-view='mobile'] .mobile-venue-name {
+  color:#f3f6ed;
+  font:650 clamp(22px,6vw,29px)/1.05 'DM Sans',system-ui,sans-serif;
+  letter-spacing:-.045em;
+  text-transform:none;
+}
+body[data-app-view='mobile'] .mobile-hero-caption {
+  margin:0;
+  color:rgba(243,246,237,.48);
+  font-size:12px;
+  line-height:1.4;
+}
+body[data-app-view='mobile'] .mobile-market-intro {
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+  padding:29px 0 22px;
+}
+body[data-app-view='mobile'] .mobile-market-kicker {
+  color:#75e9a8;
+  font:700 9px/1 'DM Mono',monospace;
+  letter-spacing:.15em;
+}
+body[data-app-view='mobile'] .mobile-market-intro h1 {
+  margin:10px 0 0;
+  color:#f3f6ed;
+  font:650 clamp(38px,11vw,52px)/.92 'Space Grotesk',sans-serif;
+  letter-spacing:-.075em;
+}
+body[data-app-view='mobile'] .mobile-market-intro h1 em { color:#b7ff83;font-style:normal; }
+body[data-app-view='mobile'] .mobile-market-intro p {
+  max-width:34ch;
+  margin:0;
+  color:rgba(243,246,237,.57);
+  font-size:13px;
+  line-height:1.55;
+}
+body[data-app-view='mobile'] .mobile-rail {
+  position:sticky;
+  top:0;
+  z-index:10;
+  display:flex;
+  gap:8px;
+  margin:0 -20px;
+  padding:12px 20px;
+  overflow-x:auto;
+  overscroll-behavior-x:contain;
+  scrollbar-width:none;
+  background:rgba(8,13,11,.9);
+  border-top:1px solid rgba(244,247,240,.08);
+  border-bottom:1px solid rgba(244,247,240,.1);
+  backdrop-filter:blur(18px);
+}
+body[data-app-view='mobile'] .mobile-rail::-webkit-scrollbar { display:none; }
+body[data-app-view='mobile'] .mobile-rail-chip {
+  flex:0 0 auto;
+  min-height:37px;
+  padding:0 14px;
+  border:1px solid rgba(244,247,240,.13);
+  border-radius:999px;
+  background:rgba(244,247,240,.035);
+  color:rgba(243,246,237,.72);
+  font:600 11px/1 'DM Sans',system-ui,sans-serif;
+  letter-spacing:0;
+  text-transform:none;
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+body[data-app-view='mobile'] .mobile-rail-chip.active {
+  border-color:#b7ff83;
+  background:#b7ff83;
+  color:#111a14;
+}
+body[data-app-view='mobile'] .mobile-menu { gap:0; }
+body[data-app-view='mobile'] .mobile-market-section {
+  padding:27px 0 0;
+  scroll-margin-top:74px;
+}
+body[data-app-view='mobile'] .mobile-menu-section-head {
+  align-items:end;
+  margin:0 0 12px;
+  padding:0 0 12px;
+  border-bottom:1px solid rgba(244,247,240,.12);
+}
+body[data-app-view='mobile'] .mobile-menu-section-head h2 {
+  color:#f3f6ed;
+  font:650 21px/1 'Space Grotesk',sans-serif;
+  letter-spacing:-.045em;
+}
+body[data-app-view='mobile'] .mobile-menu-section-head p {
+  margin:5px 0 0;
+  color:rgba(243,246,237,.42);
+  font-size:11px;
+}
+body[data-app-view='mobile'] .mobile-section-move {
+  padding:6px 9px;
+  border:1px solid rgba(244,247,240,.1);
+  border-radius:999px;
+  background:rgba(244,247,240,.035);
+  font:700 10px/1 'DM Mono',monospace;
+}
+body[data-app-view='mobile'] .mobile-section-move.up { color:#ff9292; }
+body[data-app-view='mobile'] .mobile-section-move.dn { color:#79e3ad; }
+body[data-app-view='mobile'] .mobile-market-list { border:0; }
+body[data-app-view='mobile'] .mobile-market-row {
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  min-height:76px;
+  padding:11px 0;
+  border-bottom:1px solid rgba(244,247,240,.075);
+  background:transparent;
+}
+body[data-app-view='mobile'] .mobile-market-row::before { display:none; }
+body[data-app-view='mobile'] .mobile-drink-mark {
+  width:48px;height:48px;padding:0;border-radius:14px;overflow:hidden;
+  background:linear-gradient(145deg,var(--drink-a,#b7ff83),var(--drink-b,#4f8f68));
+  box-shadow:0 5px 16px rgba(0,0,0,.24);
+}
+body[data-app-view='mobile'] .mobile-drink-mark img { width:100%;height:100%;object-fit:cover; }
+body[data-app-view='mobile'] .mobile-market-main {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:4px;
+  min-width:0;
+}
+body[data-app-view='mobile'] .mobile-market-name { min-width:0; }
+body[data-app-view='mobile'] .mobile-market-name strong {
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  color:#f3f6ed;
+  font:650 15px/1.18 'DM Sans',system-ui,sans-serif;
+  letter-spacing:-.02em;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+body[data-app-view='mobile'] .mobile-market-name span {
+  display:block;
+  margin-top:3px;
+  color:rgba(243,246,237,.43);
+  font:500 10px/1.2 'DM Sans',system-ui,sans-serif;
+  letter-spacing:0;
+  text-transform:none;
+}
+body[data-app-view='mobile'] .mobile-market-price {
+  color:#f3f6ed;
+  font:700 16px/1 'DM Mono',monospace;
+  letter-spacing:-.04em;
+  white-space:nowrap;
+}
+body[data-app-view='mobile'] .mobile-market-price.up { color:#ff9292; }
+body[data-app-view='mobile'] .mobile-market-price.dn { color:#79e3ad; }
+body[data-app-view='mobile'] .mobile-market-meta {
+  grid-column:3;
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-end;
+  margin:0;
+}
+body[data-app-view='mobile'] .mobile-market-change {
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font:650 10px/1 'DM Mono',monospace;
+  white-space:nowrap;
+}
+body[data-app-view='mobile'] .mobile-market-change i { font-style:normal;font-size:9px; }
+body[data-app-view='mobile'] .mobile-market-change.up { color:#ff9292; }
+body[data-app-view='mobile'] .mobile-market-change.dn { color:#79e3ad; }
+body[data-app-view='mobile'] .mobile-market-rank { display:none; }
+body[data-app-view='mobile'] .mobile-market-track,
+body[data-app-view='mobile'] .mobile-market-symbol { display:none!important; }
+@media(max-width:380px){
+  body[data-app-view='mobile'] .mobile-view .mobile-shell { padding-right:16px;padding-left:16px; }
+  body[data-app-view='mobile'] .mobile-rail { margin-right:-16px;margin-left:-16px;padding-right:16px;padding-left:16px; }
+  body[data-app-view='mobile'] .mobile-market-row { grid-template-columns:42px minmax(0,1fr) auto;gap:9px; }
+  body[data-app-view='mobile'] .mobile-drink-mark { width:42px;height:42px;border-radius:12px; }
+  body[data-app-view='mobile'] .mobile-market-name strong { font-size:14px; }
+  body[data-app-view='mobile'] .mobile-market-price { font-size:14px; }
+  body[data-app-view='mobile'] .mobile-market-change { font-size:9px; }
+}
+
+/* Market Pulse direction: dark teal, precise market signals, mint movement. */
+body[data-app-view='mobile'] .mobile-view {
+  background:radial-gradient(ellipse at 82% -8%,rgba(44,200,162,.19),transparent 38%),linear-gradient(180deg,#061316 0%,#081114 48%,#070d10 100%);
+}
+body[data-app-view='mobile'] .mobile-hero { border-bottom-color:rgba(114,227,191,.16); }
+body[data-app-view='mobile'] .mobile-hero-title { order:0; }
+body[data-app-view='mobile'] .mobile-live-indicator { order:1; }
+body[data-app-view='mobile'] .mobile-hero-title b { color:#62e5b0; }
+body[data-app-view='mobile'] .mobile-live-indicator { color:#8ca9a2; }
+body[data-app-view='mobile'] .mobile-live-indicator i { background:#62e5b0;box-shadow:0 0 13px rgba(98,229,176,.8); }
+body[data-app-view='mobile'] .mobile-venue-name { color:#edf8f3; }
+body[data-app-view='mobile'] .mobile-hero-caption { color:#8ca9a2; }
+body[data-app-view='mobile'] .mobile-market-kicker { color:#62e5b0; }
+body[data-app-view='mobile'] .mobile-market-intro h1 { font-family:'Manrope','DM Sans',sans-serif;letter-spacing:-.08em; }
+body[data-app-view='mobile'] .mobile-market-intro h1 em { color:#62e5b0; }
+body[data-app-view='mobile'] .mobile-market-intro p { color:#9ab1ab; }
+body[data-app-view='mobile'] .mobile-market-tape {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:4px 12px;
+  margin-top:4px;
+  padding:13px 14px;
+  border:1px solid rgba(98,229,176,.28);
+  border-radius:12px;
+  background:linear-gradient(110deg,rgba(19,65,61,.75),rgba(9,33,37,.82));
+  box-shadow:0 8px 24px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.035);
+}
+body[data-app-view='mobile'] .mobile-market-tape span,
+body[data-app-view='mobile'] .mobile-market-tape small { color:#87aaa0;font:600 8px/1.2 'DM Mono',monospace;letter-spacing:.09em; }
+body[data-app-view='mobile'] .mobile-market-tape strong { grid-column:2;grid-row:1/3;color:#62e5b0;font:600 17px/1 'DM Mono',monospace;white-space:nowrap; }
+body[data-app-view='mobile'] .mobile-market-tape strong.up { color:#ff908c; }
+body[data-app-view='mobile'] .mobile-market-tape strong.dn { color:#62e5b0; }
+body[data-app-view='mobile'] .mobile-rail { background:rgba(6,19,22,.91);border-color:rgba(98,229,176,.15); }
+body[data-app-view='mobile'] .mobile-rail-chip { border-color:rgba(157,190,180,.18);background:rgba(12,39,41,.58);color:#a9c0b9; }
+body[data-app-view='mobile'] .mobile-rail-chip.active { border-color:#62e5b0;background:#62e5b0;color:#06211b; }
+body[data-app-view='mobile'] .mobile-menu-section-head { border-bottom-color:rgba(98,229,176,.17); }
+body[data-app-view='mobile'] .mobile-menu-section-head { flex-direction:row;align-items:center; }
+body[data-app-view='mobile'] .mobile-menu-section-head h2 { font-family:'Manrope','DM Sans',sans-serif;color:#edf8f3; }
+body[data-app-view='mobile'] .mobile-menu-section-head p { color:#78948d; }
+body[data-app-view='mobile'] .mobile-section-move { border-color:rgba(157,190,180,.15);background:rgba(12,39,41,.45); }
+body[data-app-view='mobile'] .mobile-section-move.up { color:#ff908c; }
+body[data-app-view='mobile'] .mobile-section-move.dn { color:#62e5b0; }
+body[data-app-view='mobile'] .mobile-market-row { border-bottom-color:rgba(151,190,179,.12); }
+body[data-app-view='mobile'] .mobile-drink-mark { border:1px solid rgba(167,227,207,.2);background:linear-gradient(145deg,#17735f,#102d35);box-shadow:0 5px 18px rgba(0,0,0,.29); }
+body[data-app-view='mobile'] .mobile-market-name strong { color:#eef8f4;font-family:'Manrope','DM Sans',sans-serif; }
+body[data-app-view='mobile'] .mobile-market-name span { color:#7f9d95; }
+body[data-app-view='mobile'] .mobile-market-quote { display:grid;justify-items:end;gap:5px; }
+body[data-app-view='mobile'] .mobile-market-price { color:#f0f8f4;font-size:15px; }
+body[data-app-view='mobile'] .mobile-market-price.up { color:#ff908c; }
+body[data-app-view='mobile'] .mobile-market-price.dn { color:#62e5b0; }
+body[data-app-view='mobile'] .mobile-market-change { color:#62e5b0;font-size:9px; }
+body[data-app-view='mobile'] .mobile-market-change.up { color:#ff908c; }
+body[data-app-view='mobile'] .mobile-market-change.dn { color:#62e5b0; }
+body[data-app-view='mobile'] .mobile-view .mobile-shell { padding-top:16px;padding-right:16px;padding-left:16px; }
+body[data-app-view='mobile'] .mobile-hero {
+  position:relative;
+  display:block;
+  min-height:228px;
+  padding:0;
+  overflow:hidden;
+  border:1px solid rgba(92,226,183,.26);
+  border-radius:17px;
+  background:#071518;
+  box-shadow:0 16px 36px rgba(0,0,0,.28);
+  isolation:isolate;
+}
+body[data-app-view='mobile'] .mobile-hero-scene,
+body[data-app-view='mobile'] .mobile-hero-shade { position:absolute;z-index:-1;inset:0;width:100%;height:100%; }
+body[data-app-view='mobile'] .mobile-hero-scene { object-fit:cover;object-position:center 44%; }
+body[data-app-view='mobile'] .mobile-hero-shade { background:linear-gradient(90deg,rgba(4,13,16,.88),rgba(4,13,16,.38) 70%,rgba(4,13,16,.24)),linear-gradient(0deg,rgba(4,13,16,.96),rgba(4,13,16,.16) 78%); }
+body[data-app-view='mobile'] .mobile-hero-content { display:grid;gap:9px;min-height:228px;padding:18px 17px 15px; }
+body[data-app-view='mobile'] .mobile-hero-topline { justify-content:flex-start; }
+body[data-app-view='mobile'] .mobile-hero-title { order:0;color:#f1faf6;font:600 10px/1 'DM Mono',monospace;letter-spacing:.15em; }
+body[data-app-view='mobile'] .mobile-hero-title b { color:#62e5b0; }
+body[data-app-view='mobile'] .mobile-venue-name { align-self:end;margin-top:13px;color:#f3fbf7;font:600 clamp(23px,7vw,31px)/1 'DM Mono',monospace;letter-spacing:.035em;text-transform:uppercase;text-shadow:0 2px 18px rgba(0,0,0,.45); }
+body[data-app-view='mobile'] .mobile-venue-location { color:rgba(201,237,223,.78);font:500 8px/1 'DM Mono',monospace;letter-spacing:.22em; }
+body[data-app-view='mobile'] .mobile-live-bar { display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:38px;margin-top:auto;padding:0 11px;border:1px solid rgba(91,230,181,.58);border-radius:8px;background:rgba(3,26,25,.73);box-shadow:inset 0 0 18px rgba(64,224,170,.08);backdrop-filter:blur(10px); }
+body[data-app-view='mobile'] .mobile-live-bar>span { display:flex;align-items:center;gap:8px;color:#8bf2c7;font:600 9px/1 'DM Mono',monospace;letter-spacing:.09em; }
+body[data-app-view='mobile'] .mobile-live-bar>span i { width:7px;height:7px;border-radius:50%;background:#62e5b0;box-shadow:0 0 12px #62e5b0; }
+body[data-app-view='mobile'] .mobile-live-signal { display:flex;align-items:end;gap:3px;height:14px; }
+body[data-app-view='mobile'] .mobile-live-signal i { display:block;width:3px;border-radius:2px;background:#62e5b0;box-shadow:0 0 6px rgba(98,229,176,.45); }
+body[data-app-view='mobile'] .mobile-live-signal i:nth-child(1){height:5px}.mobile-live-signal i:nth-child(2){height:8px}.mobile-live-signal i:nth-child(3){height:11px}.mobile-live-signal i:nth-child(4){height:14px}
+body[data-app-view='mobile'] .mobile-hero-caption { display:none; }
+body[data-app-view='mobile'] .mobile-menu-section-head { flex-direction:row;align-items:center; }
+body[data-app-view='mobile'] .mobile-market-row { grid-template-columns:42px minmax(0,1fr) 62px auto;gap:9px; }
+body[data-app-view='mobile'] .mobile-price-chart { display:block;width:62px;height:28px;overflow:visible; }
+body[data-app-view='mobile'] .mobile-price-chart-area { fill:rgba(98,229,176,.12); }
+body[data-app-view='mobile'] .mobile-price-chart-line { fill:none;stroke:#62e5b0;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 3px rgba(98,229,176,.35)); }
+body[data-app-view='mobile'] .mobile-price-chart-end { fill:#62e5b0;stroke:#0a1a1a;stroke-width:1.2;vector-effect:non-scaling-stroke; }
+body[data-app-view='mobile'] .mobile-price-chart.up .mobile-price-chart-area { fill:rgba(255,119,123,.1); }
+body[data-app-view='mobile'] .mobile-price-chart.up .mobile-price-chart-line { stroke:#ff777b;filter:drop-shadow(0 0 3px rgba(255,119,123,.35)); }
+body[data-app-view='mobile'] .mobile-price-chart.up .mobile-price-chart-end { fill:#ff777b; }
+body[data-app-view='mobile'] .mobile-market-quote { min-width:49px; }
+body[data-app-view='mobile'] .mobile-market-price { font-size:14px; }
+body[data-app-view='mobile'] .mobile-market-change { font-size:8px; }
+body[data-app-view='mobile'] .mobile-market-name strong { font:600 13px/1.17 'DM Mono',monospace;letter-spacing:-.045em; }
+body[data-app-view='mobile'] .mobile-market-name span { margin-top:4px;font-size:9px; }
+body[data-app-view='mobile'] .mobile-market-section { padding-top:22px; }
+body[data-app-view='mobile'] .mobile-view .mobile-shell { padding-bottom:calc(104px + env(safe-area-inset-bottom)); }
+body[data-app-view='mobile'] .mobile-rail {
+  position:fixed;
+  top:auto;
+  bottom:0;
+  left:50%;
+  z-index:40;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:4px;
+  width:min(520px,100vw);
+  margin:0;
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  overflow:visible;
+  border:0;
+  border-top:1px solid rgba(98,229,176,.22);
+  border-radius:16px 16px 0 0;
+  background:rgba(5,18,21,.94);
+  box-shadow:0 -12px 36px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.035);
+  transform:translateX(-50%);
+  backdrop-filter:blur(22px) saturate(145%);
+}
+body[data-app-view='mobile'] .mobile-rail-chip {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  min-width:0;
+  min-height:58px;
+  padding:5px 3px;
+  border:1px solid transparent;
+  border-radius:11px;
+  background:transparent;
+  color:#8ba49c;
+  font:500 9px/1 'DM Mono',monospace;
+  letter-spacing:.025em;
+}
+body[data-app-view='mobile'] .mobile-rail-chip svg { display:block;width:19px;height:19px; }
+body[data-app-view='mobile'] .mobile-rail-chip.active {
+  border-color:rgba(98,229,176,.14);
+  background:rgba(57,207,161,.11);
+  color:#78edbd;
+}
+body[data-app-view='mobile'] .mobile-market-section { scroll-margin-top:18px; }
+@media(max-width:380px){
+  body[data-app-view='mobile'] .mobile-market-row { grid-template-columns:38px minmax(0,1fr) 50px auto;gap:7px; }
+  body[data-app-view='mobile'] .mobile-drink-mark { width:38px;height:38px; }
+  body[data-app-view='mobile'] .mobile-price-chart { width:50px;height:26px; }
+  body[data-app-view='mobile'] .mobile-market-name strong { font-size:11px; }
+  body[data-app-view='mobile'] .mobile-market-price { font-size:12px; }
+}
+
+/* Match the selected Market Pulse render across every Night Economy surface. */
+body[data-app-view],
+body[data-app-view] * { font-family:'Space Mono',monospace !important; }
+
+/* The guest market header is a full-bleed London scene, not a floating card. */
+body[data-app-view='mobile'] .mobile-view .mobile-shell {
+  width:min(100%,520px);
+  padding:0 0 calc(104px + env(safe-area-inset-bottom));
+}
+body[data-app-view='mobile'] .mobile-hero {
+  min-height:270px;
+  overflow:hidden;
+  border:0;
+  border-bottom:1px solid rgba(98,229,176,.24);
+  border-radius:0;
+  box-shadow:none;
+}
+body[data-app-view='mobile'] .mobile-hero-scene { object-position:center 40%; }
+body[data-app-view='mobile'] .mobile-hero-shade { background:linear-gradient(90deg,rgba(4,13,16,.72),rgba(4,13,16,.2) 75%,rgba(4,13,16,.12)),linear-gradient(0deg,rgba(4,13,16,.98),rgba(4,13,16,.03) 90%); }
+body[data-app-view='mobile'] .mobile-hero-content { min-height:270px;padding:calc(20px + env(safe-area-inset-top)) 20px 16px; }
+body[data-app-view='mobile'] .mobile-hero-title { font-size:11px;letter-spacing:.16em; }
+body[data-app-view='mobile'] .mobile-venue-name { display:flex;align-items:center;gap:9px;font-size:clamp(19px,6vw,27px);letter-spacing:.015em; }
+body[data-app-view='mobile'] .mobile-venue-name i { color:#62e5b0;font-size:.86em;font-style:normal;font-weight:400; }
+body[data-app-view='mobile'] .mobile-venue-location { color:rgba(201,237,223,.88);font-size:8px;letter-spacing:.18em; }
+body[data-app-view='mobile'] .mobile-menu { padding:0 16px; }
+body[data-app-view='mobile'] .mobile-market-row { grid-template-columns:42px minmax(0,1fr) auto;gap:10px; }
+body[data-app-view='mobile'] .mobile-market-main { display:grid;grid-template-columns:minmax(0,1fr);gap:6px;align-items:start; }
+body[data-app-view='mobile'] .mobile-market-name strong { font-size:12px;letter-spacing:-.055em; }
+body[data-app-view='mobile'] .mobile-market-name span.mobile-market-unavailable { margin-top:3px;color:#ffaaa5;font-size:8px; }
+body[data-app-view='mobile'] .mobile-market-main .mobile-price-chart { width:min(100%,116px);height:23px;justify-self:start; }
+body[data-app-view='mobile'] .mobile-market-quote { min-width:52px; }
+body[data-app-view='mobile'] .mobile-market-price { font-size:13px; }
+@media(max-width:380px){
+  body[data-app-view='mobile'] .mobile-hero-content { padding-right:16px;padding-left:16px; }
+  body[data-app-view='mobile'] .mobile-menu { padding-right:12px;padding-left:12px; }
+  body[data-app-view='mobile'] .mobile-market-row { grid-template-columns:38px minmax(0,1fr) auto;gap:8px; }
+  body[data-app-view='mobile'] .mobile-market-main .mobile-price-chart { width:min(100%,104px);height:21px; }
+  body[data-app-view='mobile'] .mobile-market-name strong { font-size:11px; }
+}
+
+/* Market Pulse scale pass: large flat drink rows and a clean tab bar. */
+body[data-app-view='mobile'] .mobile-hero-title {
+  display:grid;
+  justify-items:start;
+  gap:2px;
+  color:#ecf8f3;
+  line-height:1;
+  letter-spacing:.2em;
+}
+body[data-app-view='mobile'] .mobile-hero-title span { font-size:10px;letter-spacing:.28em; }
+body[data-app-view='mobile'] .mobile-hero-title strong { color:#ecf8f3;font-size:19px;font-weight:700;letter-spacing:.2em; }
+body[data-app-view='mobile'] .mobile-venue-name {
+  position:relative;
+  display:block;
+  width:max-content;
+  max-width:100%;
+  padding:4px 0 5px 19px;
+  font-size:clamp(34px,9.2vw,42px);
+  line-height:1.04;
+  letter-spacing:-.045em;
+}
+body[data-app-view='mobile'] .mobile-venue-name::before {
+  position:absolute;
+  left:0;
+  width:9px;
+  height:9px;
+  border-left:2px solid #62e5b0;
+  content:"";
+}
+body[data-app-view='mobile'] .mobile-venue-name::before { top:0;border-top:2px solid #62e5b0; }
+body[data-app-view='mobile'] .mobile-venue-location { padding-left:19px;font-size:10px;letter-spacing:.22em; }
+body[data-app-view='mobile'] .mobile-hero-content { gap:11px; }
+body[data-app-view='mobile'] .mobile-live-bar { min-height:46px;padding:0 13px; }
+body[data-app-view='mobile'] .mobile-live-bar>span { font-size:11px;letter-spacing:.1em; }
+body[data-app-view='mobile'] .mobile-live-bar>span i { width:9px;height:9px; }
+body[data-app-view='mobile'] .mobile-menu-section-head {
+  align-items:baseline;
+  margin:0 0 9px;
+  padding:0 0 10px;
+  border-bottom:1px solid rgba(98,229,176,.2);
+}
+body[data-app-view='mobile'] .mobile-menu-section-head h2 { font-size:17px;letter-spacing:.08em;text-transform:uppercase; }
+body[data-app-view='mobile'] .mobile-menu-section-head p { margin:0;color:#7faaa0;font-size:8px;letter-spacing:.16em; }
+body[data-app-view='mobile'] .mobile-market-row {
+  grid-template-columns:80px minmax(0,1fr) 94px;
+  column-gap:10px;
+  min-height:132px;
+  margin:0 0 10px;
+  padding:14px 13px;
+  border:1px solid rgba(128,205,179,.2);
+  border-radius:14px;
+  background:linear-gradient(112deg,rgba(13,39,39,.88),rgba(7,24,29,.94));
+  box-shadow:inset 0 1px 0 rgba(225,255,245,.035),0 7px 20px rgba(0,0,0,.16);
+}
+body[data-app-view='mobile'] .mobile-drink-mark {
+  width:80px;
+  height:80px;
+  border:0;
+  border-radius:6px;
+  background:#0e2225;
+  box-shadow:none;
+}
+body[data-app-view='mobile'] .mobile-market-main { 
+  display:grid;
+  grid-template-rows:auto 1fr;
+  align-content:center;
+  align-self:stretch;
+  min-width:0;
+  gap:7px;
+}
+body[data-app-view='mobile'] .mobile-market-name strong {
+  display:-webkit-box;
+  overflow:hidden;
+  color:#f3f8f4;
+  font-family:'Space Grotesk','Inter',sans-serif !important;
+  font-size:20px;
+  font-weight:700;
+  line-height:1.04;
+  letter-spacing:-.06em;
+  text-overflow:clip;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+}
+body[data-app-view='mobile'] .mobile-market-main .mobile-price-chart {
+  display:block;
+  width:100%;
+  max-width:none;
+  height:36px;
+  align-self:end;
+}
+body[data-app-view='mobile'] .mobile-market-quote {
+  min-width:0;
+  width:94px;
+  align-self:center;
+  justify-items:end;
+  gap:6px;
+}
+body[data-app-view='mobile'] .mobile-market-price {
+  font-family:'Space Grotesk','Inter',sans-serif !important;
+  font-size:25px;
+  font-weight:700;
+  letter-spacing:-.07em;
+  line-height:1;
+}
+body[data-app-view='mobile'] .mobile-market-change { font-size:15px;line-height:1.1; }
+body[data-app-view='mobile'] .mobile-market-change i { font-size:14px; }
+body[data-app-view='mobile'] .mobile-menu-section-head h2 { font-size:19px; }
+body[data-app-view='mobile'] .mobile-menu-section-head p { font-size:10px; }
+body[data-app-view='mobile'] .mobile-rail {
+  border-radius:0;
+  border-top:1px solid rgba(98,229,176,.24);
+  background:rgba(5,18,21,.96);
+  box-shadow:0 -8px 28px rgba(0,0,0,.27);
+}
+body[data-app-view='mobile'] .mobile-rail-chip {
+  position:relative;
+  min-height:62px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:#829e96;
+}
+body[data-app-view='mobile'] .mobile-rail-chip.active { border:0;background:transparent;color:#78edbd; }
+body[data-app-view='mobile'] .mobile-rail-chip.active::after {
+  position:absolute;
+  right:calc(50% - 10px);
+  bottom:1px;
+  left:calc(50% - 10px);
+  height:2px;
+  border-radius:0;
+  background:#62e5b0;
+  content:"";
+}
+@media(max-width:380px){
+  body[data-app-view='mobile'] .mobile-hero-content { padding-right:16px;padding-left:16px; }
+  body[data-app-view='mobile'] .mobile-market-row { grid-template-columns:70px minmax(0,1fr) 84px;column-gap:9px;min-height:124px; }
+  body[data-app-view='mobile'] .mobile-drink-mark { width:70px;height:70px; }
+  body[data-app-view='mobile'] .mobile-market-name strong { font-size:18px; }
+  body[data-app-view='mobile'] .mobile-market-main .mobile-price-chart { height:34px; }
+  body[data-app-view='mobile'] .mobile-market-quote { width:84px; }
+  body[data-app-view='mobile'] .mobile-market-price { font-size:22px; }
+  body[data-app-view='mobile'] .mobile-market-change { font-size:13px; }
+  body[data-app-view='mobile'] .mobile-hero-title strong { font-size:17px; }
+  body[data-app-view='mobile'] .mobile-venue-name { font-size:clamp(32px,9.2vw,38px); }
+}
+
+/* Nine live card studies: repeat the set for each drink category. */
+body[data-app-view='mobile'] .mobile-market-row.mobile-layout-2 {
+  grid-template-columns:76px minmax(0,1fr);
+  grid-template-rows:auto auto auto;
+  min-height:138px;
+  padding:13px;
+  border-radius:18px 8px 18px 8px;
+  background:linear-gradient(130deg,rgba(29,62,58,.94),rgba(7,24,29,.96));
+}
+body[data-app-view='mobile'] .mobile-layout-2 .mobile-drink-mark { grid-column:1;grid-row:1/4;width:76px;height:100%;min-height:106px;border-radius:12px; }
+body[data-app-view='mobile'] .mobile-layout-2 .mobile-market-main { display:contents; }
+body[data-app-view='mobile'] .mobile-layout-2 .mobile-market-name { grid-column:2;grid-row:1; }
+body[data-app-view='mobile'] .mobile-layout-2 .mobile-price-chart { grid-column:2;grid-row:2;width:100%; }
+body[data-app-view='mobile'] .mobile-layout-2 .mobile-market-quote { grid-column:2;grid-row:3;width:auto;justify-items:start;display:flex;align-items:baseline;gap:12px; }
+
+body[data-app-view='mobile'] .mobile-market-row.mobile-layout-3 {
+  grid-template-columns:minmax(0,1fr) 88px;
+  grid-template-rows:auto auto;
+  min-height:132px;
+  border-radius:22px;
+  border-color:rgba(255,197,101,.26);
+  background:radial-gradient(ellipse at 100% 0,rgba(177,103,30,.2),transparent 55%),rgba(22,28,29,.94);
+}
+body[data-app-view='mobile'] .mobile-layout-3 .mobile-drink-mark { grid-column:2;grid-row:1/3;width:82px;height:92px;border-radius:44px 44px 18px 18px; }
+body[data-app-view='mobile'] .mobile-layout-3 .mobile-market-main { display:contents; }
+body[data-app-view='mobile'] .mobile-layout-3 .mobile-market-name { grid-column:1;grid-row:1;align-self:end; }
+body[data-app-view='mobile'] .mobile-layout-3 .mobile-price-chart { grid-column:1;grid-row:2;align-self:end;width:100%; }
+body[data-app-view='mobile'] .mobile-layout-3 .mobile-market-quote { grid-column:1;grid-row:3;width:auto;justify-items:start;display:flex;align-items:baseline;gap:12px; }
+
+body[data-app-view='mobile'] .mobile-market-row.mobile-layout-4 {
+  position:relative;
+  grid-template-columns:minmax(0,1fr) 104px;
+  grid-template-rows:auto auto auto;
+  min-height:154px;
+  overflow:hidden;
+  border-radius:10px;
+  border-color:rgba(191,231,255,.25);
+  background:linear-gradient(120deg,#111f2a,#102d36);
+}
+body[data-app-view='mobile'] .mobile-layout-4 .mobile-drink-mark { position:absolute;inset:0;width:100%;height:100%;border-radius:0;opacity:.32; }
+body[data-app-view='mobile'] .mobile-layout-4 .mobile-drink-mark img { object-position:center 48%; }
+body[data-app-view='mobile'] .mobile-layout-4 .mobile-market-main { display:contents; }
+body[data-app-view='mobile'] .mobile-layout-4 .mobile-market-name { z-index:1;grid-column:1;grid-row:2;align-self:end; }
+body[data-app-view='mobile'] .mobile-layout-4 .mobile-price-chart { z-index:1;grid-column:1/-1;grid-row:3;width:100%; }
+body[data-app-view='mobile'] .mobile-layout-4 .mobile-market-quote { z-index:1;grid-column:2;grid-row:1/3;width:auto;align-self:start;padding:7px 9px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(4,14,19,.68); }
+
+body[data-app-view='mobile'] .mobile-market-row.mobile-layout-5 {
+  grid-template-columns:68px minmax(0,1fr);
+  grid-template-rows:auto auto auto;
+  min-height:132px;
+  border-radius:8px 18px 8px 18px;
+  border-color:rgba(255,147,111,.25);
+  background:linear-gradient(110deg,rgba(63,34,28,.8),rgba(14,25,30,.96));
+}
+body[data-app-view='mobile'] .mobile-layout-5 .mobile-drink-mark { grid-column:1;grid-row:1/4;width:68px;height:100%;min-height:104px;border-radius:9px; }
+body[data-app-view='mobile'] .mobile-layout-5 .mobile-market-main { display:contents; }
+body[data-app-view='mobile'] .mobile-layout-5 .mobile-market-name { grid-column:2;grid-row:1; }
+body[data-app-view='mobile'] .mobile-layout-5 .mobile-market-quote { grid-column:2;grid-row:2;width:auto;display:flex;align-items:baseline;justify-items:start;gap:12px; }
+body[data-app-view='mobile'] .mobile-layout-5 .mobile-price-chart { grid-column:2;grid-row:3;width:100%; }
+
+body[data-app-view='mobile'] .mobile-market-row.mobile-layout-6 {
+  grid-template-columns:60px minmax(0,1fr) 92px;
+  grid-template-rows:auto 66px;
+  min-height:132px;
+  border-radius:18px 18px 6px 6px;
+  border-top:2px solid rgba(105,231,186,.56);
+  background:linear-gradient(145deg,rgba(10,43,41,.96),rgba(9,22,29,.97));
+}
+body[data-app-view='mobile'] .mobile-layout-6 .mobile-drink-mark { grid-column:1;grid-row:2;width:58px;height:58px;border-radius:50%; }
+body[data-app-view='mobile'] .mobile-layout-6 .mobile-market-main { display:contents; }
+body[data-app-view='mobile'] .mobile-layout-6 .mobile-market-name { grid-column:1/-1;grid-row:1; }
+body[data-app-view='mobile'] .mobile-layout-6 .mobile-market-name strong { max-width:100%; }
+body[data-app-view='mobile'] .mobile-layout-6 .mobile-price-chart { grid-column:2;grid-row:2;width:100%;height:48px;align-self:center; }
+body[data-app-view='mobile'] .mobile-layout-6 .mobile-market-quote { grid-column:3;grid-row:2;width:92px; }
+
+body[data-app-view='mobile'] .mobile-market-row.mobile-layout-7 {
+  grid-template-columns:minmax(0,1fr) 92px 58px;
+  grid-template-rows:auto 42px;
+  min-height:126px;
+  border-radius:28px 12px 28px 12px;
+  border-color:rgba(178,170,255,.26);
+  background:linear-gradient(112deg,rgba(28,30,50,.96),rgba(10,25,30,.97));
+}
+body[data-app-view='mobile'] .mobile-layout-7 .mobile-drink-mark { grid-column:3;grid-row:1/3;width:56px;height:56px;border-radius:50%; }
+body[data-app-view='mobile'] .mobile-layout-7 .mobile-market-main { display:contents; }
+body[data-app-view='mobile'] .mobile-layout-7 .mobile-market-name { grid-column:1;grid-row:1; }
+body[data-app-view='mobile'] .mobile-layout-7 .mobile-price-chart { grid-column:1/3;grid-row:2;width:100%;height:38px; }
+body[data-app-view='mobile'] .mobile-layout-7 .mobile-market-quote { grid-column:2;grid-row:1;width:92px; }
+
+body[data-app-view='mobile'] .mobile-market-row.mobile-layout-8 {
+  grid-template-columns:76px minmax(0,1fr);
+  grid-template-rows:70px auto auto;
+  min-height:160px;
+  overflow:hidden;
+  padding:0 13px 13px;
+  border-radius:16px;
+  border-color:rgba(255,156,93,.25);
+  background:linear-gradient(145deg,rgba(67,37,24,.85),rgba(17,24,29,.97));
+}
+body[data-app-view='mobile'] .mobile-layout-8 .mobile-drink-mark { grid-column:1/-1;grid-row:1;width:calc(100% + 26px);height:70px;margin:0 -13px;border-radius:0; }
+body[data-app-view='mobile'] .mobile-layout-8 .mobile-market-main { display:contents; }
+body[data-app-view='mobile'] .mobile-layout-8 .mobile-market-name { grid-column:1;grid-row:2;align-self:center; }
+body[data-app-view='mobile'] .mobile-layout-8 .mobile-market-quote { grid-column:2;grid-row:2;width:auto;align-self:center; }
+body[data-app-view='mobile'] .mobile-layout-8 .mobile-price-chart { grid-column:1/-1;grid-row:3;width:100%; }
+
+body[data-app-view='mobile'] .mobile-market-row.mobile-layout-9 {
+  grid-template-columns:88px minmax(0,1fr);
+  grid-template-rows:auto auto;
+  min-height:134px;
+  border-radius:7px 22px 7px 22px;
+  border-color:rgba(255,108,187,.24);
+  background:radial-gradient(ellipse at 0 100%,rgba(177,44,128,.18),transparent 54%),rgba(12,21,34,.97);
+}
+body[data-app-view='mobile'] .mobile-layout-9 .mobile-drink-mark { grid-column:1;grid-row:1/3;width:88px;height:104px;border-radius:50% 50% 14px 14px; }
+body[data-app-view='mobile'] .mobile-layout-9 .mobile-market-main { display:contents; }
+body[data-app-view='mobile'] .mobile-layout-9 .mobile-market-quote { grid-column:2;grid-row:1;width:auto;display:flex;align-items:baseline;justify-items:start;gap:12px; }
+body[data-app-view='mobile'] .mobile-layout-9 .mobile-market-name { grid-column:2;grid-row:2;align-self:end; }
+body[data-app-view='mobile'] .mobile-layout-9 .mobile-price-chart { grid-column:2;grid-row:3;width:100%;height:32px; }
+
+/* Wide full-bleed drink artwork unifies all nine card studies. */
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] {
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:auto 1fr;
+  align-items:start;
+  min-height:166px;
+  padding:16px;
+  overflow:hidden;
+  isolation:isolate;
+  border-radius:16px;
+  border:1px solid rgba(209,235,231,.2);
+  background:#071316;
+  box-shadow:0 10px 24px rgba(0,0,0,.24);
+}
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-']::after {
+  position:absolute;
+  z-index:1;
+  inset:0;
+  background:linear-gradient(90deg,rgba(4,12,17,.96) 0%,rgba(4,12,17,.84) 36%,rgba(4,12,17,.42) 68%,rgba(4,12,17,.14) 100%),linear-gradient(0deg,rgba(3,9,13,.82),transparent 64%);
+  content:"";
+  pointer-events:none;
+}
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-drink-mark {
+  position:absolute!important;
+  z-index:0;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  overflow:hidden;
+  border:0;
+  border-radius:inherit!important;
+  background:transparent;
+  box-shadow:none;
+  opacity:1;
+}
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-drink-mark img { width:100%;height:100%;object-fit:cover;object-position:center; }
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-market-main { display:contents; }
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-market-name,
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-market-quote,
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-price-chart { position:relative;z-index:2; }
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-market-name strong { color:#fff;font-size:21px;line-height:1.04;text-shadow:0 2px 14px rgba(0,0,0,.9); }
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-market-price { color:#fff;font-size:27px;text-shadow:0 2px 12px rgba(0,0,0,.85); }
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-market-quote { width:auto;align-self:start;justify-items:end;gap:5px; }
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-market-change { padding:4px 7px;border-radius:999px;background:rgba(4,14,16,.78);font-size:14px;backdrop-filter:blur(5px); }
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-price-chart {
+  width:clamp(120px,42vw,154px);
+  height:58px;
+  align-self:end;
+  overflow:visible;
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,.85));
+}
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-price-chart-grid { fill:none;stroke:rgba(220,239,239,.25);stroke-width:.7;stroke-dasharray:1.5 3;vector-effect:non-scaling-stroke; }
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-price-chart-area { fill:rgba(98,229,176,.19); }
+body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-price-chart-line { stroke-width:2.8; }
+body[data-app-view='mobile'] .mobile-layout-1 .mobile-market-name { grid-column:1;grid-row:1;max-width:68%; }
+body[data-app-view='mobile'] .mobile-layout-1 .mobile-market-quote { grid-column:2;grid-row:1/3; }
+body[data-app-view='mobile'] .mobile-layout-1 .mobile-price-chart { grid-column:1;grid-row:2;width:clamp(120px,42vw,154px); }
+body[data-app-view='mobile'] .mobile-layout-2 { grid-template-columns:auto minmax(0,1fr)!important;grid-template-rows:auto 1fr!important; }
+body[data-app-view='mobile'] .mobile-layout-2 .mobile-market-quote { grid-column:1;grid-row:1/3;justify-items:start; }
+body[data-app-view='mobile'] .mobile-layout-2 .mobile-market-name { grid-column:2;grid-row:1;justify-self:end;text-align:right; }
+body[data-app-view='mobile'] .mobile-layout-2 .mobile-price-chart { grid-column:2;grid-row:2;justify-self:end;width:clamp(120px,42vw,154px); }
+body[data-app-view='mobile'] .mobile-layout-3 { grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto auto!important; }
+body[data-app-view='mobile'] .mobile-layout-3 .mobile-market-name { grid-column:1/-1;grid-row:1;max-width:64%; }
+body[data-app-view='mobile'] .mobile-layout-3 .mobile-price-chart { grid-column:2;grid-row:2;width:clamp(120px,42vw,154px); }
+body[data-app-view='mobile'] .mobile-layout-3 .mobile-market-quote { grid-column:1;grid-row:2;align-self:end;justify-items:start; }
+body[data-app-view='mobile'] .mobile-layout-4 { grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:1fr auto!important; }
+body[data-app-view='mobile'] .mobile-layout-4 .mobile-market-name { grid-column:2;grid-row:1;align-self:end;max-width:160px;text-align:right; }
+body[data-app-view='mobile'] .mobile-layout-4 .mobile-market-quote { grid-column:1;grid-row:1;align-self:start;justify-items:start; }
+body[data-app-view='mobile'] .mobile-layout-4 .mobile-price-chart { grid-column:1/-1;grid-row:2;width:clamp(120px,42vw,154px); }
+body[data-app-view='mobile'] .mobile-layout-5 { grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto 1fr!important; }
+body[data-app-view='mobile'] .mobile-layout-5 .mobile-market-quote { grid-column:1;grid-row:1;justify-items:start; }
+body[data-app-view='mobile'] .mobile-layout-5 .mobile-market-name { grid-column:1;grid-row:2;align-self:end;max-width:65%; }
+body[data-app-view='mobile'] .mobile-layout-5 .mobile-price-chart { grid-column:2;grid-row:1/3;width:124px;height:70px;align-self:end; }
+body[data-app-view='mobile'] .mobile-layout-6 { grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto 1fr!important; }
+body[data-app-view='mobile'] .mobile-layout-6 .mobile-market-name { grid-column:1/-1;grid-row:1;max-width:68%; }
+body[data-app-view='mobile'] .mobile-layout-6 .mobile-market-quote { grid-column:1;grid-row:2;align-self:end;justify-items:start; }
+body[data-app-view='mobile'] .mobile-layout-6 .mobile-price-chart { grid-column:2;grid-row:1/3;width:124px;height:70px;align-self:end; }
+body[data-app-view='mobile'] .mobile-layout-7 { grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto 1fr!important; }
+body[data-app-view='mobile'] .mobile-layout-7 .mobile-market-name { grid-column:1;grid-row:1;max-width:65%; }
+body[data-app-view='mobile'] .mobile-layout-7 .mobile-market-quote { grid-column:2;grid-row:1; }
+body[data-app-view='mobile'] .mobile-layout-7 .mobile-price-chart { grid-column:1/-1;grid-row:2;width:150px;height:66px;justify-self:center; }
+body[data-app-view='mobile'] .mobile-layout-8 { grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:1fr auto!important; }
+body[data-app-view='mobile'] .mobile-layout-8 .mobile-market-quote { grid-column:1;grid-row:1;align-self:end;justify-items:start; }
+body[data-app-view='mobile'] .mobile-layout-8 .mobile-market-name { grid-column:1;grid-row:1;align-self:start;max-width:68%; }
+body[data-app-view='mobile'] .mobile-layout-8 .mobile-price-chart { grid-column:2;grid-row:1/3;width:122px;height:68px;align-self:end; }
+body[data-app-view='mobile'] .mobile-layout-9 { grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto 1fr!important; }
+body[data-app-view='mobile'] .mobile-layout-9 .mobile-market-name { grid-column:1;grid-row:1;max-width:65%; }
+body[data-app-view='mobile'] .mobile-layout-9 .mobile-market-quote { grid-column:2;grid-row:1;justify-items:end; }
+body[data-app-view='mobile'] .mobile-layout-9 .mobile-price-chart { grid-column:1;grid-row:2;width:clamp(120px,42vw,154px);height:62px; }
+@media(max-width:380px){
+  body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] { min-height:158px;padding:14px; }
+  body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-market-name strong { font-size:19px; }
+  body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-market-price { font-size:24px; }
+  body[data-app-view='mobile'] .mobile-market-row[class*='mobile-layout-'] .mobile-price-chart { width:clamp(112px,41vw,142px);height:56px; }
+}
+
 @media(max-width:600px){
   body[data-app-view='portal'] .portal-sidebar:not(.is-pinned){height:52px!important;min-height:52px!important;overflow:hidden}
   body[data-app-view='portal'] .portal-drink-group-head{align-items:center!important;justify-content:flex-start!important;gap:8px!important;padding:13px 0 10px!important}
