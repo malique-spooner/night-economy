@@ -58,6 +58,8 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
   const orderFilterOptions = useMemo(() => uniqueDrinkOptions((dashboard?.orders ?? []).map(order => ({ id: order.posProductId, name: order.productName }))), [dashboard?.orders]);
   const visiblePriceLedger = selectedPriceProductIds.length ? priceLedger.filter(point => selectedPriceProductIds.includes(point.productId)) : priceLedger;
   const visibleOrders = selectedOrderProductIds.length ? (dashboard?.orders ?? []).filter(order => selectedOrderProductIds.includes(order.posProductId)) : (dashboard?.orders ?? []);
+  const runHasDetailedHistory = sales.length > 0 || priceHistory.length > 0;
+  const runDetailsExpired = Date.parse(selectedRun?.startedAt ?? "") < Date.now() - 30 * 24 * 60 * 60 * 1_000 && !runHasDetailedHistory;
   const money = (minor: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(minor / 100);
   const serviceTime = (value: string, withSeconds = false) => new Intl.DateTimeFormat("en-GB", {
     timeZone: timezone,
@@ -81,7 +83,15 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
         <span className={`portal-run-status ${selectedRun.status}`}>{selectedRun.status}</span>
       </header>
 
-      {detailLoading ? <p className="portal-runs-empty">Loading every order and price round…</p> : detailError ? <p className="portal-runs-empty portal-run-error" role="alert">{detailError}</p> : <>
+      {detailLoading ? <p className="portal-runs-empty">Loading every order and price round…</p> : detailError ? <p className="portal-runs-empty portal-run-error" role="alert">{detailError}</p> : runDetailsExpired ? <section className="portal-run-panel" aria-label="Archived run summary">
+        <PanelHeading eyebrow="Archived run summary" id="run-archive-summary-title" title="Detailed history has expired" />
+        <p>Detailed simulated orders and five-minute price rounds are retained for 30 days. This run summary remains available in the archive.</p>
+        <div className="portal-run-kpis">
+          <RunKpi label="Drinks sold" value={String(selectedRun.salesCount)} />
+          <RunKpi label="Sales" value={money(selectedRun.revenueMinor)} />
+          <RunKpi label="Service time" value={`${selectedRun.simulatedMinutes} min`} />
+        </div>
+      </section> : <>
         <div className="portal-run-kpis">
           <RunKpi label="Night sales" value={money(dashboard.revenueMinor || selectedRun.revenueMinor)} />
           <RunKpi label="Orders" value={String(dashboard.orders.length)} />
@@ -168,7 +178,7 @@ export function PortalRunsPage({ currency, isLoading, products, runs, timezone }
   }
 
   return <section className="portal-runs-page">
-    <div className="portal-runs-heading"><div><span className="portal-start-kicker">Service archive</span><h1 className="portal-page-title">Previous runs</h1><p>Every quick rehearsal and scheduled service is kept here with its sales, five-minute prices and complete order ledger.</p></div><span>{runs.length} recorded</span></div>
+    <div className="portal-runs-heading"><div><span className="portal-start-kicker">Service archive</span><h1 className="portal-page-title">Previous runs</h1><p>Run summaries stay in the archive. Detailed simulated sales and five-minute price history are retained for 30 days.</p></div><span>{runs.length} recorded</span></div>
     {isLoading ? <p className="portal-runs-empty">Loading run history…</p> : !runs.length ? <p className="portal-runs-empty">Your next completed service will appear here. Earlier runs were not recorded individually.</p> : <div className="portal-runs-list">
       {runs.map(run => <article className="portal-run-card" key={run.id}>
         <div><strong>{runLabel(run)}</strong><span>{new Date(run.startedAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: timezone })}</span></div>
