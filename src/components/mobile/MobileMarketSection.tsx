@@ -1,17 +1,15 @@
 import type { MarketProduct, Venue } from "../../engine/types";
-import type { MarketPriceHistoryPoint } from "../../api/market";
 import { categoryLabel } from "../tv/tvHelpers";
 import { MobileMarketRow } from "./MobileMarketRow";
 import { mobileCategorySectionId } from "./mobileHelpers";
 
 type Props = {
   category: string;
-  historyByProductId: Map<string, MarketPriceHistoryPoint[]>;
   products: MarketProduct[];
   venue: Venue;
 };
 
-export function MobileMarketSection({ category, historyByProductId, products, venue }: Props) {
+export function MobileMarketSection({ category, products, venue }: Props) {
   return (
     <section className="mobile-menu-section mobile-market-section" id={mobileCategorySectionId(category)}>
       <div className="mobile-menu-section-head">
@@ -21,8 +19,8 @@ export function MobileMarketSection({ category, historyByProductId, products, ve
         </div>
       </div>
       <div className="mobile-market-list">
-        {products.map((product, index) => (
-          <MobileMarketRow currency={venue.currency} history={historyByProductId.get(product.id) ?? []} layout={(index % 9) + 1} product={product} key={product.id} />
+        {products.map(product => (
+          <MobileMarketRow currency={venue.currency} product={product} key={product.id} />
         ))}
       </div>
     </section>
