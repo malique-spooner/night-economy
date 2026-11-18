@@ -26,6 +26,11 @@ export default {
 
     const assetUrl = new URL(request.url);
     assetUrl.pathname = incoming.pathname.slice(prefix.length) || "/";
-    return env.ASSETS.fetch(new Request(assetUrl, request));
+    const response = await env.ASSETS.fetch(new Request(assetUrl, request));
+    if (!response.headers.get("content-type")?.includes("text/html")) return response;
+
+    const headers = new Headers(response.headers);
+    headers.set("Cache-Control", "no-store, max-age=0");
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
   },
 };
